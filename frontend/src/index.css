@@ -821,8 +821,8 @@
     border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
   }
 
-  :where(.divide-\[\#209C8A\]\/10 > :not(:last-child)) {
-    border-color: oklab(62.4288% -.106045 -.000302792 / .1);
+  :where(.divide-\[\#FF6B35\]\/10 > :not(:last-child)) {
+    border-color: rgba(255, 107, 53, 0.1);
   }
 
   .self-start {
@@ -889,16 +889,16 @@
     border-bottom-width: 1px;
   }
 
-  .border-\[\#209C8A\]\/10 {
-    border-color: oklab(62.4288% -.106045 -.000302792 / .1);
+  .border-\[\#FF6B35\]\/10 {
+    border-color: rgba(255, 107, 53, 0.1);
   }
 
-  .border-\[\#209C8A\]\/20 {
-    border-color: oklab(62.4288% -.106045 -.000302792 / .2);
+  .border-\[\#FF6B35\]\/20 {
+    border-color: rgba(255, 107, 53, 0.2);
   }
 
-  .border-\[\#209C8A\]\/30 {
-    border-color: oklab(62.4288% -.106045 -.000302792 / .3);
+  .border-\[\#FF6B35\]\/30 {
+    border-color: rgba(255, 107, 53, 0.3);
   }
 
   .border-blue-500\/20 {
@@ -939,16 +939,16 @@
     }
   }
 
-  .bg-\[\#209C8A\] {
-    background-color: #209c8a;
+  .bg-\[\#FF6B35\] {
+    background-color: #ff6b35;
   }
 
-  .bg-\[\#209C8A\]\/10 {
-    background-color: oklab(62.4288% -.106045 -.000302792 / .1);
+  .bg-\[\#FF6B35\]\/10 {
+    background-color: rgba(255, 107, 53, 0.1);
   }
 
-  .bg-\[\#209C8A\]\/20 {
-    background-color: oklab(62.4288% -.106045 -.000302792 / .2);
+  .bg-\[\#FF6B35\]\/20 {
+    background-color: rgba(255, 107, 53, 0.2);
   }
 
   .bg-\[\#020617\] {
@@ -1177,12 +1177,12 @@
     white-space: pre-line;
   }
 
-  .text-\[\#209C8A\] {
-    color: #209c8a;
+  .text-\[\#FF6B35\] {
+    color: #ff6b35;
   }
 
-  .text-\[\#209C8A\]\/60 {
-    color: oklab(62.4288% -.106045 -.000302792 / .6);
+  .text-\[\#FF6B35\]\/60 {
+    color: rgba(255, 107, 53, 0.6);
   }
 
   .text-blue-500 {
@@ -1411,8 +1411,8 @@
   }
 
   @media (hover: hover) {
-    .hover\:bg-\[\#209C8A\]\/90:hover {
-      background-color: oklab(62.4288% -.106045 -.000302792 / .9);
+    .hover\:bg-\[\#FF6B35\]\/90:hover {
+      background-color: rgba(255, 107, 53, 0.9);
     }
   }
 

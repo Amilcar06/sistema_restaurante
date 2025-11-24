@@ -262,7 +262,7 @@ export function Sales() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -281,12 +281,12 @@ export function Sales() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white">
+            <Button className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Nueva Venta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#020617] border-[#209C8A]/20 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Registrar Nueva Venta</DialogTitle>
               <DialogDescription className="text-white/60">
@@ -302,12 +302,12 @@ export function Sales() {
                     onValueChange={(value) => setFormData({ ...formData, location_id: value })}
                     required
                   >
-                    <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue placeholder="Selecciona sucursal" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                       {locations.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#209C8A]/20">
+                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
                           {loc.name}
                         </SelectItem>
                       ))}
@@ -320,13 +320,13 @@ export function Sales() {
                     value={formData.sale_type}
                     onValueChange={(value: "LOCAL" | "DELIVERY" | "TAKEAWAY") => setFormData({ ...formData, sale_type: value })}
                   >
-                    <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                      <SelectItem value="LOCAL" className="text-white focus:bg-[#209C8A]/20">Local</SelectItem>
-                      <SelectItem value="DELIVERY" className="text-white focus:bg-[#209C8A]/20">Delivery</SelectItem>
-                      <SelectItem value="TAKEAWAY" className="text-white focus:bg-[#209C8A]/20">Para Llevar</SelectItem>
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                      <SelectItem value="LOCAL" className="text-white focus:bg-[#FF6B35]/20">Local</SelectItem>
+                      <SelectItem value="DELIVERY" className="text-white focus:bg-[#FF6B35]/20">Delivery</SelectItem>
+                      <SelectItem value="TAKEAWAY" className="text-white focus:bg-[#FF6B35]/20">Para Llevar</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -335,7 +335,7 @@ export function Sales() {
                 <div>
                   <Label className="text-white/80">Número de Mesa</Label>
                   <Input
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="Ej: 5"
                     value={formData.table_number}
                     onChange={(e) => setFormData({ ...formData, table_number: e.target.value })}
@@ -347,7 +347,7 @@ export function Sales() {
                   <div>
                     <Label className="text-white/80">Servicio de Delivery</Label>
                     <Input
-                      className="bg-white/5 border-[#209C8A]/20 text-white"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
                       placeholder="PedidosYa, Ahora, etc."
                       value={formData.delivery_service}
                       onChange={(e) => setFormData({ ...formData, delivery_service: e.target.value })}
@@ -356,7 +356,7 @@ export function Sales() {
                   <div>
                     <Label className="text-white/80">Cliente</Label>
                     <Input
-                      className="bg-white/5 border-[#209C8A]/20 text-white"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
                       placeholder="Nombre del cliente"
                       value={formData.customer_name}
                       onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
@@ -370,7 +370,7 @@ export function Sales() {
                   {formData.items.map((item, index) => (
                     <div key={index} className="flex gap-2 items-center bg-white/5 p-2 rounded">
                       <Input
-                        className="bg-white/5 border-[#209C8A]/20 text-white flex-1"
+                        className="bg-white/5 border-[#FF6B35]/20 text-white flex-1"
                         placeholder="Nombre del plato"
                         value={item.item_name}
                         onChange={(e) => updateItem(index, "item_name", e.target.value)}
@@ -378,7 +378,7 @@ export function Sales() {
                       />
                       <Input
                         type="number"
-                        className="bg-white/5 border-[#209C8A]/20 text-white w-20"
+                        className="bg-white/5 border-[#FF6B35]/20 text-white w-20"
                         placeholder="Cant."
                         value={item.quantity}
                         onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
@@ -388,7 +388,7 @@ export function Sales() {
                       <Input
                         type="number"
                         step="0.01"
-                        className="bg-white/5 border-[#209C8A]/20 text-white w-24"
+                        className="bg-white/5 border-[#FF6B35]/20 text-white w-24"
                         placeholder="Precio"
                         value={item.unit_price}
                         onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
@@ -409,7 +409,7 @@ export function Sales() {
                     type="button"
                     variant="outline"
                     onClick={addItem}
-                    className="w-full border-[#209C8A]/40 text-[#209C8A] hover:bg-[#209C8A]/20 hover:text-white hover:border-[#209C8A] bg-transparent"
+                    className="w-full border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Agregar Plato
@@ -421,7 +421,7 @@ export function Sales() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0.00"
                   value={formData.discount_amount}
                   onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })}
@@ -436,15 +436,15 @@ export function Sales() {
                     setFormData({ ...formData, payment_method: value })
                   }
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Selecciona método de pago" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                     {paymentMethods.map((method) => (
                       <SelectItem
                         key={method}
                         value={method}
-                        className="text-white focus:bg-[#209C8A]/20"
+                        className="text-white focus:bg-[#FF6B35]/20"
                       >
                         {method === "EFECTIVO" ? "Efectivo" :
                           method === "QR" ? "QR" :
@@ -457,13 +457,13 @@ export function Sales() {
               <div>
                 <Label className="text-white/80">Notas</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Notas adicionales (opcional)"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 />
               </div>
-              <div className="pt-4 border-t border-[#209C8A]/20">
+              <div className="pt-4 border-t border-[#FF6B35]/20">
                 {(() => {
                   const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
                   const tax = subtotal * 0.13;
@@ -490,9 +490,9 @@ export function Sales() {
                           Bs. {tax.toFixed(2)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-[#209C8A]/20">
+                      <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
                         <span className="text-white font-semibold">Total:</span>
-                        <span className="text-[#209C8A] text-lg font-semibold">
+                        <span className="text-[#FF6B35] text-lg font-semibold">
                           Bs. {total.toFixed(2)}
                         </span>
                       </div>
@@ -502,7 +502,7 @@ export function Sales() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+                className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
                 disabled={formData.items.length === 0}
               >
                 Registrar Venta
@@ -514,10 +514,10 @@ export function Sales() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg">
-              <Calendar className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg">
+              <Calendar className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/60 mb-1">Ventas de Hoy</div>
@@ -525,10 +525,10 @@ export function Sales() {
             </div>
           </div>
         </Card>
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg">
-              <DollarSign className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg">
+              <DollarSign className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/60 mb-1">Ingresos del Día</div>
@@ -536,10 +536,10 @@ export function Sales() {
             </div>
           </div>
         </Card>
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg">
-              <Package className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg">
+              <Package className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/60 mb-1">Platos Vendidos</div>
@@ -547,10 +547,10 @@ export function Sales() {
             </div>
           </div>
         </Card>
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/60 mb-1">Ticket Promedio</div>
@@ -561,14 +561,14 @@ export function Sales() {
       </div>
 
       {/* Sales List */}
-      <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+      <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
         <h3 className="text-white mb-4">Ventas Recientes</h3>
         {sales.length === 0 ? (
           <p className="text-white/60 text-center py-8">No hay ventas registradas</p>
         ) : (
           <div className="space-y-4">
             {paginatedSales.map((sale) => (
-              <div key={sale.id} className="bg-white/5 rounded-lg p-4 border border-[#209C8A]/10">
+              <div key={sale.id} className="bg-white/5 rounded-lg p-4 border border-[#FF6B35]/10">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="text-white mb-1">Venta #{sale.id.slice(0, 8)}</div>
@@ -576,7 +576,7 @@ export function Sales() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-right">
-                      <div className="text-[#209C8A]">Bs. {sale.total.toFixed(2)}</div>
+                      <div className="text-[#FF6B35]">Bs. {sale.total.toFixed(2)}</div>
                       <div className="text-white/60">
                         {sale.payment_method === "EFECTIVO" ? "Efectivo" :
                           sale.payment_method === "QR" ? "QR" :
@@ -621,7 +621,7 @@ export function Sales() {
                       e.preventDefault();
                       if (currentPage > 1) setCurrentPage(currentPage - 1);
                     }}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                   />
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -633,7 +633,7 @@ export function Sales() {
                         setCurrentPage(page);
                       }}
                       isActive={currentPage === page}
-                      className="cursor-pointer text-white hover:text-[#209C8A] data-[active=true]:bg-[#209C8A]/20 data-[active=true]:text-[#209C8A]"
+                      className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
                     >
                       {page}
                     </PaginationLink>
@@ -646,7 +646,7 @@ export function Sales() {
                       e.preventDefault();
                       if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                     }}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                   />
                 </PaginationItem>
               </PaginationContent>

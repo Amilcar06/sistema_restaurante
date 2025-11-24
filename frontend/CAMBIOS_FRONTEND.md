@@ -110,11 +110,11 @@ Este documento detalla todos los cambios realizados en el frontend para adaptars
 ## 🎨 Diseño y UX
 
 ### **Consistencia Visual**
-- Todos los componentes nuevos siguen el mismo diseño:
-  - Fondo oscuro (`bg-[#020617]`)
-  - Color principal (`#209C8A`)
-  - Bordes con transparencia (`border-[#209C8A]/20`)
-  - Texto blanco con opacidad variable
+- Todos los componentes nuevos siguen el tema GastroSmart:
+  - Fondo oscuro profundo (`bg-[#0F1629]`)
+  - Color principal naranja vibrante (`#FF6B35`)
+  - Bordes con transparencia en naranja (`border-[#FF6B35]/20`)
+  - Superficies con tintes `surface-orange-*` y texto blanco con opacidades
 
 ### **Componentes UI Utilizados**
 - `Card`: Para contenedores

@@ -68,10 +68,10 @@ frontend/
 
 El proyecto mantiene un diseño oscuro con los siguientes colores principales:
 
-- **Background**: `#020617` (muy oscuro)
-- **Primary/Accent**: `#209C8A` (verde turquesa)
+- **Background**: `#0F1629` (noche azul petróleo)
+- **Primary/Accent**: `#FF6B35` (naranja GastroSmart)
 - **Text**: Blanco con diferentes opacidades (`text-white`, `text-white/60`, etc.)
-- **Cards**: `bg-white/5` con bordes `border-[#209C8A]/20`
+- **Cards**: Tonos `bg-card` con bordes `border-[#FF6B35]/20`
 
 ## Conexión con Backend
 

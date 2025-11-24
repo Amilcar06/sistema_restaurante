@@ -156,7 +156,7 @@ export function Users() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -171,7 +171,7 @@ export function Users() {
         </div>
         <Button
           type="button"
-          className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
@@ -182,13 +182,13 @@ export function Users() {
         </Button>
       </div>
 
-      <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+      <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogContent className="bg-[#020617] border-[#209C8A]/20 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">
                 {editingUser ? "Editar Usuario" : "Crear Nuevo Usuario"}
@@ -202,7 +202,7 @@ export function Users() {
                 <Label className="text-white/80">Email</Label>
                 <Input
                   type="email"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="usuario@ejemplo.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -212,7 +212,7 @@ export function Users() {
               <div>
                 <Label className="text-white/80">Nombre de Usuario</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="usuario123"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -222,7 +222,7 @@ export function Users() {
               <div>
                 <Label className="text-white/80">Nombre Completo</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Juan Pérez"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
@@ -231,7 +231,7 @@ export function Users() {
               <div>
                 <Label className="text-white/80">Teléfono</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="+591 77788990"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -243,7 +243,7 @@ export function Users() {
                 </Label>
                 <Input
                   type="password"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -257,15 +257,15 @@ export function Users() {
                   value={formData.default_location_id}
                   onValueChange={(value) => setFormData({ ...formData, default_location_id: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Selecciona una sucursal" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                    <SelectItem value="none" className="text-white/60 focus:bg-[#209C8A]/20">
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                       (Ninguna)
                     </SelectItem>
                     {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#209C8A]/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
                         {loc.name}
                       </SelectItem>
                     ))}
@@ -288,7 +288,7 @@ export function Users() {
                 />
                 <Label htmlFor="is_superuser" className="text-white/80">Administrador</Label>
               </div>
-              <Button type="submit" className="w-full bg-[#209C8A] hover:bg-[#209C8A]/90 text-white">
+              <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
                 {editingUser ? "Actualizar Usuario" : "Crear Usuario"}
               </Button>
             </form>
@@ -298,7 +298,7 @@ export function Users() {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <Input
-            className="pl-10 bg-white/5 border-[#209C8A]/20 text-white"
+            className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
             placeholder="Buscar usuarios por nombre, email o usuario..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -307,7 +307,7 @@ export function Users() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white/5 border-b border-[#209C8A]/20">
+            <thead className="bg-white/5 border-b border-[#FF6B35]/20">
               <tr>
                 <th className="px-6 py-4 text-left text-white/80">Usuario</th>
                 <th className="px-6 py-4 text-left text-white/80">Email</th>
@@ -327,14 +327,14 @@ export function Users() {
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-[#209C8A]/10 last:border-b-0">
+                  <tr key={user.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
                     <td className="px-6 py-4 text-white">{user.username}</td>
                     <td className="px-6 py-4 text-white/80">{user.email}</td>
                     <td className="px-6 py-4 text-white/80">{user.full_name || "N/A"}</td>
                     <td className="px-6 py-4 text-white/80">{user.phone || "N/A"}</td>
                     <td className="px-6 py-4 text-white/80">
                       {user.is_active ? (
-                        <span className="text-[#209C8A]">Activo</span>
+                        <span className="text-[#FF6B35]">Activo</span>
                       ) : (
                         <span className="text-red-400">Inactivo</span>
                       )}

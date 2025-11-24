@@ -122,7 +122,7 @@ export function BusinessLocations() {
         </div>
         <Button
           onClick={() => handleOpenDialog()}
-          className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Sucursal
@@ -136,17 +136,17 @@ export function BusinessLocations() {
           placeholder="Buscar sucursales..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white/5 border-[#209C8A]/20 text-white"
+          className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
         />
       </div>
 
       {/* Locations List */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-[#209C8A] animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#FF6B35] animate-spin" />
         </div>
       ) : filteredLocations.length === 0 ? (
-        <Card className="bg-white/5 border-[#209C8A]/20 p-12 text-center">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
           <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
           <p className="text-white/60">No hay sucursales registradas</p>
         </Card>
@@ -155,15 +155,15 @@ export function BusinessLocations() {
           {filteredLocations.map((location) => (
             <Card
               key={location.id}
-              className="bg-white/5 border-[#209C8A]/20 p-6 hover:border-[#209C8A]/40 transition-all"
+              className="bg-white/5 border-[#FF6B35]/20 p-6 hover:border-[#FF6B35]/40 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-[#209C8A]" />
+                  <MapPin className="w-5 h-5 text-[#FF6B35]" />
                   <div>
                     <h3 className="text-white font-semibold">{location.name}</h3>
                     {location.is_main && (
-                      <span className="text-xs text-[#209C8A] bg-[#209C8A]/20 px-2 py-1 rounded">
+                      <span className="text-xs text-[#FF6B35] bg-[#FF6B35]/20 px-2 py-1 rounded">
                         Principal
                       </span>
                     )}
@@ -174,7 +174,7 @@ export function BusinessLocations() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenDialog(location)}
-                    className="text-[#209C8A] hover:bg-[#209C8A]/20"
+                    className="text-[#FF6B35] hover:bg-[#FF6B35]/20"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -223,7 +223,7 @@ export function BusinessLocations() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#020617] border-[#209C8A]/20 text-white max-w-2xl">
+        <DialogContent className="bg-[#020617] border-[#FF6B35]/20 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingLocation ? "Editar Sucursal" : "Nueva Sucursal"}
@@ -239,7 +239,7 @@ export function BusinessLocations() {
               <Label className="text-white/80">Nombre de la Sucursal *</Label>
               <Input
                 required
-                className="bg-white/5 border-[#209C8A]/20 text-white"
+                className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Ej: Sucursal Centro"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -249,7 +249,7 @@ export function BusinessLocations() {
               <Label className="text-white/80">Dirección *</Label>
               <Input
                 required
-                className="bg-white/5 border-[#209C8A]/20 text-white"
+                className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Dirección completa"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -259,7 +259,7 @@ export function BusinessLocations() {
               <div>
                 <Label className="text-white/80">Ciudad</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="La Paz"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -268,7 +268,7 @@ export function BusinessLocations() {
               <div>
                 <Label className="text-white/80">Zona</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Ej: Sopocachi, Centro"
                   value={formData.zone}
                   onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
@@ -279,7 +279,7 @@ export function BusinessLocations() {
               <div>
                 <Label className="text-white/80">Teléfono</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="777-XXXXX"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -289,7 +289,7 @@ export function BusinessLocations() {
                 <Label className="text-white/80">Email</Label>
                 <Input
                   type="email"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="sucursal@restaurante.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -317,13 +317,13 @@ export function BusinessLocations() {
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
-                className="border-[#209C8A]/20 text-white hover:bg-white/5"
+                className="border-[#FF6B35]/20 text-white hover:bg-white/5"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+                className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
               >
                 {editingLocation ? "Actualizar" : "Crear"}
               </Button>

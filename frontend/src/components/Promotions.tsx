@@ -181,7 +181,7 @@ export function Promotions() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -196,7 +196,7 @@ export function Promotions() {
         </div>
         <Button
           type="button"
-          className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
@@ -207,13 +207,13 @@ export function Promotions() {
         </Button>
       </div>
 
-      <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+      <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogContent className="bg-[#020617] border-[#209C8A]/20 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">
                 {editingPromotion ? "Editar Promoción" : "Crear Nueva Promoción"}
@@ -226,7 +226,7 @@ export function Promotions() {
               <div>
                 <Label className="text-white/80">Nombre</Label>
                 <Input
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Ej: Descuento de Verano"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -236,7 +236,7 @@ export function Promotions() {
               <div>
                 <Label className="text-white/80">Descripción</Label>
                 <Textarea
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Descripción de la promoción"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -250,13 +250,13 @@ export function Promotions() {
                     onValueChange={(value: 'percentage' | 'fixed_amount' | 'buy_x_get_y') => setFormData({ ...formData, discount_type: value })}
                     required
                   >
-                    <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                      <SelectItem value="percentage" className="text-white focus:bg-[#209C8A]/20">Porcentaje</SelectItem>
-                      <SelectItem value="fixed_amount" className="text-white focus:bg-[#209C8A]/20">Monto Fijo</SelectItem>
-                      <SelectItem value="buy_x_get_y" className="text-white focus:bg-[#209C8A]/20">Compra X Lleva Y</SelectItem>
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                      <SelectItem value="percentage" className="text-white focus:bg-[#FF6B35]/20">Porcentaje</SelectItem>
+                      <SelectItem value="fixed_amount" className="text-white focus:bg-[#FF6B35]/20">Monto Fijo</SelectItem>
+                      <SelectItem value="buy_x_get_y" className="text-white focus:bg-[#FF6B35]/20">Compra X Lleva Y</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -268,7 +268,7 @@ export function Promotions() {
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
                     value={formData.discount_value}
                     onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })}
@@ -283,7 +283,7 @@ export function Promotions() {
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
                     value={formData.min_purchase || ""}
                     onChange={(e) => setFormData({ ...formData, min_purchase: e.target.value ? parseFloat(e.target.value) : undefined })}
@@ -295,7 +295,7 @@ export function Promotions() {
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
                     value={formData.max_discount || ""}
                     onChange={(e) => setFormData({ ...formData, max_discount: e.target.value ? parseFloat(e.target.value) : undefined })}
@@ -307,7 +307,7 @@ export function Promotions() {
                   <Label className="text-white/80">Fecha de Inicio</Label>
                   <Input
                     type="datetime-local"
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     value={formData.start_date}
                     onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                     required
@@ -317,7 +317,7 @@ export function Promotions() {
                   <Label className="text-white/80">Fecha de Fin</Label>
                   <Input
                     type="datetime-local"
-                    className="bg-white/5 border-[#209C8A]/20 text-white"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     value={formData.end_date}
                     onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                     required
@@ -330,14 +330,14 @@ export function Promotions() {
                   value={formData.applicable_to}
                   onValueChange={(value: 'all' | 'recipes' | 'categories' | 'specific_items') => setFormData({ ...formData, applicable_to: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                    <SelectItem value="all" className="text-white focus:bg-[#209C8A]/20">Todos</SelectItem>
-                    <SelectItem value="recipes" className="text-white focus:bg-[#209C8A]/20">Recetas Específicas</SelectItem>
-                    <SelectItem value="categories" className="text-white focus:bg-[#209C8A]/20">Categorías</SelectItem>
-                    <SelectItem value="specific_items" className="text-white focus:bg-[#209C8A]/20">Items Específicos</SelectItem>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="all" className="text-white focus:bg-[#FF6B35]/20">Todos</SelectItem>
+                    <SelectItem value="recipes" className="text-white focus:bg-[#FF6B35]/20">Recetas Específicas</SelectItem>
+                    <SelectItem value="categories" className="text-white focus:bg-[#FF6B35]/20">Categorías</SelectItem>
+                    <SelectItem value="specific_items" className="text-white focus:bg-[#FF6B35]/20">Items Específicos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -347,15 +347,15 @@ export function Promotions() {
                   value={formData.location_id}
                   onValueChange={(value) => setFormData({ ...formData, location_id: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Todas las sucursales" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                    <SelectItem value="none" className="text-white/60 focus:bg-[#209C8A]/20">
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                       Todas las sucursales
                     </SelectItem>
                     {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#209C8A]/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
                         {loc.name}
                       </SelectItem>
                     ))}
@@ -370,7 +370,7 @@ export function Promotions() {
                 />
                 <Label htmlFor="is_active" className="text-white/80">Activa</Label>
               </div>
-              <Button type="submit" className="w-full bg-[#209C8A] hover:bg-[#209C8A]/90 text-white">
+              <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
                 {editingPromotion ? "Actualizar Promoción" : "Crear Promoción"}
               </Button>
             </form>
@@ -380,7 +380,7 @@ export function Promotions() {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <Input
-            className="pl-10 bg-white/5 border-[#209C8A]/20 text-white"
+            className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
             placeholder="Buscar promociones por nombre o descripción..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -389,7 +389,7 @@ export function Promotions() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white/5 border-b border-[#209C8A]/20">
+            <thead className="bg-white/5 border-b border-[#FF6B35]/20">
               <tr>
                 <th className="px-6 py-4 text-left text-white/80">Nombre</th>
                 <th className="px-6 py-4 text-left text-white/80">Tipo</th>
@@ -410,7 +410,7 @@ export function Promotions() {
                 filteredPromotions.map((promo) => {
                   const active = isActive(promo);
                   return (
-                    <tr key={promo.id} className="border-b border-[#209C8A]/10 last:border-b-0">
+                    <tr key={promo.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
                       <td className="px-6 py-4 text-white">{promo.name}</td>
                       <td className="px-6 py-4 text-white/80">{getDiscountTypeLabel(promo.discount_type)}</td>
                       <td className="px-6 py-4 text-white/80">

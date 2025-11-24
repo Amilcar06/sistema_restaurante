@@ -30,7 +30,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -53,7 +53,7 @@ export function Dashboard() {
       change: `${dashboardData.stats.sales_change_percent >= 0 ? '+' : ''}${dashboardData.stats.sales_change_percent.toFixed(1)}%`,
       trend: (dashboardData.stats.sales_change_percent >= 0 ? "up" : "down") as const,
       icon: DollarSign,
-      color: "#209C8A"
+      color: "#FF6B35"
     },
     {
       title: "Insumos Críticos",
@@ -69,7 +69,7 @@ export function Dashboard() {
       change: `${dashboardData.stats.dishes_change_percent >= 0 ? '+' : ''}${dashboardData.stats.dishes_change_percent.toFixed(1)}%`,
       trend: (dashboardData.stats.dishes_change_percent >= 0 ? "up" : "down") as const,
       icon: Package,
-      color: "#209C8A"
+      color: "#FF6B35"
     },
     {
       title: "Margen Promedio",
@@ -77,7 +77,7 @@ export function Dashboard() {
       change: `${dashboardData.stats.margin_change_percent >= 0 ? '+' : ''}${dashboardData.stats.margin_change_percent.toFixed(1)}%`,
       trend: (dashboardData.stats.margin_change_percent >= 0 ? "up" : "down") as const,
       icon: TrendingUp,
-      color: "#209C8A"
+      color: "#FF6B35"
     },
   ];
 
@@ -89,7 +89,7 @@ export function Dashboard() {
   }));
 
   const categoryDistribution = dashboardData.category_distribution;
-  const COLORS = ["#209C8A", "#10B981", "#06B6D4", "#8B5CF6"];
+  const COLORS = ["#FF6B35", "#10B981", "#06B6D4", "#8B5CF6"];
 
   const alerts = dashboardData.alerts;
 
@@ -106,12 +106,12 @@ export function Dashboard() {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={`stat-${index}`} className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300 cursor-default relative z-0">
+            <Card key={`stat-${index}`} className="p-6 cursor-default relative z-0">
               <div className="flex items-start justify-between mb-4">
-                <div className="bg-white/10 p-3 rounded-lg hover:bg-white/20 transition-colors">
+                <div className="bg-surface-orange-light p-3 rounded-lg hover:bg-surface-orange-medium transition-colors">
                   <Icon className="w-6 h-6" style={{ color: stat.color }} />
                 </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-[#209C8A]" : "text-red-400"
+                <div className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-primary" : "text-red-400"
                   }`}>
                   {stat.trend === "up" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   <span>{stat.change}</span>
@@ -127,24 +127,24 @@ export function Dashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Ventas de la Semana</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={salesData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#209C8A20" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 107, 53, 0.1)" />
               <XAxis dataKey="day" stroke="#ffffff60" />
               <YAxis stroke="#ffffff60" />
               <Tooltip
-                contentStyle={{ backgroundColor: "#020617", border: "1px solid #209C8A40" }}
+                contentStyle={{ backgroundColor: "#0F1629", border: "1px solid rgba(255, 107, 53, 0.3)" }}
                 labelStyle={{ color: "#ffffff" }}
               />
-              <Line type="monotone" dataKey="ventas" stroke="#209C8A" strokeWidth={2} dot={{ fill: "#209C8A" }} />
+              <Line type="monotone" dataKey="ventas" stroke="#FF6B35" strokeWidth={2} dot={{ fill: "#FF6B35" }} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
 
         {/* Category Distribution */}
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Distribución por Categoría</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -163,7 +163,7 @@ export function Dashboard() {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ backgroundColor: "#020617", border: "1px solid #209C8A40" }}
+                contentStyle={{ backgroundColor: "#0F1629", border: "1px solid rgba(255, 107, 53, 0.3)" }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -173,13 +173,13 @@ export function Dashboard() {
       {/* Top Dishes and Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Dishes */}
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Platos Más Vendidos</h3>
           <div className="space-y-3">
             {topDishes.map((dish, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-default">
+              <div key={index} className="flex items-center justify-between p-4 bg-surface-orange-subtle rounded-lg hover:bg-surface-orange-light transition-colors cursor-default">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#209C8A]/20 w-10 h-10 rounded-full flex items-center justify-center text-[#209C8A] font-bold">
+                  <div className="bg-primary/20 w-10 h-10 rounded-full flex items-center justify-center text-primary font-bold">
                     {index + 1}
                   </div>
                   <div>
@@ -187,22 +187,22 @@ export function Dashboard() {
                     <div className="text-white/60 text-sm">{dish.ventas} unidades</div>
                   </div>
                 </div>
-                <div className="text-[#209C8A] font-semibold">Bs. {dish.ingresos}</div>
+                <div className="text-primary font-semibold">Bs. {dish.ingresos}</div>
               </div>
             ))}
           </div>
         </Card>
 
         {/* Alerts */}
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 transition-all duration-300">
+        <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Alertas Inteligentes</h3>
           <div className="space-y-3">
             {alerts.map((alert, index) => (
               <div
                 key={index}
                 className={`flex items-start gap-3 p-4 rounded-lg transition-all ${alert.type === "warning"
-                    ? "bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/15"
-                    : "bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15"
+                  ? "bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/15"
+                  : "bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15"
                   }`}
               >
                 <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alert.type === "warning" ? "text-yellow-400" : "text-blue-400"

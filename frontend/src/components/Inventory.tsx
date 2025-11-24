@@ -286,7 +286,7 @@ export function Inventory() {
     const percentage = (item.quantity / item.min_stock) * 100;
     if (percentage <= 100) return { status: "critical", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" };
     if (percentage <= 150) return { status: "low", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" };
-    return { status: "good", color: "text-[#209C8A]", bg: "bg-[#209C8A]/10", border: "border-[#209C8A]/20" };
+    return { status: "good", color: "text-[#FF6B35]", bg: "bg-[#FF6B35]/10", border: "border-[#FF6B35]/20" };
   };
 
   const criticalItems = items.filter(item => item.quantity <= item.min_stock).length;
@@ -295,7 +295,7 @@ export function Inventory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -311,7 +311,7 @@ export function Inventory() {
         </div>
         <Button
           type="button"
-          className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white shadow-lg hover:shadow-[#209C8A]/50 transition-all duration-300"
+          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white shadow-lg hover:shadow-[#FF6B35]/50 transition-all duration-300"
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
@@ -328,7 +328,7 @@ export function Inventory() {
         setIsDialogOpen(open);
         if (!open) resetForm();
       }}>
-        <DialogContent className="bg-[#020617] border-[#209C8A]/20">
+        <DialogContent className="bg-[#020617] border-[#FF6B35]/20">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingItem ? "Editar Insumo" : "Agregar Nuevo Insumo"}
@@ -341,7 +341,7 @@ export function Inventory() {
             <div>
               <Label className="text-white/80">Nombre del Insumo</Label>
               <Input
-                className="bg-white/5 border-[#209C8A]/20 text-white"
+                className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Ej: Tomate"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -355,12 +355,12 @@ export function Inventory() {
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
                 required
               >
-                <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                   <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                   {enums.categories.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-white focus:bg-[#209C8A]/20">
+                    <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
                       {cat}
                     </SelectItem>
                   ))}
@@ -373,7 +373,7 @@ export function Inventory() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
@@ -387,12 +387,12 @@ export function Inventory() {
                   onValueChange={(value) => setFormData({ ...formData, unit: value })}
                   required
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Selecciona una unidad" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                     {enums.units.map((unit) => (
-                      <SelectItem key={unit} value={unit} className="text-white focus:bg-[#209C8A]/20">
+                      <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
                         {unit}
                       </SelectItem>
                     ))}
@@ -406,7 +406,7 @@ export function Inventory() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0"
                   value={formData.min_stock}
                   onChange={(e) => setFormData({ ...formData, min_stock: parseFloat(e.target.value) || 0 })}
@@ -418,7 +418,7 @@ export function Inventory() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0.00"
                   value={formData.cost_per_unit}
                   onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
@@ -433,12 +433,12 @@ export function Inventory() {
                 onValueChange={(value) => setFormData({ ...formData, location_id: value })}
                 required
               >
-                <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                   <SelectValue placeholder="Selecciona una sucursal" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                   {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#209C8A]/20">
+                    <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
                       {loc.name}
                     </SelectItem>
                   ))}
@@ -451,15 +451,15 @@ export function Inventory() {
                 value={formData.supplier_id || "none"}
                 onValueChange={(value) => setFormData({ ...formData, supplier_id: value === "none" ? undefined : value })}
               >
-                <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                   <SelectValue placeholder="Selecciona un proveedor" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                  <SelectItem value="none" className="text-white/60 focus:bg-[#209C8A]/20">
+                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                  <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                     (Ninguno)
                   </SelectItem>
                   {suppliers.map((sup) => (
-                    <SelectItem key={sup.id} value={sup.id} className="text-white focus:bg-[#209C8A]/20">
+                    <SelectItem key={sup.id} value={sup.id} className="text-white focus:bg-[#FF6B35]/20">
                       {sup.name}
                     </SelectItem>
                   ))}
@@ -469,7 +469,7 @@ export function Inventory() {
             <div>
               <Label className="text-white/80">Proveedor (texto libre)</Label>
               <Input
-                className="bg-white/5 border-[#209C8A]/20 text-white"
+                className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Nombre del proveedor (si no está en la lista)"
                 value={formData.supplier}
                 onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
@@ -481,7 +481,7 @@ export function Inventory() {
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Opcional"
                   value={formData.max_stock || ""}
                   onChange={(e) => setFormData({ ...formData, max_stock: e.target.value ? parseFloat(e.target.value) : undefined })}
@@ -491,7 +491,7 @@ export function Inventory() {
                 <Label className="text-white/80">Fecha de Caducidad</Label>
                 <Input
                   type="date"
-                  className="bg-white/5 border-[#209C8A]/20 text-white"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
                   value={formData.expiry_date || ""}
                   onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value || undefined })}
                 />
@@ -500,13 +500,13 @@ export function Inventory() {
             <div>
               <Label className="text-white/80">Código de Barras</Label>
               <Input
-                className="bg-white/5 border-[#209C8A]/20 text-white"
+                className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Código de barras (opcional)"
                 value={formData.barcode}
                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
               />
             </div>
-            <Button type="submit" className="w-full bg-[#209C8A] hover:bg-[#209C8A]/90 text-white">
+            <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
               {editingItem ? "Actualizar Insumo" : "Guardar Insumo"}
             </Button>
           </form>
@@ -515,17 +515,17 @@ export function Inventory() {
 
       {/* Tabs for Inventory and History */}
       <Tabs defaultValue="inventory" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-white/5 border-[#209C8A]/20 p-1 h-auto mb-6">
+        <TabsList className="grid w-full grid-cols-2 bg-white/5 border-[#FF6B35]/20 p-1 h-auto mb-6">
           <TabsTrigger
             value="inventory"
-            className="text-white/60 data-[state=active]:text-[#209C8A] data-[state=active]:bg-[#209C8A]/10 py-2"
+            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2"
           >
             <Package className="w-4 h-4 mr-2" />
             Inventario
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="text-white/60 data-[state=active]:text-[#209C8A] data-[state=active]:bg-[#209C8A]/10 py-2"
+            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2"
           >
             <History className="w-4 h-4 mr-2" />
             Historial de Movimientos
@@ -535,10 +535,10 @@ export function Inventory() {
         <TabsContent value="inventory" className="space-y-6">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300">
+            <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
               <div className="flex items-center gap-4">
-                <div className="bg-[#209C8A]/10 p-3 rounded-lg hover:bg-[#209C8A]/20 transition-colors">
-                  <Package className="w-6 h-6 text-[#209C8A]" />
+                <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
+                  <Package className="w-6 h-6 text-[#FF6B35]" />
                 </div>
                 <div>
                   <div className="text-white/70 mb-1 text-sm font-medium">Total de Insumos</div>
@@ -557,10 +557,10 @@ export function Inventory() {
                 </div>
               </div>
             </Card>
-            <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300">
+            <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
               <div className="flex items-center gap-4">
-                <div className="bg-[#209C8A]/10 p-3 rounded-lg hover:bg-[#209C8A]/20 transition-colors">
-                  <CheckCircle2 className="w-6 h-6 text-[#209C8A]" />
+                <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
+                  <CheckCircle2 className="w-6 h-6 text-[#FF6B35]" />
                 </div>
                 <div>
                   <div className="text-white/70 mb-1 text-sm font-medium">Valor Total</div>
@@ -571,11 +571,11 @@ export function Inventory() {
           </div>
 
           {/* Search */}
-          <Card className="bg-white/5 border-[#209C8A]/20 p-4">
+          <Card className="bg-white/5 border-[#FF6B35]/20 p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
               <Input
-                className="pl-10 bg-white/5 border-[#209C8A]/20 text-white"
+                className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Buscar insumos por nombre o categoría..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -584,10 +584,10 @@ export function Inventory() {
           </Card>
 
           {/* Inventory Table - Desktop */}
-          <Card className="bg-white/5 border-[#209C8A]/20 overflow-hidden hidden md:block">
+          <Card className="bg-white/5 border-[#FF6B35]/20 overflow-hidden hidden md:block">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white/5 border-b border-[#209C8A]/20">
+                <thead className="bg-white/5 border-b border-[#FF6B35]/20">
                   <tr>
                     <th className="px-6 py-4 text-left text-white/80">Insumo</th>
                     <th className="px-6 py-4 text-left text-white/80">Categoría</th>
@@ -599,7 +599,7 @@ export function Inventory() {
                     <th className="px-6 py-4 text-left text-white/80">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#209C8A]/10">
+                <tbody className="divide-y divide-[#FF6B35]/10">
                   {filteredItems.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-12 text-center">
@@ -610,7 +610,7 @@ export function Inventory() {
                           </p>
                           {!searchTerm && (
                             <Button
-                              className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white mt-2"
+                              className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white mt-2"
                               onClick={() => {
                                 resetForm();
                                 setIsDialogOpen(true);
@@ -627,7 +627,7 @@ export function Inventory() {
                     paginatedItems.map((item) => {
                       const status = getStockStatus(item);
                       return (
-                        <tr key={item.id} className="hover:bg-white/10 transition-colors border-b border-[#209C8A]/10">
+                        <tr key={item.id} className="hover:bg-white/10 transition-colors border-b border-[#FF6B35]/10">
                           <td className="px-6 py-4">
                             <div className="text-white font-medium">{item.name}</div>
                           </td>
@@ -663,7 +663,7 @@ export function Inventory() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEdit(item)}
-                                className="text-white hover:bg-[#209C8A]/20 hover:text-[#209C8A] transition-all"
+                                className="text-white hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] transition-all"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -698,7 +698,7 @@ export function Inventory() {
                           e.preventDefault();
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                       />
                     </PaginationItem>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -710,7 +710,7 @@ export function Inventory() {
                             setCurrentPage(page);
                           }}
                           isActive={currentPage === page}
-                          className="cursor-pointer text-white hover:text-[#209C8A] data-[active=true]:bg-[#209C8A]/20 data-[active=true]:text-[#209C8A]"
+                          className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
                         >
                           {page}
                         </PaginationLink>
@@ -723,7 +723,7 @@ export function Inventory() {
                           e.preventDefault();
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -735,7 +735,7 @@ export function Inventory() {
           {/* Inventory Cards - Mobile */}
           <div className="md:hidden space-y-4">
             {filteredItems.length === 0 ? (
-              <Card className="bg-white/5 border-[#209C8A]/20 p-8 text-center">
+              <Card className="bg-white/5 border-[#FF6B35]/20 p-8 text-center">
                 <div className="flex flex-col items-center gap-4">
                   <Package className="w-16 h-16 text-white/30" />
                   <p className="text-white/70 text-lg font-medium">
@@ -743,7 +743,7 @@ export function Inventory() {
                   </p>
                   {!searchTerm && (
                     <Button
-                      className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white mt-2"
+                      className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white mt-2"
                       onClick={() => {
                         resetForm();
                         setIsDialogOpen(true);
@@ -759,7 +759,7 @@ export function Inventory() {
               paginatedItems.map((item) => {
                 const status = getStockStatus(item);
                 return (
-                  <Card key={item.id} className="bg-white/5 border-[#209C8A]/20 p-4 hover:bg-white/10 transition-all">
+                  <Card key={item.id} className="bg-white/5 border-[#FF6B35]/20 p-4 hover:bg-white/10 transition-all">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-white font-semibold mb-1">{item.name}</h3>
@@ -789,13 +789,13 @@ export function Inventory() {
                         <span className="text-white/70 ml-2">{item.supplier || "-"}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-[#209C8A]/10">
+                    <div className="flex items-center gap-2 pt-3 border-t border-[#FF6B35]/10">
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(item)}
-                        className="flex-1 text-white hover:bg-[#209C8A]/20 hover:text-[#209C8A] transition-all"
+                        className="flex-1 text-white hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] transition-all"
                       >
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
@@ -828,7 +828,7 @@ export function Inventory() {
                           e.preventDefault();
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                       />
                     </PaginationItem>
                     <PaginationItem>
@@ -843,7 +843,7 @@ export function Inventory() {
                           e.preventDefault();
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -854,7 +854,7 @@ export function Inventory() {
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">
-          <Card className="bg-white/5 border-[#209C8A]/20 p-6">
+          <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-white text-lg font-semibold">Historial de Movimientos</h3>
               <div className="flex gap-2">
@@ -865,15 +865,15 @@ export function Inventory() {
                     loadMovements(value === "all" ? null : value);
                   }}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white w-64">
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white w-64">
                     <SelectValue placeholder="Filtrar por item" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#209C8A]/20">
-                    <SelectItem value="all" className="text-white focus:bg-[#209C8A]/20">
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="all" className="text-white focus:bg-[#FF6B35]/20">
                       Todos los items
                     </SelectItem>
                     {items.map((item) => (
-                      <SelectItem key={item.id} value={item.id} className="text-white focus:bg-[#209C8A]/20">
+                      <SelectItem key={item.id} value={item.id} className="text-white focus:bg-[#FF6B35]/20">
                         {item.name}
                       </SelectItem>
                     ))}
@@ -884,12 +884,12 @@ export function Inventory() {
 
             {loadingMovements ? (
               <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-white/5 border-b border-[#209C8A]/20">
+                  <thead className="bg-white/5 border-b border-[#FF6B35]/20">
                     <tr>
                       <th className="px-6 py-4 text-left text-white/80">Fecha</th>
                       <th className="px-6 py-4 text-left text-white/80">Item</th>
@@ -920,7 +920,7 @@ export function Inventory() {
                           TRANSFERENCIA: "text-blue-400"
                         };
                         return (
-                          <tr key={movement.id} className="border-b border-[#209C8A]/10 last:border-b-0">
+                          <tr key={movement.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
                             <td className="px-6 py-4 text-white/80">
                               {new Date(movement.created_at).toLocaleString('es-BO')}
                             </td>

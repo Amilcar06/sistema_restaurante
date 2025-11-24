@@ -371,7 +371,7 @@ export function Recipes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#209C8A]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
       </div>
     );
   }
@@ -389,12 +389,12 @@ export function Recipes() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-[#209C8A] hover:bg-[#209C8A]/90 text-white">
+            <Button className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
               <Plus className="w-4 h-4 mr-2" />
               Nueva Receta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#020617] border-[#209C8A]/20 max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white">
                 {editingRecipe ? "Editar Receta" : "Crear Nueva Receta"}
@@ -408,7 +408,7 @@ export function Recipes() {
                 <div>
                   <Label className="text-white/80">Nombre del Plato</Label>
                   <Input 
-                    className="bg-white/5 border-[#209C8A]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
                     placeholder="Ej: Pique Macho"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -422,12 +422,12 @@ export function Recipes() {
                     onValueChange={(value) => setFormData({...formData, category: value})}
                     required
                   >
-                    <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue placeholder="Selecciona una categoría" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                       {enums.recipeCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat} className="text-white focus:bg-[#209C8A]/20">
+                        <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
                           {cat}
                         </SelectItem>
                       ))}
@@ -440,7 +440,7 @@ export function Recipes() {
                 <div>
                   <Label className="text-white/80">Subcategoría</Label>
                   <Input 
-                    className="bg-white/5 border-[#209C8A]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
                     placeholder="Ej: Carnes Rojas, Carnes Blancas"
                     value={formData.subcategory}
                     onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
@@ -452,12 +452,12 @@ export function Recipes() {
                     value={formData.location_id}
                     onValueChange={(value) => setFormData({...formData, location_id: value})}
                   >
-                    <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white">
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue placeholder="Selecciona una sucursal" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                       {businessLocations.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#209C8A]/20">
+                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
                           {loc.name}
                         </SelectItem>
                       ))}
@@ -480,7 +480,7 @@ export function Recipes() {
                   <Input 
                     type="number" 
                     step="0.01"
-                    className="bg-white/5 border-[#209C8A]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
                     placeholder="0.00"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
@@ -491,7 +491,7 @@ export function Recipes() {
                   <Label className="text-white/80">Porciones</Label>
                   <Input 
                     type="number" 
-                    className="bg-white/5 border-[#209C8A]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
                     placeholder="1"
                     value={formData.servings}
                     onChange={(e) => setFormData({...formData, servings: parseInt(e.target.value) || 1})}
@@ -503,7 +503,7 @@ export function Recipes() {
                   <Label className="text-white/80">Tiempo Preparación (min)</Label>
                   <Input 
                     type="number" 
-                    className="bg-white/5 border-[#209C8A]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
                     placeholder="0"
                     value={formData.preparation_time}
                     onChange={(e) => setFormData({...formData, preparation_time: parseInt(e.target.value) || 0})}
@@ -524,7 +524,7 @@ export function Recipes() {
                       e.stopPropagation();
                       addIngredient();
                     }}
-                    className="border-[#209C8A]/40 text-[#209C8A] hover:bg-[#209C8A]/20 hover:text-white hover:border-[#209C8A] bg-transparent"
+                    className="border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
                     size="sm"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -540,7 +540,7 @@ export function Recipes() {
 
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {ingredients.map((ingredient, index) => (
-                    <Card key={ingredient.id} className="bg-white/5 border-[#209C8A]/20 p-4">
+                    <Card key={ingredient.id} className="bg-white/5 border-[#FF6B35]/20 p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 grid grid-cols-12 gap-2">
                           <div className="col-span-12 md:col-span-4">
@@ -555,18 +555,18 @@ export function Recipes() {
                                 }
                               }}
                             >
-                              <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white h-9">
+                              <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
                                 <SelectValue placeholder="Seleccionar del inventario" />
                               </SelectTrigger>
-                              <SelectContent className="bg-[#020617] border-[#209C8A]/20 max-h-60">
-                                <SelectItem value="manual" className="text-white/60 focus:bg-[#209C8A]/20">
+                              <SelectContent className="bg-[#020617] border-[#FF6B35]/20 max-h-60">
+                                <SelectItem value="manual" className="text-white/60 focus:bg-[#FF6B35]/20">
                                   Ingrediente manual
                                 </SelectItem>
                                 {inventoryItems.map((item) => (
                                   <SelectItem 
                                     key={item.id} 
                                     value={item.id}
-                                    className="text-white focus:bg-[#209C8A]/20"
+                                    className="text-white focus:bg-[#FF6B35]/20"
                                   >
                                     {item.name} ({item.category}) - Bs. {item.cost_per_unit.toFixed(2)}/{item.unit}
                                   </SelectItem>
@@ -579,7 +579,7 @@ export function Recipes() {
                             <div className="col-span-12 md:col-span-4">
                               <Label className="text-white/60 text-xs mb-1 block">Nombre Manual</Label>
                               <Input
-                                className="bg-white/5 border-[#209C8A]/20 text-white h-9"
+                                className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                                 placeholder="Nombre del ingrediente"
                                 value={ingredient.ingredient_name}
                                 onChange={(e) => updateIngredient(index, "ingredient_name", e.target.value)}
@@ -593,7 +593,7 @@ export function Recipes() {
                             <Input
                               type="number"
                               step="0.01"
-                              className="bg-white/5 border-[#209C8A]/20 text-white h-9"
+                              className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                               placeholder="0"
                               value={ingredient.quantity || ""}
                               onChange={(e) => updateIngredient(index, "quantity", e.target.value)}
@@ -610,12 +610,12 @@ export function Recipes() {
                               required
                               disabled={!!ingredient.inventory_item_id}
                             >
-                              <SelectTrigger className="bg-white/5 border-[#209C8A]/20 text-white h-9">
+                              <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
                                 <SelectValue placeholder="Selecciona unidad" />
                               </SelectTrigger>
-                              <SelectContent className="bg-[#020617] border-[#209C8A]/20">
+                              <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
                                 {enums.ingredientUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit} className="text-white focus:bg-[#209C8A]/20">
+                                  <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
                                     {unit}
                                   </SelectItem>
                                 ))}
@@ -628,7 +628,7 @@ export function Recipes() {
                             <Input
                               type="number"
                               step="0.01"
-                              className="bg-white/5 border-[#209C8A]/20 text-white h-9"
+                              className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                               placeholder="0.00"
                               value={ingredient.cost.toFixed(2)}
                               onChange={(e) => updateIngredient(index, "cost", parseFloat(e.target.value) || 0)}
@@ -660,7 +660,7 @@ export function Recipes() {
 
               {/* Cost Summary */}
               {ingredients.length > 0 && (
-                <Card className="bg-[#209C8A]/10 border-[#209C8A]/30 p-4">
+                <Card className="bg-[#FF6B35]/10 border-[#FF6B35]/30 p-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-white/80">Costo Total de Ingredientes:</span>
@@ -670,18 +670,18 @@ export function Recipes() {
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80">Precio de Venta:</span>
-                          <span className="text-[#209C8A] font-semibold">Bs. {formData.price.toFixed(2)}</span>
+                          <span className="text-[#FF6B35] font-semibold">Bs. {formData.price.toFixed(2)}</span>
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-[#209C8A]/20">
+                        <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
                           <span className="text-white/80">Ganancia:</span>
-                          <span className="text-[#209C8A] font-semibold">
+                          <span className="text-[#FF6B35] font-semibold">
                             Bs. {(formData.price - calculateTotalCost()).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80">Margen:</span>
                           <span className={`font-semibold ${
-                            calculateMargin() >= 70 ? "text-[#209C8A]" :
+                            calculateMargin() >= 70 ? "text-[#FF6B35]" :
                             calculateMargin() >= 50 ? "text-yellow-400" :
                             "text-red-400"
                           }`}>
@@ -699,13 +699,13 @@ export function Recipes() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  className="flex-1 border-[#209C8A]/40 text-[#209C8A] hover:bg-[#209C8A]/20 hover:text-white hover:border-[#209C8A] bg-transparent"
+                  className="flex-1 border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
                 >
                   Cancelar
                 </Button>
                 <Button 
                   type="submit" 
-                  className="flex-1 bg-[#209C8A] hover:bg-[#209C8A]/90 text-white"
+                  className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
                   disabled={ingredients.length === 0}
                 >
                   {editingRecipe ? "Actualizar Receta" : "Guardar Receta"}
@@ -718,10 +718,10 @@ export function Recipes() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg hover:bg-[#209C8A]/20 transition-colors">
-              <ChefHat className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
+              <ChefHat className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/70 mb-1 text-sm font-medium">Total de Recetas</div>
@@ -729,10 +729,10 @@ export function Recipes() {
             </div>
           </div>
         </Card>
-        <Card className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
           <div className="flex items-center gap-4">
-            <div className="bg-[#209C8A]/10 p-3 rounded-lg hover:bg-[#209C8A]/20 transition-colors">
-              <DollarSign className="w-6 h-6 text-[#209C8A]" />
+            <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
+              <DollarSign className="w-6 h-6 text-[#FF6B35]" />
             </div>
             <div>
               <div className="text-white/70 mb-1 text-sm font-medium">Margen Promedio</div>
@@ -743,11 +743,11 @@ export function Recipes() {
       </div>
 
       {/* Search */}
-      <Card className="bg-white/5 border-[#209C8A]/20 p-4">
+      <Card className="bg-white/5 border-[#FF6B35]/20 p-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
           <Input
-            className="pl-10 bg-white/5 border-[#209C8A]/20 text-white"
+            className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
             placeholder="Buscar recetas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -757,7 +757,7 @@ export function Recipes() {
 
       {/* Recipes Grid */}
       {filteredRecipes.length === 0 ? (
-        <Card className="bg-white/5 border-[#209C8A]/20 p-8 text-center">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-8 text-center">
           <p className="text-white/60">
             {searchTerm ? "No se encontraron recetas" : "No hay recetas. Crea tu primera receta."}
           </p>
@@ -765,7 +765,7 @@ export function Recipes() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {paginatedRecipes.map((recipe) => (
-            <Card key={recipe.id} className="bg-white/5 border-[#209C8A]/20 p-6 hover:bg-white/10 hover:border-[#209C8A]/40 transition-all duration-300">
+            <Card key={recipe.id} className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-white mb-2 text-lg font-semibold">{recipe.name}</h3>
@@ -773,7 +773,7 @@ export function Recipes() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`px-3 py-1 rounded-full ${
-                    recipe.margin >= 70 ? "bg-[#209C8A]/20 text-[#209C8A]" :
+                    recipe.margin >= 70 ? "bg-[#FF6B35]/20 text-[#FF6B35]" :
                     recipe.margin >= 50 ? "bg-yellow-500/20 text-yellow-400" :
                     "bg-red-500/20 text-red-400"
                   }`}>
@@ -783,7 +783,7 @@ export function Recipes() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleEdit(recipe)}
-                    className="text-[#209C8A] hover:bg-[#209C8A]/10"
+                    className="text-[#FF6B35] hover:bg-[#FF6B35]/10"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -812,18 +812,18 @@ export function Recipes() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-[#209C8A]/20 space-y-2">
+              <div className="pt-4 border-t border-[#FF6B35]/20 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Costo Total:</span>
                   <span className="text-white">Bs. {recipe.cost.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Precio de Venta:</span>
-                  <span className="text-[#209C8A]">Bs. {recipe.price.toFixed(2)}</span>
+                  <span className="text-[#FF6B35]">Bs. {recipe.price.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/60">Ganancia:</span>
-                  <span className="text-[#209C8A]">Bs. {(recipe.price - recipe.cost).toFixed(2)}</span>
+                  <span className="text-[#FF6B35]">Bs. {(recipe.price - recipe.cost).toFixed(2)}</span>
                 </div>
               </div>
             </Card>
@@ -843,7 +843,7 @@ export function Recipes() {
                     e.preventDefault();
                     if (currentPage > 1) setCurrentPage(currentPage - 1);
                   }}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                 />
               </PaginationItem>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -855,7 +855,7 @@ export function Recipes() {
                       setCurrentPage(page);
                     }}
                     isActive={currentPage === page}
-                    className="cursor-pointer text-white hover:text-[#209C8A] data-[active=true]:bg-[#209C8A]/20 data-[active=true]:text-[#209C8A]"
+                    className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
                   >
                     {page}
                   </PaginationLink>
@@ -868,7 +868,7 @@ export function Recipes() {
                     e.preventDefault();
                     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                   }}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#209C8A]"}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
                 />
               </PaginationItem>
             </PaginationContent>
