@@ -8,41 +8,43 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination";
-import { inventoryApi, enumsApi, businessLocationsApi, suppliersApi, inventoryMovementsApi, type InventoryItem as ApiInventoryItem, type BusinessLocation, type Supplier, type InventoryMovement } from "../services/api";
+import {
+  inventarioApi,
+  enumsApi,
+  sucursalesApi,
+  proveedoresApi,
+  movimientosApi
+} from "../services/api";
+import {
+  ItemInventario,
+  Sucursal,
+  Proveedor,
+  MovimientoInventario
+} from "../types";
 import { toast } from "sonner";
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  min_stock: number;
-  cost_per_unit: number;
-  supplier?: string;
-  last_updated: string;
-}
 
 export function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [items, setItems] = useState<ItemInventario[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<ItemInventario | null>(null);
+
+  // Form state
   const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    quantity: 0,
-    unit: "kg",
-    min_stock: 0,
-    max_stock: undefined as number | undefined,
-    cost_per_unit: 0,
-    supplier: "",
-    supplier_id: undefined as string | undefined,
-    location_id: "",
-    expiry_date: undefined as string | undefined,
-    barcode: ""
+    nombre: "",
+    categoria: "",
+    cantidad: 0,
+    unidad: "kg",
+    stock_minimo: 0,
+    stock_maximo: undefined as number | undefined,
+    costo_unitario: 0,
+    proveedor_id: undefined as string | undefined,
+    sucursal_id: "",
+    fecha_vencimiento: undefined as string | undefined,
+    codigo_barras: ""
   });
+
   const [enums, setEnums] = useState<{
     categories: string[];
     units: string[];
@@ -50,10 +52,11 @@ export function Inventory() {
     categories: [],
     units: []
   });
-  const [locations, setLocations] = useState<BusinessLocation[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
-  const [movements, setMovements] = useState<InventoryMovement[]>([]);
+
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [selectedSucursalId, setSelectedSucursalId] = useState<string>("");
+  const [movimientos, setMovimientos] = useState<MovimientoInventario[]>([]);
   const [loadingMovements, setLoadingMovements] = useState(false);
   const [selectedItemForHistory, setSelectedItemForHistory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,12 +65,19 @@ export function Inventory() {
   const loadMovements = async (itemId: string | null = null) => {
     try {
       setLoadingMovements(true);
-      const params: any = {};
-      if (itemId) params.inventory_item_id = itemId;
-      if (selectedLocationId) params.location_id = selectedLocationId;
+      // Nota: La API de movimientos aún no soporta filtrado complejo en el frontend refactorizado
+      // por lo que cargamos todos y filtramos en cliente por ahora, o usamos el endpoint si soporta query params
+      const data = await movimientosApi.obtenerTodos();
 
-      const data = await inventoryMovementsApi.getAll(params);
-      setMovements(data);
+      let filtered = data;
+      if (itemId) {
+        filtered = filtered.filter(m => m.item_inventario_id === itemId);
+      }
+      if (selectedSucursalId) {
+        filtered = filtered.filter(m => m.sucursal_id === selectedSucursalId);
+      }
+
+      setMovimientos(filtered);
     } catch (error) {
       console.error("Error loading movements:", error);
       toast.error("Error al cargar el historial de movimientos");
@@ -79,27 +89,27 @@ export function Inventory() {
   useEffect(() => {
     loadItems();
     loadEnums();
-    loadLocations();
-    loadSuppliers();
+    loadSucursales();
+    loadProveedores();
   }, []);
 
-  const loadLocations = async () => {
+  const loadSucursales = async () => {
     try {
-      const data = await businessLocationsApi.getAll();
-      setLocations(data);
-      if (data.length > 0 && !selectedLocationId) {
-        const mainLocation = data.find(loc => loc.is_main) || data[0];
-        setSelectedLocationId(mainLocation.id);
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
+      if (data.length > 0 && !selectedSucursalId) {
+        const mainLocation = data.find(loc => loc.es_principal) || data[0];
+        setSelectedSucursalId(mainLocation.id);
       }
     } catch (error) {
       console.error("Error loading locations:", error);
     }
   };
 
-  const loadSuppliers = async () => {
+  const loadProveedores = async () => {
     try {
-      const data = await suppliersApi.getAll();
-      setSuppliers(data);
+      const data = await proveedoresApi.obtenerTodos();
+      setProveedores(data);
     } catch (error) {
       console.error("Error loading suppliers:", error);
     }
@@ -123,20 +133,8 @@ export function Inventory() {
   const loadItems = async () => {
     try {
       setLoading(true);
-      const data = await inventoryApi.getAll();
-      // Map API response to component format
-      const mappedItems = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        category: item.category,
-        quantity: item.quantity,
-        unit: item.unit,
-        min_stock: item.min_stock,
-        cost_per_unit: item.cost_per_unit,
-        supplier: item.supplier || "",
-        last_updated: item.last_updated
-      }));
-      setItems(mappedItems);
+      const data = await inventarioApi.obtenerTodos();
+      setItems(data);
     } catch (error) {
       console.error("Error loading inventory:", error);
       toast.error("Error al cargar el inventario");
@@ -148,41 +146,34 @@ export function Inventory() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Prepare data for API
       const submitData: any = {
-        name: formData.name,
-        category: formData.category,
-        quantity: formData.quantity,
-        unit: formData.unit,
-        min_stock: formData.min_stock,
-        cost_per_unit: formData.cost_per_unit,
-        location_id: formData.location_id || selectedLocationId,
+        nombre: formData.nombre,
+        categoria: formData.categoria,
+        cantidad: formData.cantidad,
+        unidad: formData.unidad,
+        stock_minimo: formData.stock_minimo,
+        costo_unitario: formData.costo_unitario,
+        sucursal_id: formData.sucursal_id || selectedSucursalId,
       };
 
-      // Add optional fields if they have values
-      if (formData.max_stock !== undefined && formData.max_stock > 0) {
-        submitData.max_stock = formData.max_stock;
+      if (formData.stock_maximo !== undefined && formData.stock_maximo > 0) {
+        submitData.stock_maximo = formData.stock_maximo;
       }
-      if (formData.supplier_id) {
-        submitData.supplier_id = formData.supplier_id;
+      if (formData.proveedor_id && formData.proveedor_id !== "none") {
+        submitData.proveedor_id = formData.proveedor_id;
       }
-      if (formData.supplier) {
-        submitData.supplier = formData.supplier;
+      if (formData.fecha_vencimiento) {
+        submitData.fecha_vencimiento = formData.fecha_vencimiento;
       }
-      if (formData.expiry_date) {
-        submitData.expiry_date = formData.expiry_date;
-      }
-      if (formData.barcode) {
-        submitData.barcode = formData.barcode;
+      if (formData.codigo_barras) {
+        submitData.codigo_barras = formData.codigo_barras;
       }
 
       if (editingItem) {
-        // Update existing item
-        await inventoryApi.update(editingItem.id, submitData);
+        await inventarioApi.actualizar(editingItem.id, submitData);
         toast.success("Insumo actualizado correctamente");
       } else {
-        // Create new item
-        await inventoryApi.create(submitData);
+        await inventarioApi.crear(submitData);
         toast.success("Insumo creado correctamente");
       }
       setIsDialogOpen(false);
@@ -190,7 +181,7 @@ export function Inventory() {
       loadItems();
     } catch (error: any) {
       console.error("Error saving item:", error);
-      const errorMessage = error?.message || error?.response?.data?.detail || "Error al guardar el insumo";
+      const errorMessage = error?.message || "Error al guardar el insumo";
       toast.error(errorMessage);
     }
   };
@@ -199,7 +190,7 @@ export function Inventory() {
     if (!confirm("¿Estás seguro de eliminar este insumo?")) return;
 
     try {
-      await inventoryApi.delete(id);
+      await inventarioApi.eliminar(id);
       toast.success("Insumo eliminado correctamente");
       loadItems();
     } catch (error) {
@@ -208,41 +199,37 @@ export function Inventory() {
     }
   };
 
-  const handleEdit = async (item: InventoryItem) => {
+  const handleEdit = async (item: ItemInventario) => {
     setEditingItem(item);
-    // Load full item data from API to get all fields
     try {
-      const fullItem = await inventoryApi.getById(item.id);
+      const fullItem = await inventarioApi.obtenerPorId(item.id);
       setFormData({
-        name: fullItem.name,
-        category: fullItem.category,
-        quantity: fullItem.quantity,
-        unit: fullItem.unit,
-        min_stock: fullItem.min_stock,
-        max_stock: fullItem.max_stock,
-        cost_per_unit: fullItem.cost_per_unit,
-        supplier: fullItem.supplier || "",
-        supplier_id: fullItem.supplier_id,
-        location_id: fullItem.location_id,
-        expiry_date: fullItem.expiry_date ? new Date(fullItem.expiry_date).toISOString().split('T')[0] : undefined,
-        barcode: fullItem.barcode || ""
+        nombre: fullItem.nombre,
+        categoria: fullItem.categoria,
+        cantidad: fullItem.cantidad,
+        unidad: fullItem.unidad,
+        stock_minimo: fullItem.stock_minimo,
+        stock_maximo: fullItem.stock_maximo,
+        costo_unitario: fullItem.costo_unitario,
+        proveedor_id: fullItem.proveedor_id,
+        sucursal_id: fullItem.sucursal_id,
+        fecha_vencimiento: fullItem.fecha_vencimiento ? new Date(fullItem.fecha_vencimiento).toISOString().split('T')[0] : undefined,
+        codigo_barras: fullItem.codigo_barras || ""
       });
     } catch (error) {
       console.error("Error loading item details:", error);
-      // Fallback to basic data
       setFormData({
-        name: item.name,
-        category: item.category,
-        quantity: item.quantity,
-        unit: item.unit,
-        min_stock: item.min_stock,
-        max_stock: undefined,
-        cost_per_unit: item.cost_per_unit,
-        supplier: item.supplier || "",
-        supplier_id: undefined,
-        location_id: "",
-        expiry_date: undefined,
-        barcode: ""
+        nombre: item.nombre,
+        categoria: item.categoria,
+        cantidad: item.cantidad,
+        unidad: item.unidad,
+        stock_minimo: item.stock_minimo,
+        stock_maximo: item.stock_maximo,
+        costo_unitario: item.costo_unitario,
+        proveedor_id: item.proveedor_id,
+        sucursal_id: item.sucursal_id,
+        fecha_vencimiento: item.fecha_vencimiento ? new Date(item.fecha_vencimiento).toISOString().split('T')[0] : undefined,
+        codigo_barras: item.codigo_barras || ""
       });
     }
     setIsDialogOpen(true);
@@ -250,25 +237,24 @@ export function Inventory() {
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      category: "",
-      quantity: 0,
-      unit: "kg",
-      min_stock: 0,
-      max_stock: undefined,
-      cost_per_unit: 0,
-      supplier: "",
-      supplier_id: undefined,
-      location_id: selectedLocationId || "",
-      expiry_date: undefined,
-      barcode: ""
+      nombre: "",
+      categoria: "",
+      cantidad: 0,
+      unidad: "kg",
+      stock_minimo: 0,
+      stock_maximo: undefined,
+      costo_unitario: 0,
+      proveedor_id: undefined,
+      sucursal_id: selectedSucursalId || "",
+      fecha_vencimiento: undefined,
+      codigo_barras: ""
     });
     setEditingItem(null);
   };
 
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    item.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Pagination logic
@@ -277,20 +263,19 @@ export function Inventory() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = filteredItems.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const getStockStatus = (item: InventoryItem) => {
-    const percentage = (item.quantity / item.min_stock) * 100;
+  const getStockStatus = (item: ItemInventario) => {
+    const percentage = (item.cantidad / item.stock_minimo) * 100;
     if (percentage <= 100) return { status: "critical", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" };
     if (percentage <= 150) return { status: "low", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" };
     return { status: "good", color: "text-[#FF6B35]", bg: "bg-[#FF6B35]/10", border: "border-[#FF6B35]/20" };
   };
 
-  const criticalItems = items.filter(item => item.quantity <= item.min_stock).length;
-  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.cost_per_unit), 0);
+  const criticalItems = items.filter(item => item.cantidad <= item.stock_minimo).length;
+  const totalValue = items.reduce((sum, item) => sum + (item.cantidad * item.costo_unitario), 0);
 
   if (loading) {
     return (
@@ -342,16 +327,16 @@ export function Inventory() {
               <Input
                 className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Ej: Tomate"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                 required
               />
             </div>
             <div>
               <Label className="text-white/80">Categoría</Label>
               <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                value={formData.categoria}
+                onValueChange={(value) => setFormData({ ...formData, categoria: value })}
                 required
               >
                 <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
@@ -374,16 +359,16 @@ export function Inventory() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: parseFloat(e.target.value) || 0 })}
+                  value={formData.cantidad}
+                  onChange={(e) => setFormData({ ...formData, cantidad: parseFloat(e.target.value) || 0 })}
                   required
                 />
               </div>
               <div>
                 <Label className="text-white/80">Unidad</Label>
                 <Select
-                  value={formData.unit}
-                  onValueChange={(value) => setFormData({ ...formData, unit: value })}
+                  value={formData.unidad}
+                  onValueChange={(value) => setFormData({ ...formData, unidad: value })}
                   required
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
@@ -407,8 +392,8 @@ export function Inventory() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0"
-                  value={formData.min_stock}
-                  onChange={(e) => setFormData({ ...formData, min_stock: parseFloat(e.target.value) || 0 })}
+                  value={formData.stock_minimo}
+                  onChange={(e) => setFormData({ ...formData, stock_minimo: parseFloat(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -419,8 +404,8 @@ export function Inventory() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0.00"
-                  value={formData.cost_per_unit}
-                  onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
+                  value={formData.costo_unitario}
+                  onChange={(e) => setFormData({ ...formData, costo_unitario: parseFloat(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -428,17 +413,17 @@ export function Inventory() {
             <div>
               <Label className="text-white/80">Sucursal *</Label>
               <Select
-                value={formData.location_id || selectedLocationId}
-                onValueChange={(value) => setFormData({ ...formData, location_id: value })}
+                value={formData.sucursal_id || selectedSucursalId}
+                onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
                 required
               >
                 <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                   <SelectValue placeholder="Selecciona una sucursal" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                  {locations.map((loc) => (
+                  {sucursales.map((loc) => (
                     <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                      {loc.name}
+                      {loc.nombre}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -447,8 +432,8 @@ export function Inventory() {
             <div>
               <Label className="text-white/80">Proveedor</Label>
               <Select
-                value={formData.supplier_id || "none"}
-                onValueChange={(value) => setFormData({ ...formData, supplier_id: value === "none" ? undefined : value })}
+                value={formData.proveedor_id || "none"}
+                onValueChange={(value) => setFormData({ ...formData, proveedor_id: value === "none" ? undefined : value })}
               >
                 <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                   <SelectValue placeholder="Selecciona un proveedor" />
@@ -457,22 +442,13 @@ export function Inventory() {
                   <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                     (Ninguno)
                   </SelectItem>
-                  {suppliers.map((sup) => (
+                  {proveedores.map((sup) => (
                     <SelectItem key={sup.id} value={sup.id} className="text-white focus:bg-[#FF6B35]/20">
-                      {sup.name}
+                      {sup.nombre}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label className="text-white/80">Proveedor (texto libre)</Label>
-              <Input
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Nombre del proveedor (si no está en la lista)"
-                value={formData.supplier}
-                onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
-              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -482,8 +458,8 @@ export function Inventory() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Opcional"
-                  value={formData.max_stock || ""}
-                  onChange={(e) => setFormData({ ...formData, max_stock: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  value={formData.stock_maximo || ""}
+                  onChange={(e) => setFormData({ ...formData, stock_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
                 />
               </div>
               <div>
@@ -491,8 +467,8 @@ export function Inventory() {
                 <Input
                   type="date"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  value={formData.expiry_date || ""}
-                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value || undefined })}
+                  value={formData.fecha_vencimiento || ""}
+                  onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value || undefined })}
                 />
               </div>
             </div>
@@ -501,8 +477,8 @@ export function Inventory() {
               <Input
                 className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Código de barras (opcional)"
-                value={formData.barcode}
-                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                value={formData.codigo_barras}
+                onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
               />
             </div>
             <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
@@ -625,25 +601,26 @@ export function Inventory() {
                   ) : (
                     paginatedItems.map((item) => {
                       const status = getStockStatus(item);
+                      const proveedor = proveedores.find(p => p.id === item.proveedor_id);
                       return (
                         <tr key={item.id} className="hover:bg-white/10 transition-colors border-b border-[#FF6B35]/10">
                           <td className="px-6 py-4">
-                            <div className="text-white font-medium">{item.name}</div>
+                            <div className="text-white font-medium">{item.nombre}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-white/10 rounded-full text-white/80 text-sm font-medium">{item.category}</span>
+                            <span className="px-3 py-1 bg-white/10 rounded-full text-white/80 text-sm font-medium">{item.categoria}</span>
                           </td>
                           <td className="px-6 py-4 text-white font-medium">
-                            {item.quantity} {item.unit}
+                            {item.cantidad} {item.unidad}
                           </td>
                           <td className="px-6 py-4 text-white/70">
-                            {item.min_stock} {item.unit}
+                            {item.stock_minimo} {item.unidad}
                           </td>
                           <td className="px-6 py-4 text-white font-semibold">
-                            Bs. {item.cost_per_unit.toFixed(2)}
+                            Bs. {item.costo_unitario.toFixed(2)}
                           </td>
                           <td className="px-6 py-4 text-white/70">
-                            {item.supplier || "-"}
+                            {proveedor?.nombre || "-"}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${status.bg} ${status.border} border ${status.color}`}>
@@ -698,6 +675,7 @@ export function Inventory() {
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                        size="default"
                       />
                     </PaginationItem>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -710,6 +688,7 @@ export function Inventory() {
                           }}
                           isActive={currentPage === page}
                           className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
+                          size="icon"
                         >
                           {page}
                         </PaginationLink>
@@ -723,6 +702,7 @@ export function Inventory() {
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                        size="default"
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -753,7 +733,7 @@ export function Inventory() {
                     </SelectItem>
                     {items.map((item) => (
                       <SelectItem key={item.id} value={item.id} className="text-white focus:bg-[#FF6B35]/20">
-                        {item.name}
+                        {item.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -780,15 +760,15 @@ export function Inventory() {
                     </tr>
                   </thead>
                   <tbody>
-                    {movements.length === 0 ? (
+                    {movimientos.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-6 py-4 text-center text-white/60">
                           No se encontraron movimientos.
                         </td>
                       </tr>
                     ) : (
-                      movements.map((movement) => {
-                        const item = items.find(i => i.id === movement.inventory_item_id);
+                      movimientos.map((movement) => {
+                        const item = items.find(i => i.id === movement.item_inventario_id);
                         const movementTypeColors: Record<string, string> = {
                           ENTRADA: "text-green-400",
                           SALIDA: "text-red-400",
@@ -799,29 +779,29 @@ export function Inventory() {
                           TRANSFERENCIA: "text-blue-400"
                         };
                         return (
-                          <tr key={movement.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
-                            <td className="px-6 py-4 text-white/80">
-                              {new Date(movement.created_at).toLocaleString('es-BO')}
+                          <tr key={movement.id} className="hover:bg-white/10 transition-colors border-b border-[#FF6B35]/10">
+                            <td className="px-6 py-4 text-white/70">
+                              {new Date(movement.fecha_creacion).toLocaleDateString()}
                             </td>
-                            <td className="px-6 py-4 text-white">{item?.name || "N/A"}</td>
+                            <td className="px-6 py-4 text-white font-medium">
+                              {item?.nombre || "Item desconocido"}
+                            </td>
                             <td className="px-6 py-4">
-                              <span className={`${movementTypeColors[movement.movement_type] || "text-white/80"}`}>
-                                {movement.movement_type}
+                              <span className={`font-medium ${movementTypeColors[movement.tipo_movimiento] || "text-white"}`}>
+                                {movement.tipo_movimiento}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-white">
-                              {movement.quantity} {movement.unit}
+                              {movement.cantidad} {movement.unidad}
                             </td>
-                            <td className="px-6 py-4 text-white/80">
-                              {movement.cost_per_unit ? `Bs. ${movement.cost_per_unit.toFixed(2)}` : "N/A"}
+                            <td className="px-6 py-4 text-white/70">
+                              {movement.costo_unitario ? `Bs. ${movement.costo_unitario.toFixed(2)}` : "-"}
                             </td>
-                            <td className="px-6 py-4 text-white/60">
-                              {movement.reference_type && movement.reference_id ? (
-                                <span className="text-xs">{movement.reference_type}: {movement.reference_id.substring(0, 8)}...</span>
-                              ) : "-"}
+                            <td className="px-6 py-4 text-white/70">
+                              {movement.referencia_id ? `${movement.tipo_referencia} #${movement.referencia_id.slice(0, 8)}` : "-"}
                             </td>
-                            <td className="px-6 py-4 text-white/60">
-                              {movement.notes || "-"}
+                            <td className="px-6 py-4 text-white/60 text-sm">
+                              {movement.notas || "-"}
                             </td>
                           </tr>
                         );

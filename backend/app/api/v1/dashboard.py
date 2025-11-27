@@ -1,5 +1,5 @@
 """
-Dashboard API endpoints
+API de Dashboard en Español
 """
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -7,148 +7,145 @@ from sqlalchemy import func, and_, desc
 from datetime import datetime, timedelta, date
 from typing import List
 
-from app.schemas.dashboard import DashboardResponse, DashboardStats, TopDish, Alert
+from app.schemas.dashboard import DashboardResponse, EstadisticasDashboard, PlatoTop, Alerta
 from app.core.database import get_db
-from app.models.sale import Sale, SaleItem
-from app.models.inventory import InventoryItem
-from app.models.recipe import Recipe
-from app.services.inventory_service import InventoryService
+from app.models.venta import Venta, ItemVenta
+from app.models.item_inventario import ItemInventario
+from app.models.receta import Receta
 
 router = APIRouter()
 
 @router.get("/stats", response_model=DashboardResponse)
-async def get_dashboard_stats(db: Session = Depends(get_db)):
+async def obtener_estadisticas_dashboard(db: Session = Depends(get_db)):
     """
-    Get dashboard statistics and data from database
+    Obtener estadísticas del dashboard
     """
-    today = date.today()
-    start_of_day = datetime.combine(today, datetime.min.time())
-    end_of_day = datetime.combine(today, datetime.max.time())
-    week_ago = start_of_day - timedelta(days=7)
-    yesterday_start = datetime.combine(today - timedelta(days=1), datetime.min.time())
-    yesterday_end = datetime.combine(today - timedelta(days=1), datetime.max.time())
+    hoy = date.today()
+    inicio_dia = datetime.combine(hoy, datetime.min.time())
+    fin_dia = datetime.combine(hoy, datetime.max.time())
+    hace_una_semana = inicio_dia - timedelta(days=7)
+    ayer_inicio = datetime.combine(hoy - timedelta(days=1), datetime.min.time())
+    ayer_fin = datetime.combine(hoy - timedelta(days=1), datetime.max.time())
     
-    # Today's sales
-    sales_today = db.query(Sale).filter(
-        and_(Sale.created_at >= start_of_day, Sale.created_at <= end_of_day)
+    # Ventas de hoy
+    ventas_hoy = db.query(Venta).filter(
+        and_(Venta.fecha_creacion >= inicio_dia, Venta.fecha_creacion <= fin_dia)
     ).all()
-    total_sales_today = sum(sale.total for sale in sales_today)
+    total_ventas_hoy = sum(venta.total for venta in ventas_hoy)
     
-    # Yesterday's sales for comparison
-    sales_yesterday = db.query(Sale).filter(
-        and_(Sale.created_at >= yesterday_start, Sale.created_at <= yesterday_end)
+    # Ventas de ayer para comparación
+    ventas_ayer = db.query(Venta).filter(
+        and_(Venta.fecha_creacion >= ayer_inicio, Venta.fecha_creacion <= ayer_fin)
     ).all()
-    total_sales_yesterday = sum(sale.total for sale in sales_yesterday)
-    sales_change = ((total_sales_today - total_sales_yesterday) / total_sales_yesterday * 100) if total_sales_yesterday > 0 else 0
+    total_ventas_ayer = sum(venta.total for venta in ventas_ayer)
+    cambio_ventas = ((total_ventas_hoy - total_ventas_ayer) / total_ventas_ayer * 100) if total_ventas_ayer > 0 else 0
     
-    # Dishes sold today
-    items_today = db.query(SaleItem).join(Sale).filter(
-        and_(Sale.created_at >= start_of_day, Sale.created_at <= end_of_day)
+    # Platos vendidos hoy
+    items_hoy = db.query(ItemVenta).join(Venta).filter(
+        and_(Venta.fecha_creacion >= inicio_dia, Venta.fecha_creacion <= fin_dia)
     ).all()
-    dishes_sold_today = sum(item.quantity for item in items_today)
+    platos_vendidos_hoy = sum(item.cantidad for item in items_hoy)
     
-    items_yesterday = db.query(SaleItem).join(Sale).filter(
-        and_(Sale.created_at >= yesterday_start, Sale.created_at <= yesterday_end)
+    items_ayer = db.query(ItemVenta).join(Venta).filter(
+        and_(Venta.fecha_creacion >= ayer_inicio, Venta.fecha_creacion <= ayer_fin)
     ).all()
-    dishes_sold_yesterday = sum(item.quantity for item in items_yesterday)
-    dishes_change = ((dishes_sold_today - dishes_sold_yesterday) / dishes_sold_yesterday * 100) if dishes_sold_yesterday > 0 else 0
+    platos_vendidos_ayer = sum(item.cantidad for item in items_ayer)
+    cambio_platos = ((platos_vendidos_hoy - platos_vendidos_ayer) / platos_vendidos_ayer * 100) if platos_vendidos_ayer > 0 else 0
     
-    # Critical inventory items (using service)
-    critical_items = InventoryService.get_critical_stock_items(db)
-    critical_count = len(critical_items)
+    # Items críticos de inventario
+    # Asumimos que stock_minimo es el umbral
+    items_criticos = db.query(ItemInventario).filter(ItemInventario.cantidad <= ItemInventario.stock_minimo).all()
+    count_criticos = len(items_criticos)
     
-    # Average margin from recipes
-    recipes = db.query(Recipe).all()
-    avg_margin = sum(recipe.margin for recipe in recipes) / len(recipes) if recipes else 0
+    # Margen promedio de recetas
+    recetas = db.query(Receta).all()
+    margen_promedio = sum(receta.margen for receta in recetas) / len(recetas) if recetas else 0
     
-    # Calculate margin change (simplified - compare with previous week average)
-    week_recipes = db.query(Recipe).filter(Recipe.created_at >= week_ago).all()
-    week_avg_margin = sum(r.margin for r in week_recipes) / len(week_recipes) if week_recipes else avg_margin
-    margin_change = avg_margin - week_avg_margin if week_avg_margin > 0 else 0
+    # Cambio margen (simplificado, comparado con semana anterior)
+    recetas_semana = db.query(Receta).filter(Receta.created_at >= hace_una_semana).all()
+    margen_promedio_semana = sum(r.margen for r in recetas_semana) / len(recetas_semana) if recetas_semana else margen_promedio
+    cambio_margen = margen_promedio - margen_promedio_semana if margen_promedio_semana > 0 else 0
     
-    stats = DashboardStats(
-        total_sales_today=total_sales_today,
-        critical_inventory_count=critical_count,
-        dishes_sold_today=dishes_sold_today,
-        average_margin=round(avg_margin, 1),
-        sales_change_percent=round(sales_change, 1),
-        dishes_change_percent=round(dishes_change, 1),
-        margin_change_percent=round(margin_change, 1)
+    estadisticas = EstadisticasDashboard(
+        ventas_totales_hoy=total_ventas_hoy,
+        items_criticos_count=count_criticos,
+        platos_vendidos_hoy=int(platos_vendidos_hoy),
+        margen_promedio=round(margen_promedio, 1),
+        cambio_ventas_porcentaje=round(cambio_ventas, 1),
+        cambio_platos_porcentaje=round(cambio_platos, 1),
+        cambio_margen_porcentaje=round(cambio_margen, 1)
     )
     
-    # Top dishes (from sales in last 7 days)
-    top_dishes_query = db.query(
-        SaleItem.item_name,
-        func.sum(SaleItem.quantity).label('sales_count'),
-        func.sum(SaleItem.total).label('revenue')
-    ).join(Sale).filter(
-        Sale.created_at >= week_ago
-    ).group_by(SaleItem.item_name).order_by(desc('sales_count')).limit(5).all()
+    # Platos más vendidos (últimos 7 días)
+    top_platos_query = db.query(
+        ItemVenta.nombre_item,
+        func.sum(ItemVenta.cantidad).label('cantidad_vendida'),
+        func.sum(ItemVenta.total).label('ingresos')
+    ).join(Venta).filter(
+        Venta.fecha_creacion >= hace_una_semana
+    ).group_by(ItemVenta.nombre_item).order_by(desc('cantidad_vendida')).limit(5).all()
     
-    top_dishes = [
-        TopDish(name=row.item_name, sales_count=int(row.sales_count), revenue=float(row.revenue))
-        for row in top_dishes_query
+    platos_top = [
+        PlatoTop(nombre=row.nombre_item, cantidad_vendida=int(row.cantidad_vendida), ingresos=float(row.ingresos))
+        for row in top_platos_query
     ]
     
-    # Alerts from critical inventory
-    alerts = []
-    for item in critical_items[:4]:  # Limit to 4 alerts
-        alerts.append(Alert(
-            type="warning",
-            message=f"{item.name} está por debajo del stock mínimo ({item.quantity}{item.unit} restantes, mínimo {item.min_stock}{item.unit})"
+    # Alertas
+    alertas = []
+    for item in items_criticos[:4]:
+        alertas.append(Alerta(
+            tipo="warning",
+            mensaje=f"{item.nombre} está por debajo del stock mínimo ({item.cantidad} {item.unidad} restantes, mínimo {item.stock_minimo} {item.unidad})"
         ))
     
-    # Add info alerts for high margin items
-    high_margin_recipes = db.query(Recipe).filter(Recipe.margin >= 70).limit(2).all()
-    for recipe in high_margin_recipes:
-        alerts.append(Alert(
-            type="info",
-            message=f"{recipe.name} tiene un margen del {recipe.margin:.1f}% - excelente rentabilidad"
+    recetas_alto_margen = db.query(Receta).filter(Receta.margen >= 70).limit(2).all()
+    for receta in recetas_alto_margen:
+        alertas.append(Alerta(
+            tipo="info",
+            mensaje=f"{receta.nombre} tiene un margen del {receta.margen:.1f}% - excelente rentabilidad"
         ))
     
-    # Sales by day (last 7 days)
-    sales_by_day = []
-    days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
-    for i in range(6, -1, -1):  # Last 7 days
-        day_date = today - timedelta(days=i)
-        day_start = datetime.combine(day_date, datetime.min.time())
-        day_end = datetime.combine(day_date, datetime.max.time())
+    # Ventas por día
+    ventas_por_dia = []
+    dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
+    for i in range(6, -1, -1):
+        fecha = hoy - timedelta(days=i)
+        inicio = datetime.combine(fecha, datetime.min.time())
+        fin = datetime.combine(fecha, datetime.max.time())
         
-        day_sales = db.query(Sale).filter(
-            and_(Sale.created_at >= day_start, Sale.created_at <= day_end)
+        ventas_dia = db.query(Venta).filter(
+            and_(Venta.fecha_creacion >= inicio, Venta.fecha_creacion <= fin)
         ).all()
-        day_total = sum(sale.total for sale in day_sales)
+        total_dia = sum(venta.total for venta in ventas_dia)
         
-        sales_by_day.append({
-            "day": days[day_date.weekday()],
-            "ventas": round(day_total, 2)
+        ventas_por_dia.append({
+            "dia": dias[fecha.weekday()],
+            "ventas": round(total_dia, 2)
         })
     
-    # Category distribution (from recipes)
-    category_counts = {}
-    for recipe in recipes:
-        category_counts[recipe.category] = category_counts.get(recipe.category, 0) + 1
+    # Distribución por categoría
+    conteo_categorias = {}
+    for receta in recetas:
+        conteo_categorias[receta.categoria] = conteo_categorias.get(receta.categoria, 0) + 1
     
-    total_recipes = len(recipes)
-    category_distribution = [
-        {"name": cat, "value": round((count / total_recipes * 100) if total_recipes > 0 else 0)}
-        for cat, count in category_counts.items()
+    total_recetas = len(recetas)
+    distribucion_categorias = [
+        {"nombre": cat, "valor": round((count / total_recetas * 100) if total_recetas > 0 else 0)}
+        for cat, count in conteo_categorias.items()
     ]
     
-    # If no categories, use default
-    if not category_distribution:
-        category_distribution = [
-            {"name": "Platos Principales", "value": 45},
-            {"name": "Bebidas", "value": 25},
-            {"name": "Entradas", "value": 20},
-            {"name": "Postres", "value": 10},
+    if not distribucion_categorias:
+        distribucion_categorias = [
+            {"nombre": "Platos Principales", "valor": 45},
+            {"nombre": "Bebidas", "valor": 25},
+            {"nombre": "Entradas", "valor": 20},
+            {"nombre": "Postres", "valor": 10},
         ]
     
     return DashboardResponse(
-        stats=stats,
-        top_dishes=top_dishes,
-        alerts=alerts,
-        sales_by_day=sales_by_day,
-        category_distribution=category_distribution
+        estadisticas=estadisticas,
+        platos_top=platos_top,
+        alertas=alertas,
+        ventas_por_dia=ventas_por_dia,
+        distribucion_categorias=distribucion_categorias
     )
-

@@ -1,38 +1,38 @@
 """
-Chatbot API endpoints
+API de Chatbot en Español
 """
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.chatbot import ChatMessage, ChatResponse
+from app.schemas.chatbot import MensajeChat, RespuestaChat
 from app.services.ai_service import ai_service
 from datetime import datetime
 import uuid
 
 router = APIRouter()
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(message: ChatMessage):
+@router.post("/chat", response_model=RespuestaChat)
+async def chat(mensaje: MensajeChat):
     """
-    Chat endpoint - receives user message and returns AI response
+    Endpoint de chat - recibe mensaje del usuario y retorna respuesta de IA
     """
     try:
-        # TODO: Get business context from database
-        # For now, using empty context
+        # TODO: Obtener contexto del negocio de la base de datos
+        # Por ahora, usamos contexto vacío
         context = {}
         
-        # Get AI response
+        # Obtener respuesta de IA
+        # Nota: ai_service necesita ser refactorizado también si usa modelos en inglés internamente
         response_text = await ai_service.get_chat_response(
-            message.message,
+            mensaje.message,
             context=context
         )
         
-        # Generate or use existing conversation ID
-        conversation_id = message.conversation_id or str(uuid.uuid4())
+        # Generar o usar ID de conversación existente
+        conversation_id = mensaje.conversation_id or str(uuid.uuid4())
         
-        return ChatResponse(
+        return RespuestaChat(
             response=response_text,
             conversation_id=conversation_id,
             timestamp=datetime.utcnow()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing chat message: {str(e)}")
-
+        raise HTTPException(status_code=500, detail=f"Error procesando mensaje de chat: {str(e)}")

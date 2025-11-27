@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { User, Users as UsersIcon, Bell, Lock, Database, HelpCircle, MapPin, Truck, Tag } from "lucide-react";
+import { User, Bell, Lock, Database, HelpCircle } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { BusinessLocations } from "./BusinessLocations";
-import { Suppliers } from "./Suppliers";
 import { toast } from "sonner";
 
 export function Settings() {
@@ -73,7 +71,7 @@ export function Settings() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 bg-white/5 border-[#FF6B35]/20 p-1 h-auto gap-1 overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-3 bg-white/5 border-[#FF6B35]/20 p-1 h-auto gap-1">
           <TabsTrigger
             value="profile"
             className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
@@ -190,7 +188,7 @@ export function Settings() {
                 </div>
                 <Switch
                   checked={notifications.criticalStock}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked: boolean) =>
                     setNotifications({ ...notifications, criticalStock: checked })
                   }
                 />
@@ -205,7 +203,7 @@ export function Settings() {
                 </div>
                 <Switch
                   checked={notifications.dailyReport}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked: boolean) =>
                     setNotifications({ ...notifications, dailyReport: checked })
                   }
                 />
@@ -220,7 +218,7 @@ export function Settings() {
                 </div>
                 <Switch
                   checked={notifications.aiSuggestions}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked: boolean) =>
                     setNotifications({ ...notifications, aiSuggestions: checked })
                   }
                 />
@@ -235,7 +233,7 @@ export function Settings() {
                 </div>
                 <Switch
                   checked={notifications.lowMargin}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked: boolean) =>
                     setNotifications({ ...notifications, lowMargin: checked })
                   }
                 />

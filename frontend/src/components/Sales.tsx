@@ -7,59 +7,61 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination";
-import { salesApi, enumsApi, businessLocationsApi, type Sale as ApiSale, type BusinessLocation } from "../services/api";
+import {
+  ventasApi,
+  enumsApi,
+  sucursalesApi
+} from "../services/api";
+import {
+  Venta,
+  Sucursal,
+  ItemVenta
+} from "../types";
 import { toast } from "sonner";
 
-interface Sale {
-  id: string;
-  created_at: string;
-  items: Array<{
-    item_name: string;
-    quantity: number;
-    unit_price: number;
-    total: number;
-  }>;
-  total: number;
-  subtotal: number;
-  tax: number;
-  payment_method?: string;
+interface VentaFormItem {
+  nombre_item: string;
+  cantidad: number;
+  precio_unitario: number;
 }
 
 export function Sales() {
-  const [sales, setSales] = useState<Sale[]>([]);
+  const [sales, setSales] = useState<Venta[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const [formData, setFormData] = useState({
-    location_id: "",
-    table_number: "",
-    waiter_id: "",
-    sale_type: "LOCAL" as "LOCAL" | "DELIVERY" | "TAKEAWAY",
-    delivery_service: "",
-    customer_name: "",
-    customer_phone: "",
-    items: [] as Array<{ item_name: string; quantity: number; unit_price: number }>,
-    payment_method: "EFECTIVO" as "EFECTIVO" | "QR" | "TARJETA",
-    notes: "",
-    discount_amount: 0
+    sucursal_id: "",
+    numero_mesa: "",
+    mesero_id: "",
+    tipo_venta: "LOCAL" as "LOCAL" | "DELIVERY" | "TAKEAWAY",
+    servicio_delivery: "",
+    nombre_cliente: "",
+    telefono_cliente: "",
+    items: [] as VentaFormItem[],
+    metodo_pago: "EFECTIVO" as "EFECTIVO" | "QR" | "TARJETA",
+    notas: "",
+    monto_descuento: 0
   });
+
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
-  const [locations, setLocations] = useState<BusinessLocation[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
 
   useEffect(() => {
     loadSales();
     loadPaymentMethods();
-    loadLocations();
+    loadSucursales();
   }, []);
 
-  const loadLocations = async () => {
+  const loadSucursales = async () => {
     try {
-      const data = await businessLocationsApi.getAll();
-      setLocations(data);
-      if (data.length > 0 && !formData.location_id) {
-        const mainLocation = data.find(loc => loc.is_main) || data[0];
-        setFormData(prev => ({ ...prev, location_id: mainLocation.id }));
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
+      if (data.length > 0 && !formData.sucursal_id) {
+        const mainLocation = data.find(loc => loc.es_principal) || data[0];
+        setFormData(prev => ({ ...prev, sucursal_id: mainLocation.id }));
       }
     } catch (error) {
       console.error("Error loading locations:", error);
@@ -70,9 +72,8 @@ export function Sales() {
     try {
       const res = await enumsApi.getPaymentMethods();
       setPaymentMethods(res.methods);
-      // Set default if available
-      if (res.methods.length > 0 && !res.methods.includes(formData.payment_method)) {
-        setFormData(prev => ({ ...prev, payment_method: res.methods[0] as "EFECTIVO" | "QR" | "TARJETA" }));
+      if (res.methods.length > 0 && !res.methods.includes(formData.metodo_pago)) {
+        setFormData(prev => ({ ...prev, metodo_pago: res.methods[0] as any }));
       }
     } catch (error) {
       console.error("Error loading payment methods:", error);
@@ -82,17 +83,8 @@ export function Sales() {
   const loadSales = async () => {
     try {
       setLoading(true);
-      const data = await salesApi.getAll();
-      const mappedSales = data.map(sale => ({
-        id: sale.id,
-        created_at: sale.created_at,
-        items: sale.items || [],
-        total: sale.total,
-        subtotal: sale.subtotal,
-        tax: sale.tax,
-        payment_method: sale.payment_method
-      }));
-      setSales(mappedSales);
+      const data = await ventasApi.obtenerTodos();
+      setSales(data);
     } catch (error) {
       console.error("Error loading sales:", error);
       toast.error("Error al cargar las ventas");
@@ -104,7 +96,7 @@ export function Sales() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!formData.location_id) {
+      if (!formData.sucursal_id) {
         toast.error("Debes seleccionar una sucursal");
         return;
       }
@@ -114,47 +106,34 @@ export function Sales() {
         return;
       }
 
-      const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-      const tax = subtotal * 0.13; // 13% IVA
-      const finalTotal = subtotal - formData.discount_amount + tax;
+      const subtotal = formData.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+      const impuesto = subtotal * 0.13; // 13% IVA
+      const total = subtotal - formData.monto_descuento + impuesto;
 
       const saleData: any = {
-        location_id: formData.location_id,
-        sale_type: formData.sale_type,
+        sucursal_id: formData.sucursal_id,
+        tipo_venta: formData.tipo_venta,
         subtotal,
-        discount_amount: formData.discount_amount,
-        tax,
-        total: finalTotal,
-        payment_method: formData.payment_method,
+        monto_descuento: formData.monto_descuento,
+        impuesto,
+        total,
+        metodo_pago: formData.metodo_pago,
         items: formData.items.map(item => ({
-          item_name: item.item_name,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          total: item.quantity * item.unit_price
+          nombre_item: item.nombre_item,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          total: item.cantidad * item.precio_unitario
         }))
       };
 
-      // Add optional fields
-      if (formData.table_number) {
-        saleData.table_number = formData.table_number;
-      }
-      if (formData.waiter_id) {
-        saleData.waiter_id = formData.waiter_id;
-      }
-      if (formData.delivery_service) {
-        saleData.delivery_service = formData.delivery_service;
-      }
-      if (formData.customer_name) {
-        saleData.customer_name = formData.customer_name;
-      }
-      if (formData.customer_phone) {
-        saleData.customer_phone = formData.customer_phone;
-      }
-      if (formData.notes) {
-        saleData.notes = formData.notes;
-      }
+      if (formData.numero_mesa) saleData.numero_mesa = formData.numero_mesa;
+      if (formData.mesero_id) saleData.mesero_id = formData.mesero_id;
+      if (formData.servicio_delivery) saleData.servicio_delivery = formData.servicio_delivery;
+      if (formData.nombre_cliente) saleData.nombre_cliente = formData.nombre_cliente;
+      if (formData.telefono_cliente) saleData.telefono_cliente = formData.telefono_cliente;
+      if (formData.notas) saleData.notas = formData.notas;
 
-      await salesApi.create(saleData);
+      await ventasApi.crear(saleData);
 
       toast.success("Venta registrada correctamente");
       setIsDialogOpen(false);
@@ -162,25 +141,13 @@ export function Sales() {
       loadSales();
     } catch (error: any) {
       console.error("Error creating sale:", error);
-
-      // Extract error message from API response
       let errorMessage = "Error al registrar la venta";
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.response?.data?.detail) {
         errorMessage = error.response.data.detail;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
       }
-
-      // Show specific error message
-      if (errorMessage.includes("Stock insuficiente") || errorMessage.includes("stock")) {
-        toast.error(errorMessage, { duration: 5000 });
-      } else if (errorMessage.includes("cerrado") || errorMessage.includes("horario")) {
-        toast.error(errorMessage, { duration: 5000 });
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     }
   };
 
@@ -188,8 +155,8 @@ export function Sales() {
     if (!confirm("¿Estás seguro de eliminar esta venta?")) return;
 
     try {
-      await salesApi.delete(id);
-      toast.success("Venta eliminada correctamente. El inventario ha sido restaurado.");
+      await ventasApi.eliminar(id);
+      toast.success("Venta eliminada correctamente");
       loadSales();
     } catch (error: any) {
       console.error("Error deleting sale:", error);
@@ -199,32 +166,32 @@ export function Sales() {
   };
 
   const resetForm = () => {
-    const mainLocation = locations.find(loc => loc.is_main) || locations[0];
+    const mainLocation = sucursales.find(loc => loc.es_principal) || sucursales[0];
     setFormData({
-      location_id: mainLocation?.id || "",
-      table_number: "",
-      waiter_id: "",
-      sale_type: "LOCAL" as "LOCAL" | "DELIVERY" | "TAKEAWAY",
-      delivery_service: "",
-      customer_name: "",
-      customer_phone: "",
+      sucursal_id: mainLocation?.id || "",
+      numero_mesa: "",
+      mesero_id: "",
+      tipo_venta: "LOCAL",
+      servicio_delivery: "",
+      nombre_cliente: "",
+      telefono_cliente: "",
       items: [],
-      payment_method: "EFECTIVO" as "EFECTIVO" | "QR" | "TARJETA",
-      notes: "",
-      discount_amount: 0
+      metodo_pago: "EFECTIVO",
+      notas: "",
+      monto_descuento: 0
     });
   };
 
   const addItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { item_name: "", quantity: 1, unit_price: 0 }]
+      items: [...formData.items, { nombre_item: "", cantidad: 1, precio_unitario: 0 }]
     });
   };
 
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...formData.items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    (newItems[index] as any)[field] = value;
     setFormData({ ...formData, items: newItems });
   };
 
@@ -247,13 +214,13 @@ export function Sales() {
 
   // Filter today's sales
   const today = new Date().toDateString();
-  const todaySales = sales.filter(sale => new Date(sale.created_at).toDateString() === today);
+  const todaySales = sales.filter(sale => new Date(sale.fecha_creacion).toDateString() === today);
   const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.total, 0);
-  const totalItems = todaySales.reduce((sum, sale) => sum + sale.items.reduce((s, item) => s + item.quantity, 0), 0);
+  const totalItems = todaySales.reduce((sum, sale) => sum + sale.items.reduce((s, item) => s + item.cantidad, 0), 0);
   const avgTicket = todaySales.length > 0 ? todayRevenue / todaySales.length : 0;
 
   // Pagination logic
-  const sortedSales = [...sales].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const sortedSales = [...sales].sort((a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime());
   const totalPages = Math.ceil(sortedSales.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -297,17 +264,17 @@ export function Sales() {
                 <div>
                   <Label className="text-white/80">Sucursal *</Label>
                   <Select
-                    value={formData.location_id}
-                    onValueChange={(value) => setFormData({ ...formData, location_id: value })}
+                    value={formData.sucursal_id}
+                    onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
                     required
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue placeholder="Selecciona sucursal" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      {locations.map((loc) => (
+                      {sucursales.map((loc) => (
                         <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                          {loc.name}
+                          {loc.nombre}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -316,8 +283,8 @@ export function Sales() {
                 <div>
                   <Label className="text-white/80">Tipo de Venta</Label>
                   <Select
-                    value={formData.sale_type}
-                    onValueChange={(value: "LOCAL" | "DELIVERY" | "TAKEAWAY") => setFormData({ ...formData, sale_type: value })}
+                    value={formData.tipo_venta}
+                    onValueChange={(value: "LOCAL" | "DELIVERY" | "TAKEAWAY") => setFormData({ ...formData, tipo_venta: value })}
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue />
@@ -330,26 +297,26 @@ export function Sales() {
                   </Select>
                 </div>
               </div>
-              {formData.sale_type === "LOCAL" && (
+              {formData.tipo_venta === "LOCAL" && (
                 <div>
                   <Label className="text-white/80">Número de Mesa</Label>
                   <Input
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="Ej: 5"
-                    value={formData.table_number}
-                    onChange={(e) => setFormData({ ...formData, table_number: e.target.value })}
+                    value={formData.numero_mesa}
+                    onChange={(e) => setFormData({ ...formData, numero_mesa: e.target.value })}
                   />
                 </div>
               )}
-              {formData.sale_type === "DELIVERY" && (
+              {formData.tipo_venta === "DELIVERY" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-white/80">Servicio de Delivery</Label>
                     <Input
                       className="bg-white/5 border-[#FF6B35]/20 text-white"
                       placeholder="PedidosYa, Ahora, etc."
-                      value={formData.delivery_service}
-                      onChange={(e) => setFormData({ ...formData, delivery_service: e.target.value })}
+                      value={formData.servicio_delivery}
+                      onChange={(e) => setFormData({ ...formData, servicio_delivery: e.target.value })}
                     />
                   </div>
                   <div>
@@ -357,8 +324,8 @@ export function Sales() {
                     <Input
                       className="bg-white/5 border-[#FF6B35]/20 text-white"
                       placeholder="Nombre del cliente"
-                      value={formData.customer_name}
-                      onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                      value={formData.nombre_cliente}
+                      onChange={(e) => setFormData({ ...formData, nombre_cliente: e.target.value })}
                     />
                   </div>
                 </div>
@@ -371,16 +338,16 @@ export function Sales() {
                       <Input
                         className="bg-white/5 border-[#FF6B35]/20 text-white flex-1"
                         placeholder="Nombre del plato"
-                        value={item.item_name}
-                        onChange={(e) => updateItem(index, "item_name", e.target.value)}
+                        value={item.nombre_item}
+                        onChange={(e) => updateItem(index, "nombre_item", e.target.value)}
                         required
                       />
                       <Input
                         type="number"
                         className="bg-white/5 border-[#FF6B35]/20 text-white w-20"
                         placeholder="Cant."
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, "quantity", parseInt(e.target.value) || 1)}
+                        value={item.cantidad}
+                        onChange={(e) => updateItem(index, "cantidad", parseInt(e.target.value) || 1)}
                         required
                         min="1"
                       />
@@ -389,8 +356,8 @@ export function Sales() {
                         step="0.01"
                         className="bg-white/5 border-[#FF6B35]/20 text-white w-24"
                         placeholder="Precio"
-                        value={item.unit_price}
-                        onChange={(e) => updateItem(index, "unit_price", parseFloat(e.target.value) || 0)}
+                        value={item.precio_unitario}
+                        onChange={(e) => updateItem(index, "precio_unitario", parseFloat(e.target.value) || 0)}
                         required
                       />
                       <Button
@@ -422,17 +389,17 @@ export function Sales() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0.00"
-                  value={formData.discount_amount}
-                  onChange={(e) => setFormData({ ...formData, discount_amount: parseFloat(e.target.value) || 0 })}
+                  value={formData.monto_descuento}
+                  onChange={(e) => setFormData({ ...formData, monto_descuento: parseFloat(e.target.value) || 0 })}
                   min="0"
                 />
               </div>
               <div>
                 <Label className="text-white/80">Método de Pago</Label>
                 <Select
-                  value={formData.payment_method}
+                  value={formData.metodo_pago}
                   onValueChange={(value: "EFECTIVO" | "QR" | "TARJETA") =>
-                    setFormData({ ...formData, payment_method: value })
+                    setFormData({ ...formData, metodo_pago: value })
                   }
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
@@ -458,15 +425,15 @@ export function Sales() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Notas adicionales (opcional)"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  value={formData.notas}
+                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                 />
               </div>
               <div className="pt-4 border-t border-[#FF6B35]/20">
                 {(() => {
-                  const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-                  const tax = subtotal * 0.13;
-                  const total = subtotal - formData.discount_amount + tax;
+                  const subtotal = formData.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+                  const impuesto = subtotal * 0.13;
+                  const total = subtotal - formData.monto_descuento + impuesto;
                   return (
                     <>
                       <div className="flex items-center justify-between mb-2">
@@ -475,18 +442,18 @@ export function Sales() {
                           Bs. {subtotal.toFixed(2)}
                         </span>
                       </div>
-                      {formData.discount_amount > 0 && (
+                      {formData.monto_descuento > 0 && (
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-white/60">Descuento:</span>
                           <span className="text-red-400">
-                            - Bs. {formData.discount_amount.toFixed(2)}
+                            - Bs. {formData.monto_descuento.toFixed(2)}
                           </span>
                         </div>
                       )}
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-white/60">IVA (13%):</span>
                         <span className="text-white">
-                          Bs. {tax.toFixed(2)}
+                          Bs. {impuesto.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
@@ -571,16 +538,16 @@ export function Sales() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="text-white mb-1">Venta #{sale.id.slice(0, 8)}</div>
-                    <div className="text-white/60">{formatDate(sale.created_at)} • {formatTime(sale.created_at)}</div>
+                    <div className="text-white/60">{formatDate(sale.fecha_creacion)} • {formatTime(sale.fecha_creacion)}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-right">
                       <div className="text-[#FF6B35]">Bs. {sale.total.toFixed(2)}</div>
                       <div className="text-white/60">
-                        {sale.payment_method === "EFECTIVO" ? "Efectivo" :
-                          sale.payment_method === "QR" ? "QR" :
-                            sale.payment_method === "TARJETA" ? "Tarjeta" :
-                              sale.payment_method || "N/A"}
+                        {sale.metodo_pago === "EFECTIVO" ? "Efectivo" :
+                          sale.metodo_pago === "QR" ? "QR" :
+                            sale.metodo_pago === "TARJETA" ? "Tarjeta" :
+                              sale.metodo_pago || "N/A"}
                       </div>
                     </div>
                     <Button
@@ -597,7 +564,7 @@ export function Sales() {
                   {sale.items.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">
                       <span className="text-white/80">
-                        {item.quantity}x {item.item_name}
+                        {item.cantidad}x {item.nombre_item}
                       </span>
                       <span className="text-white/60">Bs. {item.total.toFixed(2)}</span>
                     </div>
@@ -621,6 +588,7 @@ export function Sales() {
                       if (currentPage > 1) setCurrentPage(currentPage - 1);
                     }}
                     className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                    size="default"
                   />
                 </PaginationItem>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -633,6 +601,7 @@ export function Sales() {
                       }}
                       isActive={currentPage === page}
                       className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
+                      size="icon"
                     >
                       {page}
                     </PaginationLink>
@@ -646,6 +615,7 @@ export function Sales() {
                       if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                     }}
                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                    size="default"
                   />
                 </PaginationItem>
               </PaginationContent>

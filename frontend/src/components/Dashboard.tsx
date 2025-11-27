@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Package, ChefHat, ShoppingCart, BarChart3, AlertTriangle, CheckCircle2, Loader2, Settings, Users, Building2, Tag, DollarSign } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, ChefHat, ShoppingCart, BarChart3, AlertTriangle, Settings, Users, Building2, Tag, DollarSign } from "lucide-react";
 import { Card } from "./ui/card";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { dashboardApi, type DashboardData } from "../services/api";
-import { Link } from "react-router-dom";
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { dashboardApi } from "../services/api";
+import { DashboardResponse } from "../types";
 
 export function Dashboard() {
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export function Dashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const data = await dashboardApi.getStats();
+      const data = await dashboardApi.obtenerEstadisticas();
       setDashboardData(data);
       setError(null);
     } catch (err) {
@@ -31,7 +31,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -50,15 +50,15 @@ export function Dashboard() {
   const stats = [
     {
       title: "Ventas del Día",
-      value: `Bs. ${dashboardData.stats.total_sales_today.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      change: `${dashboardData.stats.sales_change_percent >= 0 ? '+' : ''}${dashboardData.stats.sales_change_percent.toFixed(1)}%`,
-      trend: (dashboardData.stats.sales_change_percent >= 0 ? "up" : "down") as const,
+      value: `Bs. ${dashboardData.estadisticas.ventas_totales_hoy.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: `${dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_ventas_porcentaje.toFixed(1)}%`,
+      trend: (dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? "up" : "down") as const,
       icon: DollarSign,
       color: "#FF6B35"
     },
     {
       title: "Insumos Críticos",
-      value: dashboardData.stats.critical_inventory_count.toString(),
+      value: dashboardData.estadisticas.items_criticos_count.toString(),
       change: "Requieren atención",
       trend: "down" as const,
       icon: AlertTriangle,
@@ -66,45 +66,37 @@ export function Dashboard() {
     },
     {
       title: "Platos Vendidos",
-      value: dashboardData.stats.dishes_sold_today.toString(),
-      change: `${dashboardData.stats.dishes_change_percent >= 0 ? '+' : ''}${dashboardData.stats.dishes_change_percent.toFixed(1)}%`,
-      trend: (dashboardData.stats.dishes_change_percent >= 0 ? "up" : "down") as const,
+      value: dashboardData.estadisticas.platos_vendidos_hoy.toString(),
+      change: `${dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_platos_porcentaje.toFixed(1)}%`,
+      trend: (dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? "up" : "down") as const,
       icon: Package,
       color: "#FF6B35"
     },
     {
       title: "Margen Promedio",
-      value: `${dashboardData.stats.average_margin.toFixed(1)}%`,
-      change: `${dashboardData.stats.margin_change_percent >= 0 ? '+' : ''}${dashboardData.stats.margin_change_percent.toFixed(1)}%`,
-      trend: (dashboardData.stats.margin_change_percent >= 0 ? "up" : "down") as const,
+      value: `${dashboardData.estadisticas.margen_promedio.toFixed(1)}%`,
+      change: `${dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_margen_porcentaje.toFixed(1)}%`,
+      trend: (dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? "up" : "down") as const,
       icon: TrendingUp,
       color: "#FF6B35"
     },
   ];
 
-  const salesData = dashboardData.sales_by_day;
-  const topDishes = dashboardData.top_dishes.map(dish => ({
-    name: dish.name,
-    ventas: dish.sales_count,
-    ingresos: dish.revenue
+  const salesData = dashboardData.ventas_por_dia;
+  const topDishes = dashboardData.platos_top.map(dish => ({
+    name: dish.nombre,
+    ventas: dish.cantidad_vendida,
+    ingresos: dish.ingresos
   }));
 
-  const categoryDistribution = dashboardData.category_distribution;
+  const categoryDistribution = dashboardData.distribucion_categorias.map(cat => ({
+    name: cat.nombre,
+    value: cat.valor
+  }));
+
   const COLORS = ["#FF6B35", "#10B981", "#06B6D4", "#8B5CF6"];
 
-  const alerts = dashboardData.alerts;
-
-  // Páginas operativas del sistema
-  const operationalPages = [
-    { path: "/inventory", label: "Inventario", icon: Package, description: "Gestión de insumos y stock", status: "operativa" },
-    { path: "/recipes", label: "Recetas", icon: ChefHat, description: "Catálogo de platos y preparaciones", status: "operativa" },
-    { path: "/sales", label: "Ventas", icon: ShoppingCart, description: "Registro y seguimiento de ventas", status: "operativa" },
-    { path: "/reports", label: "Reportes", icon: BarChart3, description: "Análisis y reportes del negocio", status: "operativa" },
-    { path: "/settings", label: "Configuración", icon: Settings, description: "Ajustes y administración", status: "operativa" },
-    { path: "/settings/users", label: "Usuarios", icon: Users, description: "Gestión de usuarios del sistema", status: "operativa" },
-    { path: "/settings/locations", label: "Sucursales", icon: Building2, description: "Gestión de ubicaciones", status: "operativa" },
-    { path: "/settings/promotions", label: "Promociones", icon: Tag, description: "Ofertas y descuentos", status: "operativa" },
-  ];
+  const alerts = dashboardData.alertas;
 
   return (
     <div className="space-y-8 w-full relative">
@@ -145,7 +137,7 @@ export function Dashboard() {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 107, 53, 0.1)" />
-              <XAxis dataKey="day" stroke="#ffffff60" />
+              <XAxis dataKey="dia" stroke="#ffffff60" />
               <YAxis stroke="#ffffff60" />
               <Tooltip
                 contentStyle={{ backgroundColor: "#0F1629", border: "1px solid rgba(255, 107, 53, 0.3)" }}
@@ -213,14 +205,14 @@ export function Dashboard() {
             {alerts.map((alert, index) => (
               <div
                 key={index}
-                className={`flex items-start gap-3 p-4 rounded-lg transition-all ${alert.type === "warning"
+                className={`flex items-start gap-3 p-4 rounded-lg transition-all ${alert.tipo === "warning"
                   ? "bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/15"
                   : "bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15"
                   }`}
               >
-                <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alert.type === "warning" ? "text-yellow-400" : "text-blue-400"
+                <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alert.tipo === "warning" ? "text-yellow-400" : "text-blue-400"
                   }`} />
-                <p className="text-white/90 leading-relaxed">{alert.message}</p>
+                <p className="text-white/90 leading-relaxed">{alert.mensaje}</p>
               </div>
             ))}
           </div>

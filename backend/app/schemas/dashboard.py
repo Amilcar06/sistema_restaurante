@@ -1,32 +1,30 @@
 """
-Dashboard Pydantic schemas
+Schemas Pydantic para Dashboard en Español
 """
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
 
-class DashboardStats(BaseModel):
-    total_sales_today: float
-    critical_inventory_count: int
-    dishes_sold_today: int
-    average_margin: float
-    sales_change_percent: float
-    dishes_change_percent: float
-    margin_change_percent: float
+class EstadisticasDashboard(BaseModel):
+    ventas_totales_hoy: float
+    items_criticos_count: int
+    platos_vendidos_hoy: int
+    margen_promedio: float
+    cambio_ventas_porcentaje: float
+    cambio_platos_porcentaje: float
+    cambio_margen_porcentaje: float
 
-class TopDish(BaseModel):
-    name: str
-    sales_count: int
-    revenue: float
+class PlatoTop(BaseModel):
+    nombre: str
+    cantidad_vendida: int
+    ingresos: float
 
-class Alert(BaseModel):
-    type: str  # warning, info, success
-    message: str
+class Alerta(BaseModel):
+    tipo: str  # warning, info, success
+    mensaje: str
 
 class DashboardResponse(BaseModel):
-    stats: DashboardStats
-    top_dishes: List[TopDish]
-    alerts: List[Alert]
-    sales_by_day: List[dict]  # [{day: str, ventas: float}]
-    category_distribution: List[dict]  # [{name: str, value: float}]
-
+    estadisticas: EstadisticasDashboard
+    platos_top: List[PlatoTop]
+    alertas: List[Alerta]
+    ventas_por_dia: List[dict]  # [{dia: str, ventas: float}]
+    distribucion_categorias: List[dict]  # [{nombre: str, valor: float}]

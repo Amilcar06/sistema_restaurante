@@ -8,58 +8,42 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { promotionsApi, businessLocationsApi, type Promotion as ApiPromotion, type BusinessLocation } from "../services/api";
+import { promocionesApi, sucursalesApi } from "../services/api";
+import { Promocion, Sucursal } from "../types";
 import { toast } from "sonner";
-
-interface Promotion {
-  id: string;
-  name: string;
-  description?: string;
-  discount_type: 'percentage' | 'fixed_amount' | 'buy_x_get_y';
-  discount_value: number;
-  min_purchase?: number;
-  max_discount?: number;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  applicable_to?: 'all' | 'recipes' | 'categories' | 'specific_items';
-  applicable_ids?: string[];
-  location_id?: string;
-  created_at: string;
-  user_id?: string;
-}
 
 export function Promotions() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [locations, setLocations] = useState<BusinessLocation[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPromotion, setEditingPromotion] = useState<Promotion | null>(null);
+  const [editingPromotion, setEditingPromotion] = useState<Promocion | null>(null);
+
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    discount_type: "percentage" as 'percentage' | 'fixed_amount' | 'buy_x_get_y',
-    discount_value: 0,
-    min_purchase: undefined as number | undefined,
-    max_discount: undefined as number | undefined,
-    start_date: "",
-    end_date: "",
-    is_active: true,
-    applicable_to: "all" as 'all' | 'recipes' | 'categories' | 'specific_items',
-    location_id: "none"
+    nombre: "",
+    descripcion: "",
+    tipo_descuento: "PORCENTAJE" as 'PORCENTAJE' | 'MONTO_FIJO' | '2X1',
+    valor_descuento: 0,
+    compra_minima: undefined as number | undefined,
+    descuento_maximo: undefined as number | undefined,
+    fecha_inicio: "",
+    fecha_fin: "",
+    activa: true,
+    aplicable_a: "TODOS" as 'TODOS' | 'RECETAS' | 'CATEGORIAS' | 'ITEMS',
+    sucursal_id: "none"
   });
 
   useEffect(() => {
-    loadPromotions();
-    loadLocations();
+    loadPromociones();
+    loadSucursales();
   }, []);
 
-  const loadPromotions = async () => {
+  const loadPromociones = async () => {
     try {
       setLoading(true);
-      const data = await promotionsApi.getAll();
-      setPromotions(data);
+      const data = await promocionesApi.obtenerTodos();
+      setPromociones(data);
     } catch (error) {
       console.error("Error loading promotions:", error);
       toast.error("Error al cargar las promociones");
@@ -68,10 +52,10 @@ export function Promotions() {
     }
   };
 
-  const loadLocations = async () => {
+  const loadSucursales = async () => {
     try {
-      const data = await businessLocationsApi.getAll();
-      setLocations(data);
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
     } catch (error) {
       console.error("Error loading locations:", error);
     }
@@ -81,29 +65,29 @@ export function Promotions() {
     e.preventDefault();
     try {
       const submitData: any = {
-        name: formData.name,
-        description: formData.description || undefined,
-        discount_type: formData.discount_type,
-        discount_value: formData.discount_value,
-        min_purchase: formData.min_purchase || undefined,
-        max_discount: formData.max_discount || undefined,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
-        is_active: formData.is_active,
-        applicable_to: formData.applicable_to,
-        location_id: formData.location_id === "none" ? undefined : formData.location_id
+        nombre: formData.nombre,
+        descripcion: formData.descripcion || undefined,
+        tipo_descuento: formData.tipo_descuento,
+        valor_descuento: formData.valor_descuento,
+        compra_minima: formData.compra_minima || undefined,
+        descuento_maximo: formData.descuento_maximo || undefined,
+        fecha_inicio: new Date(formData.fecha_inicio).toISOString(),
+        fecha_fin: new Date(formData.fecha_fin).toISOString(),
+        activa: formData.activa,
+        aplicable_a: formData.aplicable_a,
+        sucursal_id: formData.sucursal_id === "none" ? undefined : formData.sucursal_id
       };
 
       if (editingPromotion) {
-        await promotionsApi.update(editingPromotion.id, submitData);
+        await promocionesApi.actualizar(editingPromotion.id, submitData);
         toast.success("Promoción actualizada correctamente");
       } else {
-        await promotionsApi.create(submitData);
+        await promocionesApi.crear(submitData);
         toast.success("Promoción creada correctamente");
       }
       setIsDialogOpen(false);
       resetForm();
-      loadPromotions();
+      loadPromociones();
     } catch (error: any) {
       console.error("Error saving promotion:", error);
       toast.error(error.message || "Error al guardar la promoción");
@@ -113,69 +97,69 @@ export function Promotions() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar esta promoción?")) return;
     try {
-      await promotionsApi.delete(id);
+      await promocionesApi.eliminar(id);
       toast.success("Promoción eliminada correctamente");
-      loadPromotions();
+      loadPromociones();
     } catch (error) {
       console.error("Error deleting promotion:", error);
       toast.error("Error al eliminar la promoción");
     }
   };
 
-  const handleEdit = (promotion: Promotion) => {
-    setEditingPromotion(promotion);
+  const handleEdit = (promocion: Promocion) => {
+    setEditingPromotion(promocion);
     setFormData({
-      name: promotion.name,
-      description: promotion.description || "",
-      discount_type: promotion.discount_type,
-      discount_value: promotion.discount_value,
-      min_purchase: promotion.min_purchase,
-      max_discount: promotion.max_discount,
-      start_date: new Date(promotion.start_date).toISOString().split('T')[0],
-      end_date: new Date(promotion.end_date).toISOString().split('T')[0],
-      is_active: promotion.is_active,
-      applicable_to: promotion.applicable_to || "all",
-      location_id: promotion.location_id || "none"
+      nombre: promocion.nombre,
+      descripcion: promocion.descripcion || "",
+      tipo_descuento: promocion.tipo_descuento as any,
+      valor_descuento: promocion.valor_descuento,
+      compra_minima: promocion.compra_minima,
+      descuento_maximo: promocion.descuento_maximo,
+      fecha_inicio: new Date(promocion.fecha_inicio).toISOString().slice(0, 16),
+      fecha_fin: new Date(promocion.fecha_fin).toISOString().slice(0, 16),
+      activa: promocion.activa,
+      aplicable_a: promocion.aplicable_a as any || "TODOS",
+      sucursal_id: promocion.sucursal_id || "none"
     });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      description: "",
-      discount_type: "percentage",
-      discount_value: 0,
-      min_purchase: undefined,
-      max_discount: undefined,
-      start_date: "",
-      end_date: "",
-      is_active: true,
-      applicable_to: "all",
-      location_id: "none"
+      nombre: "",
+      descripcion: "",
+      tipo_descuento: "PORCENTAJE",
+      valor_descuento: 0,
+      compra_minima: undefined,
+      descuento_maximo: undefined,
+      fecha_inicio: "",
+      fecha_fin: "",
+      activa: true,
+      aplicable_a: "TODOS",
+      sucursal_id: "none"
     });
     setEditingPromotion(null);
   };
 
-  const filteredPromotions = promotions.filter(promo =>
-    promo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (promo.description && promo.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredPromociones = promociones.filter(promo =>
+    promo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (promo.descripcion && promo.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getDiscountTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      percentage: "Porcentaje",
-      fixed_amount: "Monto Fijo",
-      buy_x_get_y: "Compra X Lleva Y"
+      PORCENTAJE: "Porcentaje",
+      MONTO_FIJO: "Monto Fijo",
+      "2X1": "2x1"
     };
     return labels[type] || type;
   };
 
-  const isActive = (promo: Promotion) => {
+  const isActive = (promo: Promocion) => {
     const now = new Date();
-    const start = new Date(promo.start_date);
-    const end = new Date(promo.end_date);
-    return promo.is_active && now >= start && now <= end;
+    const start = new Date(promo.fecha_inicio);
+    const end = new Date(promo.fecha_fin);
+    return promo.activa && now >= start && now <= end;
   };
 
   if (loading) {
@@ -228,8 +212,8 @@ export function Promotions() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Ej: Descuento de Verano"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                   required
                 />
               </div>
@@ -238,31 +222,31 @@ export function Promotions() {
                 <Textarea
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Descripción de la promoción"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  value={formData.descripcion}
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white/80">Tipo de Descuento</Label>
                   <Select
-                    value={formData.discount_type}
-                    onValueChange={(value: 'percentage' | 'fixed_amount' | 'buy_x_get_y') => setFormData({ ...formData, discount_type: value })}
+                    value={formData.tipo_descuento}
+                    onValueChange={(value: 'PORCENTAJE' | 'MONTO_FIJO' | '2X1') => setFormData({ ...formData, tipo_descuento: value })}
                     required
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      <SelectItem value="percentage" className="text-white focus:bg-[#FF6B35]/20">Porcentaje</SelectItem>
-                      <SelectItem value="fixed_amount" className="text-white focus:bg-[#FF6B35]/20">Monto Fijo</SelectItem>
-                      <SelectItem value="buy_x_get_y" className="text-white focus:bg-[#FF6B35]/20">Compra X Lleva Y</SelectItem>
+                      <SelectItem value="PORCENTAJE" className="text-white focus:bg-[#FF6B35]/20">Porcentaje</SelectItem>
+                      <SelectItem value="MONTO_FIJO" className="text-white focus:bg-[#FF6B35]/20">Monto Fijo</SelectItem>
+                      <SelectItem value="2X1" className="text-white focus:bg-[#FF6B35]/20">2x1</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <Label className="text-white/80">
-                    Valor {formData.discount_type === 'percentage' ? '(%)' : '(Bs.)'}
+                    Valor {formData.tipo_descuento === 'PORCENTAJE' ? '(%)' : '(Bs.)'}
                   </Label>
                   <Input
                     type="number"
@@ -270,8 +254,8 @@ export function Promotions() {
                     min="0"
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
-                    value={formData.discount_value}
-                    onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })}
+                    value={formData.valor_descuento}
+                    onChange={(e) => setFormData({ ...formData, valor_descuento: parseFloat(e.target.value) || 0 })}
                     required
                   />
                 </div>
@@ -285,8 +269,8 @@ export function Promotions() {
                     min="0"
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
-                    value={formData.min_purchase || ""}
-                    onChange={(e) => setFormData({ ...formData, min_purchase: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    value={formData.compra_minima || ""}
+                    onChange={(e) => setFormData({ ...formData, compra_minima: e.target.value ? parseFloat(e.target.value) : undefined })}
                   />
                 </div>
                 <div>
@@ -297,8 +281,8 @@ export function Promotions() {
                     min="0"
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
-                    value={formData.max_discount || ""}
-                    onChange={(e) => setFormData({ ...formData, max_discount: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    value={formData.descuento_maximo || ""}
+                    onChange={(e) => setFormData({ ...formData, descuento_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
                   />
                 </div>
               </div>
@@ -308,8 +292,8 @@ export function Promotions() {
                   <Input
                     type="datetime-local"
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    value={formData.fecha_inicio}
+                    onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
                     required
                   />
                 </div>
@@ -318,8 +302,8 @@ export function Promotions() {
                   <Input
                     type="datetime-local"
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    value={formData.fecha_fin}
+                    onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
                     required
                   />
                 </div>
@@ -327,25 +311,25 @@ export function Promotions() {
               <div>
                 <Label className="text-white/80">Aplicable a</Label>
                 <Select
-                  value={formData.applicable_to}
-                  onValueChange={(value: 'all' | 'recipes' | 'categories' | 'specific_items') => setFormData({ ...formData, applicable_to: value })}
+                  value={formData.aplicable_a}
+                  onValueChange={(value: 'TODOS' | 'RECETAS' | 'CATEGORIAS' | 'ITEMS') => setFormData({ ...formData, aplicable_a: value })}
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    <SelectItem value="all" className="text-white focus:bg-[#FF6B35]/20">Todos</SelectItem>
-                    <SelectItem value="recipes" className="text-white focus:bg-[#FF6B35]/20">Recetas Específicas</SelectItem>
-                    <SelectItem value="categories" className="text-white focus:bg-[#FF6B35]/20">Categorías</SelectItem>
-                    <SelectItem value="specific_items" className="text-white focus:bg-[#FF6B35]/20">Items Específicos</SelectItem>
+                    <SelectItem value="TODOS" className="text-white focus:bg-[#FF6B35]/20">Todos</SelectItem>
+                    <SelectItem value="RECETAS" className="text-white focus:bg-[#FF6B35]/20">Recetas Específicas</SelectItem>
+                    <SelectItem value="CATEGORIAS" className="text-white focus:bg-[#FF6B35]/20">Categorías</SelectItem>
+                    <SelectItem value="ITEMS" className="text-white focus:bg-[#FF6B35]/20">Items Específicos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label className="text-white/80">Sucursal</Label>
                 <Select
-                  value={formData.location_id}
-                  onValueChange={(value) => setFormData({ ...formData, location_id: value })}
+                  value={formData.sucursal_id}
+                  onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Todas las sucursales" />
@@ -354,9 +338,9 @@ export function Promotions() {
                     <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                       Todas las sucursales
                     </SelectItem>
-                    {locations.map((loc) => (
+                    {sucursales.map((loc) => (
                       <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                        {loc.name}
+                        {loc.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -364,11 +348,11 @@ export function Promotions() {
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  id="activa"
+                  checked={formData.activa}
+                  onCheckedChange={(checked) => setFormData({ ...formData, activa: checked })}
                 />
-                <Label htmlFor="is_active" className="text-white/80">Activa</Label>
+                <Label htmlFor="activa" className="text-white/80">Activa</Label>
               </div>
               <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
                 {editingPromotion ? "Actualizar Promoción" : "Crear Promoción"}
@@ -400,26 +384,26 @@ export function Promotions() {
               </tr>
             </thead>
             <tbody>
-              {filteredPromotions.length === 0 ? (
+              {filteredPromociones.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-4 text-center text-white/60">
                     No se encontraron promociones.
                   </td>
                 </tr>
               ) : (
-                filteredPromotions.map((promo) => {
+                filteredPromociones.map((promo) => {
                   const active = isActive(promo);
                   return (
                     <tr key={promo.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
-                      <td className="px-6 py-4 text-white">{promo.name}</td>
-                      <td className="px-6 py-4 text-white/80">{getDiscountTypeLabel(promo.discount_type)}</td>
+                      <td className="px-6 py-4 text-white">{promo.nombre}</td>
+                      <td className="px-6 py-4 text-white/80">{getDiscountTypeLabel(promo.tipo_descuento)}</td>
                       <td className="px-6 py-4 text-white/80">
-                        {promo.discount_type === 'percentage'
-                          ? `${promo.discount_value}%`
-                          : `Bs. ${promo.discount_value.toFixed(2)}`}
+                        {promo.tipo_descuento === 'PORCENTAJE'
+                          ? `${promo.valor_descuento}%`
+                          : `Bs. ${promo.valor_descuento.toFixed(2)}`}
                       </td>
                       <td className="px-6 py-4 text-white/60 text-sm">
-                        {new Date(promo.start_date).toLocaleDateString('es-BO')} - {new Date(promo.end_date).toLocaleDateString('es-BO')}
+                        {new Date(promo.fecha_inicio).toLocaleDateString('es-BO')} - {new Date(promo.fecha_fin).toLocaleDateString('es-BO')}
                       </td>
                       <td className="px-6 py-4">
                         {active ? (
@@ -457,4 +441,3 @@ export function Promotions() {
     </div>
   );
 }
-

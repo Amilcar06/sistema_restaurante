@@ -2,8 +2,8 @@ import { useState } from "react";
 import { MessageSquare, X, Send, Bot, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Card } from "./ui/card";
-import { chatbotApi, type ChatMessage as ApiChatMessage } from "../services/api";
+import { chatbotApi } from "../services/api";
+import { MensajeChat } from "../types";
 
 interface Message {
   id: string;
@@ -53,13 +53,13 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
     setIsLoading(true);
 
     try {
-      const apiMessage: ApiChatMessage = {
-        message: currentInput,
+      const apiMessage: MensajeChat = {
+        mensaje: currentInput,
         conversation_id: conversationId
       };
 
-      const response = await chatbotApi.chat(apiMessage);
-      
+      const response = await chatbotApi.enviarMensaje(apiMessage);
+
       // Update conversation ID if provided
       if (response.conversation_id) {
         setConversationId(response.conversation_id);
@@ -71,7 +71,7 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
         sender: "bot",
         timestamp: new Date(response.timestamp)
       };
-      
+
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -134,11 +134,10 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
                 className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.sender === "user"
+                  className={`max-w-[80%] rounded-lg p-3 ${message.sender === "user"
                       ? "bg-[#FF6B35] text-white"
                       : "bg-white/5 text-white border border-[#FF6B35]/20"
-                  }`}
+                    }`}
                 >
                   <p className="whitespace-pre-line">{message.text}</p>
                 </div>

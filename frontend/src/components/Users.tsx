@@ -7,50 +7,38 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { usersApi, businessLocationsApi, type User as ApiUser, type BusinessLocation } from "../services/api";
+import { usuariosApi, sucursalesApi } from "../services/api";
+import { Usuario, Sucursal } from "../types";
 import { toast } from "sonner";
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  full_name?: string;
-  phone?: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  default_location_id?: string;
-  created_at: string;
-  updated_at: string;
-  last_login?: string;
-}
 
 export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
-  const [locations, setLocations] = useState<BusinessLocation[]>([]);
+  const [users, setUsers] = useState<Usuario[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<Usuario | null>(null);
+
   const [formData, setFormData] = useState({
     email: "",
-    username: "",
-    full_name: "",
-    phone: "",
-    password: "",
-    is_active: true,
-    is_superuser: false,
-    default_location_id: "none"
+    nombre_usuario: "",
+    nombre_completo: "",
+    telefono: "",
+    contrasena: "",
+    activo: true,
+    es_superusuario: false,
+    sucursal_default_id: "none"
   });
 
   useEffect(() => {
     loadUsers();
-    loadLocations();
+    loadSucursales();
   }, []);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await usersApi.getAll();
+      const data = await usuariosApi.obtenerTodos();
       setUsers(data);
     } catch (error) {
       console.error("Error loading users:", error);
@@ -60,10 +48,10 @@ export function Users() {
     }
   };
 
-  const loadLocations = async () => {
+  const loadSucursales = async () => {
     try {
-      const data = await businessLocationsApi.getAll();
-      setLocations(data);
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
     } catch (error) {
       console.error("Error loading locations:", error);
     }
@@ -74,27 +62,27 @@ export function Users() {
     try {
       const submitData: any = {
         email: formData.email,
-        username: formData.username,
-        full_name: formData.full_name || undefined,
-        phone: formData.phone || undefined,
-        is_active: formData.is_active,
-        is_superuser: formData.is_superuser,
-        default_location_id: formData.default_location_id === "none" ? undefined : formData.default_location_id
+        nombre_usuario: formData.nombre_usuario,
+        nombre_completo: formData.nombre_completo || undefined,
+        telefono: formData.telefono || undefined,
+        activo: formData.activo,
+        es_superusuario: formData.es_superusuario,
+        sucursal_default_id: formData.sucursal_default_id === "none" ? undefined : formData.sucursal_default_id
       };
 
       if (editingUser) {
-        if (formData.password) {
-          submitData.password = formData.password;
+        if (formData.contrasena) {
+          submitData.contrasena = formData.contrasena;
         }
-        await usersApi.update(editingUser.id, submitData);
+        await usuariosApi.actualizar(editingUser.id, submitData);
         toast.success("Usuario actualizado correctamente");
       } else {
-        if (!formData.password) {
+        if (!formData.contrasena) {
           toast.error("La contraseña es requerida para nuevos usuarios");
           return;
         }
-        submitData.password = formData.password;
-        await usersApi.create(submitData);
+        submitData.contrasena = formData.contrasena;
+        await usuariosApi.crear(submitData);
         toast.success("Usuario creado correctamente");
       }
       setIsDialogOpen(false);
@@ -102,33 +90,40 @@ export function Users() {
       loadUsers();
     } catch (error: any) {
       console.error("Error saving user:", error);
-      toast.error(error.message || "Error al guardar el usuario");
+      let errorMessage = "Error al guardar el usuario";
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar este usuario?")) return;
     try {
-      await usersApi.delete(id);
+      await usuariosApi.eliminar(id);
       toast.success("Usuario eliminado correctamente");
       loadUsers();
     } catch (error: any) {
       console.error("Error deleting user:", error);
-      toast.error(error.message || "Error al eliminar el usuario");
+      const errorMessage = error?.response?.data?.detail || error?.message || "Error al eliminar el usuario";
+      toast.error(errorMessage);
     }
   };
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user: Usuario) => {
     setEditingUser(user);
     setFormData({
       email: user.email,
-      username: user.username,
-      full_name: user.full_name || "",
-      phone: user.phone || "",
-      password: "",
-      is_active: user.is_active,
-      is_superuser: user.is_superuser,
-      default_location_id: user.default_location_id || "none"
+      nombre_usuario: user.nombre_usuario,
+      nombre_completo: user.nombre_completo || "",
+      telefono: user.telefono || "",
+      contrasena: "",
+      activo: user.activo,
+      es_superusuario: user.es_superusuario,
+      sucursal_default_id: user.sucursal_default_id || "none"
     });
     setIsDialogOpen(true);
   };
@@ -136,21 +131,21 @@ export function Users() {
   const resetForm = () => {
     setFormData({
       email: "",
-      username: "",
-      full_name: "",
-      phone: "",
-      password: "",
-      is_active: true,
-      is_superuser: false,
-      default_location_id: "none"
+      nombre_usuario: "",
+      nombre_completo: "",
+      telefono: "",
+      contrasena: "",
+      activo: true,
+      es_superusuario: false,
+      sucursal_default_id: "none"
     });
     setEditingUser(null);
   };
 
   const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.nombre_usuario.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    (user.nombre_completo && user.nombre_completo.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) {
@@ -214,8 +209,8 @@ export function Users() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="usuario123"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  value={formData.nombre_usuario}
+                  onChange={(e) => setFormData({ ...formData, nombre_usuario: e.target.value })}
                   required
                 />
               </div>
@@ -224,8 +219,8 @@ export function Users() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Juan Pérez"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  value={formData.nombre_completo}
+                  onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
                 />
               </div>
               <div>
@@ -233,8 +228,8 @@ export function Users() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="+591 77788990"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.telefono}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
               <div>
@@ -245,8 +240,8 @@ export function Users() {
                   type="password"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={formData.contrasena}
+                  onChange={(e) => setFormData({ ...formData, contrasena: e.target.value })}
                   required={!editingUser}
                   minLength={6}
                 />
@@ -254,8 +249,8 @@ export function Users() {
               <div>
                 <Label className="text-white/80">Sucursal por Defecto</Label>
                 <Select
-                  value={formData.default_location_id}
-                  onValueChange={(value) => setFormData({ ...formData, default_location_id: value })}
+                  value={formData.sucursal_default_id}
+                  onValueChange={(value) => setFormData({ ...formData, sucursal_default_id: value })}
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Selecciona una sucursal" />
@@ -264,9 +259,9 @@ export function Users() {
                     <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
                       (Ninguna)
                     </SelectItem>
-                    {locations.map((loc) => (
+                    {sucursales.map((loc) => (
                       <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                        {loc.name}
+                        {loc.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -274,19 +269,19 @@ export function Users() {
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  id="activo"
+                  checked={formData.activo}
+                  onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
                 />
-                <Label htmlFor="is_active" className="text-white/80">Usuario Activo</Label>
+                <Label htmlFor="activo" className="text-white/80">Usuario Activo</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
-                  id="is_superuser"
-                  checked={formData.is_superuser}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_superuser: checked })}
+                  id="es_superusuario"
+                  checked={formData.es_superusuario}
+                  onCheckedChange={(checked) => setFormData({ ...formData, es_superusuario: checked })}
                 />
-                <Label htmlFor="is_superuser" className="text-white/80">Administrador</Label>
+                <Label htmlFor="es_superusuario" className="text-white/80">Administrador</Label>
               </div>
               <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
                 {editingUser ? "Actualizar Usuario" : "Crear Usuario"}
@@ -328,19 +323,19 @@ export function Users() {
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
-                    <td className="px-6 py-4 text-white">{user.username}</td>
+                    <td className="px-6 py-4 text-white">{user.nombre_usuario}</td>
                     <td className="px-6 py-4 text-white/80">{user.email}</td>
-                    <td className="px-6 py-4 text-white/80">{user.full_name || "N/A"}</td>
-                    <td className="px-6 py-4 text-white/80">{user.phone || "N/A"}</td>
+                    <td className="px-6 py-4 text-white/80">{user.nombre_completo || "N/A"}</td>
+                    <td className="px-6 py-4 text-white/80">{user.telefono || "N/A"}</td>
                     <td className="px-6 py-4 text-white/80">
-                      {user.is_active ? (
+                      {user.activo ? (
                         <span className="text-[#FF6B35]">Activo</span>
                       ) : (
                         <span className="text-red-400">Inactivo</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-white/80">
-                      {user.is_superuser ? (
+                      {user.es_superusuario ? (
                         <span className="flex items-center text-yellow-400">
                           <ShieldCheck className="w-4 h-4 mr-1" />
                           Admin
@@ -366,7 +361,7 @@ export function Users() {
                         size="sm"
                         onClick={() => handleDelete(user.id)}
                         className="text-red-400 hover:bg-red-500/10"
-                        disabled={user.is_superuser}
+                        disabled={user.es_superusuario}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -381,4 +376,3 @@ export function Users() {
     </div>
   );
 }
-

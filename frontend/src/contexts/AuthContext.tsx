@@ -1,29 +1,22 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  full_name?: string;
-  role?: string;
-}
+import { Usuario } from '../types';
 
 interface AuthContextType {
-  user: User | null;
+  usuario: Usuario | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (nombreUsuario: string, contrasena: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'gastrosmart_auth';
+const AUTH_STORAGE_KEY = 'gastrosmart_auth_es';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar sesión guardada al iniciar
@@ -32,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedAuth) {
       try {
         const authData = JSON.parse(savedAuth);
-        setUser(authData.user);
+        setUsuario(authData.usuario);
       } catch (error) {
         console.error('Error loading saved auth:', error);
         localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -41,29 +34,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (nombreUsuario: string, contrasena: string) => {
     try {
       setIsLoading(true);
-      
+
       // Simulación de login - En producción esto debería llamar a tu API
       // Por ahora, aceptamos cualquier credencial para desarrollo
-      // TODO: Reemplazar con llamada real a la API de autenticación
-      
+
       // Simular delay de red
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Crear usuario simulado
-      const mockUser: User = {
+
+      // Crear usuario simulado en español
+      const mockUsuario: Usuario = {
         id: '1',
-        username: username,
-        email: `${username}@gastrosmart.com`,
-        full_name: username,
-        role: 'admin'
+        nombre_usuario: nombreUsuario,
+        email: `${nombreUsuario}@gastrosmart.com`,
+        nombre_completo: nombreUsuario,
+        activo: true,
+        es_superusuario: true, // Para facilitar pruebas
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-      
-      setUser(mockUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: mockUser }));
-      
+
+      setUsuario(mockUsuario);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ usuario: mockUsuario }));
+
       toast.success('Sesión iniciada correctamente');
     } catch (error: any) {
       console.error('Login error:', error);
@@ -75,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    setUser(null);
+    setUsuario(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
     toast.success('Sesión cerrada');
   };
@@ -83,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isAuthenticated: !!user,
+        usuario,
+        isAuthenticated: !!usuario,
         isLoading,
         login,
         logout,
@@ -102,4 +97,3 @@ export function useAuth() {
   }
   return context;
 }
-

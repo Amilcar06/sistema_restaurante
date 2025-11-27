@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Package, 
-  ChefHat, 
-  ShoppingCart, 
-  BarChart3, 
-  Settings as SettingsIcon, 
-  Brain, 
-  Menu, 
-  X, 
+import {
+  LayoutDashboard,
+  Package,
+  ChefHat,
+  ShoppingCart,
+  BarChart3,
+  Settings as SettingsIcon,
+  Brain,
+  Menu,
+  X,
   LogOut,
   Building2,
   Truck,
@@ -37,7 +37,7 @@ export function Sidebar() {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['principal', 'operaciones']));
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { usuario, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -58,21 +58,21 @@ export function Sidebar() {
     {
       // Sin título - siempre visible
       items: [
-    { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+        { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
       ]
     },
     {
       title: "Operaciones",
       items: [
-    { path: "/inventory", icon: Package, label: "Inventario" },
-    { path: "/recipes", icon: ChefHat, label: "Recetas" },
-    { path: "/sales", icon: ShoppingCart, label: "Ventas" },
+        { path: "/inventory", icon: Package, label: "Inventario" },
+        { path: "/recipes", icon: ChefHat, label: "Recetas" },
+        { path: "/sales", icon: ShoppingCart, label: "Ventas" },
       ]
     },
     {
       // Sin título - siempre visible
       items: [
-    { path: "/reports", icon: BarChart3, label: "Reportes" },
+        { path: "/reports", icon: BarChart3, label: "Reportes" },
       ]
     },
     {
@@ -87,7 +87,7 @@ export function Sidebar() {
     {
       // Sin título - siempre visible
       items: [
-    { path: "/settings", icon: SettingsIcon, label: "Configuración" },
+        { path: "/settings", icon: SettingsIcon, label: "Configuración" },
       ]
     },
   ];
@@ -162,29 +162,28 @@ export function Sidebar() {
                     )}
                   </button>
                 ) : null}
-                
+
                 {(!hasTitle || isExpanded) && (
                   <div className="space-y-2">
                     {section.items.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
 
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsMobileMenuOpen(false)}
-                          className={({ isActive: navIsActive }) => `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ${
-                            navIsActive || active
-                  ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
-                  : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
-                  }`}
-                aria-current={active ? "page" : undefined}
-                aria-label={`Ir a ${item.label}`}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={({ isActive: navIsActive }) => `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ${navIsActive || active
+                              ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
+                              : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
+                            }`}
+                          aria-current={active ? "page" : undefined}
+                          aria-label={`Ir a ${item.label}`}
+                        >
+                          <Icon className="w-5 h-5 flex-shrink-0" />
                           <span className="font-medium text-sm">{item.label}</span>
-              </NavLink>
+                        </NavLink>
                       );
                     })}
                   </div>
@@ -196,10 +195,10 @@ export function Sidebar() {
 
         {/* User Info & Logout */}
         <div className="p-4 border-t border-border-orange space-y-3">
-          {user && (
+          {usuario && (
             <div className="px-4 py-2 bg-surface-orange-subtle rounded-lg">
               <div className="text-white text-sm font-medium truncate">
-                {user.full_name || user.username}
+                {usuario.nombre_completo || usuario.nombre_usuario}
               </div>
             </div>
           )}

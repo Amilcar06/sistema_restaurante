@@ -6,35 +6,36 @@ import { Input } from "./ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import { businessLocationsApi, type BusinessLocation } from "../services/api";
+import { sucursalesApi } from "../services/api";
+import { Sucursal } from "../types";
 import { toast } from "sonner";
 
 export function BusinessLocations() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [locations, setLocations] = useState<BusinessLocation[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
+  const [editingLocation, setEditingLocation] = useState<Sucursal | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    city: "La Paz",
-    zone: "",
-    phone: "",
+    nombre: "",
+    direccion: "",
+    ciudad: "La Paz",
+    zona: "",
+    telefono: "",
     email: "",
-    is_main: false,
-    is_active: true,
+    es_principal: false,
+    activa: true,
   });
 
   useEffect(() => {
-    loadLocations();
+    loadSucursales();
   }, []);
 
-  const loadLocations = async () => {
+  const loadSucursales = async () => {
     try {
       setLoading(true);
-      const data = await businessLocationsApi.getAll();
-      setLocations(data);
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
     } catch (error) {
       console.error("Error loading locations:", error);
       toast.error("Error al cargar las sucursales");
@@ -43,30 +44,30 @@ export function BusinessLocations() {
     }
   };
 
-  const handleOpenDialog = (location?: BusinessLocation) => {
-    if (location) {
-      setEditingLocation(location);
+  const handleOpenDialog = (sucursal?: Sucursal) => {
+    if (sucursal) {
+      setEditingLocation(sucursal);
       setFormData({
-        name: location.name,
-        address: location.address,
-        city: location.city || "La Paz",
-        zone: location.zone || "",
-        phone: location.phone || "",
-        email: location.email || "",
-        is_main: location.is_main,
-        is_active: location.is_active,
+        nombre: sucursal.nombre,
+        direccion: sucursal.direccion,
+        ciudad: sucursal.ciudad || "La Paz",
+        zona: sucursal.zona || "",
+        telefono: sucursal.telefono || "",
+        email: sucursal.email || "",
+        es_principal: sucursal.es_principal,
+        activa: sucursal.activa,
       });
     } else {
       setEditingLocation(null);
       setFormData({
-        name: "",
-        address: "",
-        city: "La Paz",
-        zone: "",
-        phone: "",
+        nombre: "",
+        direccion: "",
+        ciudad: "La Paz",
+        zona: "",
+        telefono: "",
         email: "",
-        is_main: false,
-        is_active: true,
+        es_principal: false,
+        activa: true,
       });
     }
     setIsDialogOpen(true);
@@ -81,14 +82,14 @@ export function BusinessLocations() {
     e.preventDefault();
     try {
       if (editingLocation) {
-        await businessLocationsApi.update(editingLocation.id, formData);
+        await sucursalesApi.actualizar(editingLocation.id, formData);
         toast.success("Sucursal actualizada exitosamente");
       } else {
-        await businessLocationsApi.create(formData);
+        await sucursalesApi.crear(formData);
         toast.success("Sucursal creada exitosamente");
       }
       handleCloseDialog();
-      loadLocations();
+      loadSucursales();
     } catch (error: any) {
       console.error("Error saving location:", error);
       toast.error(error.message || "Error al guardar la sucursal");
@@ -98,18 +99,18 @@ export function BusinessLocations() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar esta sucursal?")) return;
     try {
-      await businessLocationsApi.delete(id);
+      await sucursalesApi.eliminar(id);
       toast.success("Sucursal eliminada exitosamente");
-      loadLocations();
+      loadSucursales();
     } catch (error: any) {
       console.error("Error deleting location:", error);
       toast.error(error.message || "Error al eliminar la sucursal");
     }
   };
 
-  const filteredLocations = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    location.address.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSucursales = sucursales.filter((sucursal) =>
+    sucursal.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sucursal.direccion.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -145,24 +146,24 @@ export function BusinessLocations() {
         <div className="flex justify-center items-center py-12">
           <Loader2 className="w-8 h-8 text-[#FF6B35] animate-spin" />
         </div>
-      ) : filteredLocations.length === 0 ? (
+      ) : filteredSucursales.length === 0 ? (
         <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
           <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
           <p className="text-white/60">No hay sucursales registradas</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredLocations.map((location) => (
+          {filteredSucursales.map((sucursal) => (
             <Card
-              key={location.id}
+              key={sucursal.id}
               className="bg-white/5 border-[#FF6B35]/20 p-6 hover:border-[#FF6B35]/40 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-[#FF6B35]" />
                   <div>
-                    <h3 className="text-white font-semibold">{location.name}</h3>
-                    {location.is_main && (
+                    <h3 className="text-white font-semibold">{sucursal.nombre}</h3>
+                    {sucursal.es_principal && (
                       <span className="text-xs text-[#FF6B35] bg-[#FF6B35]/20 px-2 py-1 rounded">
                         Principal
                       </span>
@@ -173,7 +174,7 @@ export function BusinessLocations() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleOpenDialog(location)}
+                    onClick={() => handleOpenDialog(sucursal)}
                     className="text-[#FF6B35] hover:bg-[#FF6B35]/20"
                   >
                     <Edit className="w-4 h-4" />
@@ -181,7 +182,7 @@ export function BusinessLocations() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDelete(location.id)}
+                    onClick={() => handleDelete(sucursal.id)}
                     className="text-red-400 hover:bg-red-500/20"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -190,29 +191,28 @@ export function BusinessLocations() {
               </div>
               <div className="space-y-2 text-sm">
                 <p className="text-white/80">
-                  <span className="text-white/60">Dirección:</span> {location.address}
+                  <span className="text-white/60">Dirección:</span> {sucursal.direccion}
                 </p>
                 <p className="text-white/80">
-                  <span className="text-white/60">Ciudad:</span> {location.city}
-                  {location.zone && `, ${location.zone}`}
+                  <span className="text-white/60">Ciudad:</span> {sucursal.ciudad}
+                  {sucursal.zona && `, ${sucursal.zona}`}
                 </p>
-                {location.phone && (
+                {sucursal.telefono && (
                   <p className="text-white/80">
-                    <span className="text-white/60">Teléfono:</span> {location.phone}
+                    <span className="text-white/60">Teléfono:</span> {sucursal.telefono}
                   </p>
                 )}
-                {location.email && (
+                {sucursal.email && (
                   <p className="text-white/80">
-                    <span className="text-white/60">Email:</span> {location.email}
+                    <span className="text-white/60">Email:</span> {sucursal.email}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    location.is_active
+                  <span className={`text-xs px-2 py-1 rounded ${sucursal.activa
                       ? "bg-green-500/20 text-green-400"
                       : "bg-red-500/20 text-red-400"
-                  }`}>
-                    {location.is_active ? "Activa" : "Inactiva"}
+                    }`}>
+                    {sucursal.activa ? "Activa" : "Inactiva"}
                   </span>
                 </div>
               </div>
@@ -241,8 +241,8 @@ export function BusinessLocations() {
                 required
                 className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Ej: Sucursal Centro"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               />
             </div>
             <div>
@@ -251,8 +251,8 @@ export function BusinessLocations() {
                 required
                 className="bg-white/5 border-[#FF6B35]/20 text-white"
                 placeholder="Dirección completa"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                value={formData.direccion}
+                onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -261,8 +261,8 @@ export function BusinessLocations() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="La Paz"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  value={formData.ciudad}
+                  onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
                 />
               </div>
               <div>
@@ -270,8 +270,8 @@ export function BusinessLocations() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Ej: Sopocachi, Centro"
-                  value={formData.zone}
-                  onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+                  value={formData.zona}
+                  onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
                 />
               </div>
             </div>
@@ -281,8 +281,8 @@ export function BusinessLocations() {
                 <Input
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="777-XXXXX"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.telefono}
+                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
               <div>
@@ -299,15 +299,15 @@ export function BusinessLocations() {
             <div className="flex items-center justify-between pt-4">
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={formData.is_main}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_main: checked })}
+                  checked={formData.es_principal}
+                  onCheckedChange={(checked) => setFormData({ ...formData, es_principal: checked })}
                 />
                 <Label className="text-white/80">Sucursal Principal</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  checked={formData.activa}
+                  onCheckedChange={(checked) => setFormData({ ...formData, activa: checked })}
                 />
                 <Label className="text-white/80">Activa</Label>
               </div>
@@ -334,4 +334,3 @@ export function BusinessLocations() {
     </div>
   );
 }
-

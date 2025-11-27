@@ -7,61 +7,56 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination";
-import { recipesApi, inventoryApi, enumsApi, businessLocationsApi, type Recipe as ApiRecipe, type InventoryItem, type BusinessLocation } from "../services/api";
+import {
+  recetasApi,
+  inventarioApi,
+  enumsApi,
+  sucursalesApi
+} from "../services/api";
+import {
+  Receta,
+  ItemInventario,
+  Sucursal,
+  IngredienteReceta
+} from "../types";
 import { toast } from "sonner";
 import { Switch } from "./ui/switch";
 
-interface Recipe {
+interface IngredienteForm {
   id: string;
-  name: string;
-  category: string;
-  ingredients: Array<{
-    id?: string;
-    ingredient_name: string;
-    quantity: number;
-    unit: string;
-    cost: number;
-    inventory_item_id?: string;
-  }>;
-  cost: number;
-  price: number;
-  margin: number;
-  servings: number;
-}
-
-interface IngredientForm {
-  id: string;
-  inventory_item_id: string | null;
-  ingredient_name: string;
-  quantity: number;
-  unit: string;
-  cost: number;
+  item_inventario_id: string | null;
+  nombre_ingrediente: string;
+  cantidad: number;
+  unidad: string;
+  costo: number;
 }
 
 export function Recipes() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipes, setRecipes] = useState<Receta[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [editingRecipe, setEditingRecipe] = useState<Receta | null>(null);
+  const [inventoryItems, setInventoryItems] = useState<ItemInventario[]>([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
-  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
+  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+
   const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    subcategory: "",
-    price: 0,
-    servings: 1,
-    description: "",
-    instructions: "",
-    preparation_time: 0,
-    location_id: "",
-    is_available: true
+    nombre: "",
+    categoria: "",
+    subcategoria: "",
+    precio: 0,
+    porciones: 1,
+    descripcion: "",
+    instrucciones: "",
+    tiempo_preparacion: 0,
+    sucursal_id: "",
+    disponible: true
   });
-  const [ingredients, setIngredients] = useState<IngredientForm[]>([]);
+
+  const [ingredientes, setIngredientes] = useState<IngredienteForm[]>([]);
   const [enums, setEnums] = useState<{
     recipeCategories: string[];
     ingredientUnits: string[];
@@ -78,7 +73,7 @@ export function Recipes() {
   useEffect(() => {
     if (isDialogOpen) {
       loadInventoryItems();
-      loadBusinessLocations();
+      loadSucursales();
     }
   }, [isDialogOpen]);
 
@@ -100,18 +95,8 @@ export function Recipes() {
   const loadRecipes = async () => {
     try {
       setLoading(true);
-      const data = await recipesApi.getAll();
-      const mappedRecipes = data.map(recipe => ({
-        id: recipe.id,
-        name: recipe.name,
-        category: recipe.category,
-        ingredients: recipe.ingredients || [],
-        cost: recipe.cost,
-        price: recipe.price,
-        margin: recipe.margin,
-        servings: recipe.servings
-      }));
-      setRecipes(mappedRecipes);
+      const data = await recetasApi.obtenerTodos();
+      setRecipes(data);
     } catch (error) {
       console.error("Error loading recipes:", error);
       toast.error("Error al cargar las recetas");
@@ -123,7 +108,7 @@ export function Recipes() {
   const loadInventoryItems = async () => {
     try {
       setLoadingInventory(true);
-      const items = await inventoryApi.getAll();
+      const items = await inventarioApi.obtenerTodos();
       setInventoryItems(items);
     } catch (error) {
       console.error("Error loading inventory:", error);
@@ -133,10 +118,10 @@ export function Recipes() {
     }
   };
 
-  const loadBusinessLocations = async () => {
+  const loadSucursales = async () => {
     try {
-      const locations = await businessLocationsApi.getAll();
-      setBusinessLocations(locations);
+      const data = await sucursalesApi.obtenerTodos();
+      setSucursales(data);
     } catch (error) {
       console.error("Error loading business locations:", error);
     }
@@ -144,32 +129,41 @@ export function Recipes() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (ingredients.length === 0) {
+
+    if (ingredientes.length === 0) {
       toast.error("La receta debe tener al menos un ingrediente");
       return;
     }
 
     try {
-      const recipeData = {
+      const recipeData: any = {
         ...formData,
-        ingredients: ingredients.map(ing => {
-          const { id, ...ingredientData } = ing;
+        ingredientes: ingredientes.map(ing => {
           return {
-            inventory_item_id: ingredientData.inventory_item_id || undefined,
-            ingredient_name: ingredientData.ingredient_name,
-            quantity: ingredientData.quantity,
-            unit: ingredientData.unit,
-            cost: ingredientData.cost
+            item_inventario_id: ing.item_inventario_id || undefined,
+            nombre_ingrediente: ing.nombre_ingrediente,
+            cantidad: ing.cantidad,
+            unidad: ing.unidad,
+            costo: ing.costo
           };
         })
       };
 
+      // Calcular costo total y margen
+      const costoTotal = ingredientes.reduce((sum, ing) => sum + ing.costo, 0);
+      recipeData.costo = costoTotal;
+
+      if (formData.precio > 0) {
+        recipeData.margen = ((formData.precio - costoTotal) / formData.precio * 100);
+      } else {
+        recipeData.margen = 0;
+      }
+
       if (editingRecipe) {
-        await recipesApi.update(editingRecipe.id, recipeData);
+        await recetasApi.actualizar(editingRecipe.id, recipeData);
         toast.success("Receta actualizada correctamente");
       } else {
-        await recipesApi.create(recipeData);
+        await recetasApi.crear(recipeData);
         toast.success("Receta creada correctamente");
       }
       setIsDialogOpen(false);
@@ -177,31 +171,23 @@ export function Recipes() {
       loadRecipes();
     } catch (error: any) {
       console.error("Error saving recipe:", error);
-      
-      // Extract error message from API response
+
       let errorMessage = "Error al guardar la receta";
       if (error?.message) {
         errorMessage = error.message;
       } else if (error?.response?.data?.detail) {
         errorMessage = error.response.data.detail;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
       }
-      
-      // Show specific error for margin validation
-      if (errorMessage.includes("precio") || errorMessage.includes("costo") || errorMessage.includes("margen")) {
-        toast.error(errorMessage, { duration: 6000 });
-      } else {
-        toast.error(errorMessage);
-      }
+
+      toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar esta receta?")) return;
-    
+
     try {
-      await recipesApi.delete(id);
+      await recetasApi.eliminar(id);
       toast.success("Receta eliminada correctamente");
       loadRecipes();
     } catch (error) {
@@ -210,161 +196,153 @@ export function Recipes() {
     }
   };
 
-  const handleEdit = async (recipe: Recipe) => {
+  const handleEdit = async (recipe: Receta) => {
     setEditingRecipe(recipe);
-    // Load full recipe data from API
     try {
-      const fullRecipe = await recipesApi.getById(recipe.id);
+      const fullRecipe = await recetasApi.obtenerPorId(recipe.id);
       setFormData({
-        name: fullRecipe.name,
-        category: fullRecipe.category,
-        subcategory: fullRecipe.subcategory || "",
-        price: fullRecipe.price,
-        servings: fullRecipe.servings,
-        description: fullRecipe.description || "",
-        instructions: fullRecipe.instructions || "",
-        preparation_time: fullRecipe.preparation_time || 0,
-        location_id: fullRecipe.location_id || "",
-        is_available: fullRecipe.is_available ?? true
+        nombre: fullRecipe.nombre,
+        categoria: fullRecipe.categoria,
+        subcategoria: fullRecipe.subcategoria || "",
+        precio: fullRecipe.precio,
+        porciones: fullRecipe.porciones,
+        descripcion: fullRecipe.descripcion || "",
+        instrucciones: fullRecipe.instrucciones || "",
+        tiempo_preparacion: fullRecipe.tiempo_preparacion || 0,
+        sucursal_id: fullRecipe.sucursal_id || "",
+        disponible: fullRecipe.disponible ?? true
       });
-      
-      // Map ingredients to form format from full recipe
-      const mappedIngredients: IngredientForm[] = (fullRecipe.ingredients || []).map(ing => ({
+
+      const mappedIngredients: IngredienteForm[] = (fullRecipe.ingredientes || []).map(ing => ({
         id: ing.id || `ingredient-${Date.now()}-${Math.random()}`,
-        inventory_item_id: ing.inventory_item_id || null,
-        ingredient_name: ing.ingredient_name,
-        quantity: ing.quantity,
-        unit: ing.unit,
-        cost: ing.cost
+        item_inventario_id: ing.item_inventario_id || null,
+        nombre_ingrediente: ing.nombre_ingrediente,
+        cantidad: ing.cantidad,
+        unidad: ing.unidad,
+        costo: ing.costo
       }));
-      setIngredients(mappedIngredients);
+      setIngredientes(mappedIngredients);
     } catch (error) {
       console.error("Error loading recipe details:", error);
-      // Fallback to basic data
+      // Fallback
       setFormData({
-        name: recipe.name,
-        category: recipe.category,
-        subcategory: "",
-        price: recipe.price,
-        servings: recipe.servings,
-        description: "",
-        instructions: "",
-        preparation_time: 0,
-        location_id: "",
-        is_available: true
+        nombre: recipe.nombre,
+        categoria: recipe.categoria,
+        subcategoria: recipe.subcategoria || "",
+        precio: recipe.precio,
+        porciones: recipe.porciones,
+        descripcion: recipe.descripcion || "",
+        instrucciones: recipe.instrucciones || "",
+        tiempo_preparacion: recipe.tiempo_preparacion || 0,
+        sucursal_id: recipe.sucursal_id || "",
+        disponible: recipe.disponible ?? true
       });
-      
-      // Map ingredients to form format from basic recipe
-      const mappedIngredients: IngredientForm[] = (recipe.ingredients || []).map(ing => ({
+
+      const mappedIngredients: IngredienteForm[] = (recipe.ingredientes || []).map(ing => ({
         id: ing.id || `ingredient-${Date.now()}-${Math.random()}`,
-        inventory_item_id: ing.inventory_item_id || null,
-        ingredient_name: ing.ingredient_name,
-        quantity: ing.quantity,
-        unit: ing.unit,
-        cost: ing.cost
+        item_inventario_id: ing.item_inventario_id || null,
+        nombre_ingrediente: ing.nombre_ingrediente,
+        cantidad: ing.cantidad,
+        unidad: ing.unidad,
+        costo: ing.costo
       }));
-      setIngredients(mappedIngredients);
+      setIngredientes(mappedIngredients);
     }
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      category: "",
-      subcategory: "",
-      price: 0,
-      servings: 1,
-      description: "",
-      instructions: "",
-      preparation_time: 0,
-      location_id: "",
-      is_available: true
+      nombre: "",
+      categoria: "",
+      subcategoria: "",
+      precio: 0,
+      porciones: 1,
+      descripcion: "",
+      instrucciones: "",
+      tiempo_preparacion: 0,
+      sucursal_id: "",
+      disponible: true
     });
-    setIngredients([]);
+    setIngredientes([]);
     setEditingRecipe(null);
   };
 
   const addIngredient = () => {
-    const newIngredient: IngredientForm = {
+    const newIngredient: IngredienteForm = {
       id: `ingredient-${Date.now()}-${Math.random()}`,
-      inventory_item_id: null,
-      ingredient_name: "",
-      quantity: 0,
-      unit: "kg",
-      cost: 0
+      item_inventario_id: null,
+      nombre_ingrediente: "",
+      cantidad: 0,
+      unidad: "kg",
+      costo: 0
     };
-    setIngredients(prev => [...prev, newIngredient]);
+    setIngredientes(prev => [...prev, newIngredient]);
   };
 
   const removeIngredient = (index: number) => {
-    setIngredients(ingredients.filter((_, i) => i !== index));
+    setIngredientes(ingredientes.filter((_, i) => i !== index));
   };
 
-  const updateIngredient = (index: number, field: keyof IngredientForm, value: any) => {
-    const updated = [...ingredients];
+  const updateIngredient = (index: number, field: keyof IngredienteForm, value: any) => {
+    const updated = [...ingredientes];
     const ingredient = { ...updated[index] };
-    
-    if (field === "inventory_item_id") {
-      // When selecting from inventory, auto-fill name, unit, and calculate cost
+
+    if (field === "item_inventario_id") {
       const selectedItem = inventoryItems.find(item => item.id === value);
       if (selectedItem) {
-        ingredient.inventory_item_id = value;
-        ingredient.ingredient_name = selectedItem.name;
-        ingredient.unit = selectedItem.unit;
-        // Calculate cost based on quantity and cost_per_unit
-        const quantity = ingredient.quantity || 0;
-        ingredient.cost = quantity * selectedItem.cost_per_unit;
+        ingredient.item_inventario_id = value;
+        ingredient.nombre_ingrediente = selectedItem.nombre;
+        ingredient.unidad = selectedItem.unidad;
+        const quantity = ingredient.cantidad || 0;
+        ingredient.costo = quantity * selectedItem.costo_unitario;
       } else {
-        ingredient.inventory_item_id = null;
+        ingredient.item_inventario_id = null;
       }
-    } else if (field === "quantity") {
-      ingredient.quantity = parseFloat(value) || 0;
-      // Recalculate cost if inventory item is selected
-      if (ingredient.inventory_item_id) {
-        const selectedItem = inventoryItems.find(item => item.id === ingredient.inventory_item_id);
+    } else if (field === "cantidad") {
+      ingredient.cantidad = parseFloat(value) || 0;
+      if (ingredient.item_inventario_id) {
+        const selectedItem = inventoryItems.find(item => item.id === ingredient.item_inventario_id);
         if (selectedItem) {
-          ingredient.cost = ingredient.quantity * selectedItem.cost_per_unit;
+          ingredient.costo = ingredient.cantidad * selectedItem.costo_unitario;
         }
       }
     } else {
       (ingredient as any)[field] = value;
     }
-    
+
     updated[index] = ingredient;
-    setIngredients(updated);
+    setIngredientes(updated);
   };
 
   const calculateTotalCost = () => {
-    return ingredients.reduce((sum, ing) => sum + ing.cost, 0);
+    return ingredientes.reduce((sum, ing) => sum + ing.costo, 0);
   };
 
   const calculateMargin = () => {
     const totalCost = calculateTotalCost();
-    if (formData.price > 0 && totalCost > 0) {
-      return ((formData.price - totalCost) / formData.price * 100);
+    if (formData.precio > 0 && totalCost > 0) {
+      return ((formData.precio - totalCost) / formData.precio * 100);
     }
     return 0;
   };
 
   const filteredRecipes = recipes.filter(recipe =>
-    recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    recipe.category.toLowerCase().includes(searchTerm.toLowerCase())
+    recipe.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    recipe.categoria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredRecipes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedRecipes = filteredRecipes.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const avgMargin = recipes.length > 0 
-    ? recipes.reduce((sum, recipe) => sum + recipe.margin, 0) / recipes.length 
+  const avgMargin = recipes.length > 0
+    ? recipes.reduce((sum, recipe) => sum + recipe.margen, 0) / recipes.length
     : 0;
   const totalRecipes = recipes.length;
 
@@ -407,19 +385,19 @@ export function Recipes() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white/80">Nombre del Plato</Label>
-                  <Input 
-                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
+                  <Input
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="Ej: Pique Macho"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     required
                   />
                 </div>
                 <div>
                   <Label className="text-white/80">Categoría</Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({...formData, category: value})}
+                    value={formData.categoria}
+                    onValueChange={(value) => setFormData({ ...formData, categoria: value })}
                     required
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
@@ -435,78 +413,78 @@ export function Recipes() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white/80">Subcategoría</Label>
-                  <Input 
-                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
+                  <Input
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="Ej: Carnes Rojas, Carnes Blancas"
-                    value={formData.subcategory}
-                    onChange={(e) => setFormData({...formData, subcategory: e.target.value})}
+                    value={formData.subcategoria}
+                    onChange={(e) => setFormData({ ...formData, subcategoria: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label className="text-white/80">Sucursal</Label>
                   <Select
-                    value={formData.location_id}
-                    onValueChange={(value) => setFormData({...formData, location_id: value})}
+                    value={formData.sucursal_id}
+                    onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                       <SelectValue placeholder="Selecciona una sucursal" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      {businessLocations.map((loc) => (
+                      {sucursales.map((loc) => (
                         <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                          {loc.name}
+                          {loc.nombre}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={formData.is_available}
-                  onCheckedChange={(checked) => setFormData({...formData, is_available: checked})}
+                  checked={formData.disponible}
+                  onCheckedChange={(checked) => setFormData({ ...formData, disponible: checked })}
                 />
                 <Label className="text-white/80">Disponible para venta</Label>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-white/80">Precio de Venta (Bs.)</Label>
-                  <Input 
-                    type="number" 
+                  <Input
+                    type="number"
                     step="0.01"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0.00"
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                    value={formData.precio}
+                    onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
                     required
                   />
                 </div>
                 <div>
                   <Label className="text-white/80">Porciones</Label>
-                  <Input 
-                    type="number" 
-                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
+                  <Input
+                    type="number"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="1"
-                    value={formData.servings}
-                    onChange={(e) => setFormData({...formData, servings: parseInt(e.target.value) || 1})}
+                    value={formData.porciones}
+                    onChange={(e) => setFormData({ ...formData, porciones: parseInt(e.target.value) || 1 })}
                     required
                     min="1"
                   />
                 </div>
                 <div>
                   <Label className="text-white/80">Tiempo Preparación (min)</Label>
-                  <Input 
-                    type="number" 
-                    className="bg-white/5 border-[#FF6B35]/20 text-white" 
+                  <Input
+                    type="number"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
                     placeholder="0"
-                    value={formData.preparation_time}
-                    onChange={(e) => setFormData({...formData, preparation_time: parseInt(e.target.value) || 0})}
+                    value={formData.tiempo_preparacion}
+                    onChange={(e) => setFormData({ ...formData, tiempo_preparacion: parseInt(e.target.value) || 0 })}
                     min="0"
                   />
                 </div>
@@ -532,26 +510,26 @@ export function Recipes() {
                   </Button>
                 </div>
 
-                {ingredients.length === 0 && (
+                {ingredientes.length === 0 && (
                   <div className="text-center py-4 text-white/60 text-sm">
                     No hay ingredientes. Agrega al menos uno.
                   </div>
                 )}
 
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {ingredients.map((ingredient, index) => (
+                  {ingredientes.map((ingredient, index) => (
                     <Card key={ingredient.id} className="bg-white/5 border-[#FF6B35]/20 p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 grid grid-cols-12 gap-2">
                           <div className="col-span-12 md:col-span-4">
                             <Label className="text-white/60 text-xs mb-1 block">Ingrediente</Label>
                             <Select
-                              value={ingredient.inventory_item_id || "manual"}
+                              value={ingredient.item_inventario_id || "manual"}
                               onValueChange={(value) => {
                                 if (value === "manual") {
-                                  updateIngredient(index, "inventory_item_id", null);
+                                  updateIngredient(index, "item_inventario_id", null);
                                 } else {
-                                  updateIngredient(index, "inventory_item_id", value);
+                                  updateIngredient(index, "item_inventario_id", value);
                                 }
                               }}
                             >
@@ -563,27 +541,27 @@ export function Recipes() {
                                   Ingrediente manual
                                 </SelectItem>
                                 {inventoryItems.map((item) => (
-                                  <SelectItem 
-                                    key={item.id} 
+                                  <SelectItem
+                                    key={item.id}
                                     value={item.id}
                                     className="text-white focus:bg-[#FF6B35]/20"
                                   >
-                                    {item.name} ({item.category}) - Bs. {item.cost_per_unit.toFixed(2)}/{item.unit}
+                                    {item.nombre} ({item.categoria}) - Bs. {item.costo_unitario.toFixed(2)}/{item.unidad}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
-                          
-                          {!ingredient.inventory_item_id && (
+
+                          {!ingredient.item_inventario_id && (
                             <div className="col-span-12 md:col-span-4">
                               <Label className="text-white/60 text-xs mb-1 block">Nombre Manual</Label>
                               <Input
                                 className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                                 placeholder="Nombre del ingrediente"
-                                value={ingredient.ingredient_name}
-                                onChange={(e) => updateIngredient(index, "ingredient_name", e.target.value)}
-                                required={!ingredient.inventory_item_id}
+                                value={ingredient.nombre_ingrediente}
+                                onChange={(e) => updateIngredient(index, "nombre_ingrediente", e.target.value)}
+                                required={!ingredient.item_inventario_id}
                               />
                             </div>
                           )}
@@ -595,8 +573,8 @@ export function Recipes() {
                               step="0.01"
                               className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                               placeholder="0"
-                              value={ingredient.quantity || ""}
-                              onChange={(e) => updateIngredient(index, "quantity", e.target.value)}
+                              value={ingredient.cantidad || ""}
+                              onChange={(e) => updateIngredient(index, "cantidad", e.target.value)}
                               required
                               min="0"
                             />
@@ -605,10 +583,10 @@ export function Recipes() {
                           <div className="col-span-6 md:col-span-2">
                             <Label className="text-white/60 text-xs mb-1 block">Unidad</Label>
                             <Select
-                              value={ingredient.unit}
-                              onValueChange={(value) => updateIngredient(index, "unit", value)}
+                              value={ingredient.unidad}
+                              onValueChange={(value) => updateIngredient(index, "unidad", value)}
                               required
-                              disabled={!!ingredient.inventory_item_id}
+                              disabled={!!ingredient.item_inventario_id}
                             >
                               <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
                                 <SelectValue placeholder="Selecciona unidad" />
@@ -630,12 +608,12 @@ export function Recipes() {
                               step="0.01"
                               className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
                               placeholder="0.00"
-                              value={ingredient.cost.toFixed(2)}
-                              onChange={(e) => updateIngredient(index, "cost", parseFloat(e.target.value) || 0)}
+                              value={ingredient.costo.toFixed(2)}
+                              onChange={(e) => updateIngredient(index, "costo", parseFloat(e.target.value) || 0)}
                               required
-                              disabled={!!ingredient.inventory_item_id}
+                              disabled={!!ingredient.item_inventario_id}
                             />
-                            {ingredient.inventory_item_id && (
+                            {ingredient.item_inventario_id && (
                               <p className="text-xs text-white/40 mt-1">Calculado automáticamente</p>
                             )}
                           </div>
@@ -659,32 +637,31 @@ export function Recipes() {
               </div>
 
               {/* Cost Summary */}
-              {ingredients.length > 0 && (
+              {ingredientes.length > 0 && (
                 <Card className="bg-[#FF6B35]/10 border-[#FF6B35]/30 p-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-white/80">Costo Total de Ingredientes:</span>
                       <span className="text-white font-semibold">Bs. {calculateTotalCost().toFixed(2)}</span>
                     </div>
-                    {formData.price > 0 && (
+                    {formData.precio > 0 && (
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80">Precio de Venta:</span>
-                          <span className="text-[#FF6B35] font-semibold">Bs. {formData.price.toFixed(2)}</span>
+                          <span className="text-[#FF6B35] font-semibold">Bs. {formData.precio.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
                           <span className="text-white/80">Ganancia:</span>
                           <span className="text-[#FF6B35] font-semibold">
-                            Bs. {(formData.price - calculateTotalCost()).toFixed(2)}
+                            Bs. {(formData.precio - calculateTotalCost()).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-white/80">Margen:</span>
-                          <span className={`font-semibold ${
-                            calculateMargin() >= 70 ? "text-[#FF6B35]" :
-                            calculateMargin() >= 50 ? "text-yellow-400" :
-                            "text-red-400"
-                          }`}>
+                          <span className={`font-semibold ${calculateMargin() >= 70 ? "text-[#FF6B35]" :
+                              calculateMargin() >= 50 ? "text-yellow-400" :
+                                "text-red-400"
+                            }`}>
                             {calculateMargin().toFixed(1)}%
                           </span>
                         </div>
@@ -695,7 +672,7 @@ export function Recipes() {
               )}
 
               <div className="flex gap-2 pt-2">
-                <Button 
+                <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
@@ -703,10 +680,10 @@ export function Recipes() {
                 >
                   Cancelar
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
-                  disabled={ingredients.length === 0}
+                  disabled={ingredientes.length === 0}
                 >
                   {editingRecipe ? "Actualizar Receta" : "Guardar Receta"}
                 </Button>
@@ -768,16 +745,15 @@ export function Recipes() {
             <Card key={recipe.id} className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h3 className="text-white mb-2 text-lg font-semibold">{recipe.name}</h3>
-                  <span className="px-3 py-1 bg-white/10 rounded-full text-white/70 text-sm font-medium">{recipe.category}</span>
+                  <h3 className="text-white mb-2 text-lg font-semibold">{recipe.nombre}</h3>
+                  <span className="px-3 py-1 bg-white/10 rounded-full text-white/70 text-sm font-medium">{recipe.categoria}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`px-3 py-1 rounded-full ${
-                    recipe.margin >= 70 ? "bg-[#FF6B35]/20 text-[#FF6B35]" :
-                    recipe.margin >= 50 ? "bg-yellow-500/20 text-yellow-400" :
-                    "bg-red-500/20 text-red-400"
-                  }`}>
-                    {recipe.margin.toFixed(1)}% margen
+                  <div className={`px-3 py-1 rounded-full ${recipe.margen >= 70 ? "bg-[#FF6B35]/20 text-[#FF6B35]" :
+                      recipe.margen >= 50 ? "bg-yellow-500/20 text-yellow-400" :
+                        "bg-red-500/20 text-red-400"
+                    }`}>
+                    {recipe.margen.toFixed(1)}% margen
                   </div>
                   <Button
                     variant="ghost"
@@ -798,32 +774,30 @@ export function Recipes() {
                 </div>
               </div>
 
-              {recipe.ingredients.length > 0 && (
-                <div className="space-y-4 mb-6">
-                  <div className="text-white/60">Ingredientes:</div>
-                  {recipe.ingredients.map((ingredient, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-sm">
-                      <span className="text-white/80">
-                        {ingredient.ingredient_name} ({ingredient.quantity} {ingredient.unit})
-                      </span>
-                      <span className="text-white/60">Bs. {ingredient.cost.toFixed(2)}</span>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Costo</div>
+                  <div className="text-white font-semibold">Bs. {recipe.costo.toFixed(2)}</div>
                 </div>
-              )}
+                <div>
+                  <div className="text-white/60 text-sm mb-1">Precio Venta</div>
+                  <div className="text-[#FF6B35] font-semibold">Bs. {recipe.precio.toFixed(2)}</div>
+                </div>
+              </div>
 
-              <div className="pt-4 border-t border-[#FF6B35]/20 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Costo Total:</span>
-                  <span className="text-white">Bs. {recipe.cost.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Precio de Venta:</span>
-                  <span className="text-[#FF6B35]">Bs. {recipe.price.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Ganancia:</span>
-                  <span className="text-[#FF6B35]">Bs. {(recipe.price - recipe.cost).toFixed(2)}</span>
+              <div className="border-t border-[#FF6B35]/10 pt-4">
+                <div className="text-white/60 text-sm mb-2">Ingredientes principales:</div>
+                <div className="flex flex-wrap gap-2">
+                  {recipe.ingredientes.slice(0, 3).map((ing, i) => (
+                    <span key={i} className="text-white/80 text-sm bg-white/5 px-2 py-1 rounded">
+                      {ing.nombre_ingrediente}
+                    </span>
+                  ))}
+                  {recipe.ingredientes.length > 3 && (
+                    <span className="text-white/60 text-sm px-2 py-1">
+                      +{recipe.ingredientes.length - 3} más
+                    </span>
+                  )}
                 </div>
               </div>
             </Card>
@@ -837,13 +811,14 @@ export function Recipes() {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
+                <PaginationPrevious
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
                     if (currentPage > 1) setCurrentPage(currentPage - 1);
                   }}
                   className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                  size="default"
                 />
               </PaginationItem>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -856,19 +831,21 @@ export function Recipes() {
                     }}
                     isActive={currentPage === page}
                     className="cursor-pointer text-white hover:text-[#FF6B35] data-[active=true]:bg-[#FF6B35]/20 data-[active=true]:text-[#FF6B35]"
+                    size="icon"
                   >
                     {page}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext 
+                <PaginationNext
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
                     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                   }}
                   className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
+                  size="default"
                 />
               </PaginationItem>
             </PaginationContent>

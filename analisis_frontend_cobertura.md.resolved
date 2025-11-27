@@ -1,0 +1,928 @@
+# 🎨 Análisis de Cobertura del Frontend - GastroSmart AI
+
+## Resumen Ejecutivo
+
+> [!WARNING]
+> **El frontend cubre solo 9 de 22 tablas del backend** (41% de cobertura). Faltan interfaces críticas para gestión completa del sistema, especialmente para historial de precios, órdenes de compra, y sistema de roles/permisos.
+
+---
+
+## 📊 Estado Actual de Componentes
+
+### Componentes Principales Implementados
+
+| # | Componente | Archivo | Líneas | Estado | Tablas Backend Cubiertas |
+|---|-----------|---------|---------|--------|-------------------------|
+| 1 | **Dashboard** | [Dashboard.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Dashboard.tsx) | 10,046 | ✅ Completo | Vistas agregadas |
+| 2 | **Inventory** | [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx) | 36,075 | ✅ Completo | `inventory_items`, `inventory_movements` |
+| 3 | **Recipes** | [Recipes.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Recipes.tsx) | 36,028 | ✅ Completo | `recipes`, `recipe_ingredients` |
+| 4 | **Sales** | [Sales.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Sales.tsx) | 26,836 | ⚠️ Parcial | `sales`, `sale_items` |
+| 5 | **BusinessLocations** | [BusinessLocations.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/BusinessLocations.tsx) | 12,554 | ✅ Completo | `business_locations` |
+| 6 | **Suppliers** | [Suppliers.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Suppliers.tsx) | 15,650 | ✅ Completo | `suppliers` |
+| 7 | **Users** | [Users.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Users.tsx) | 14,567 | ⚠️ Básico | `users` (sin roles/permisos) |
+| 8 | **Promotions** | [Promotions.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Promotions.tsx) | 19,017 | ✅ Completo | `promotions` |
+| 9 | **Reports** | [Reports.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Reports.tsx) | 10,925 | ✅ Completo | Reportes agregados |
+| 10 | **Settings** | [Settings.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Settings.tsx) | 17,216 | ⚠️ Básico | Configuraciones generales |
+| 11 | **Chatbot** | [Chatbot.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Chatbot.tsx) | 6,444 | ✅ Completo | `chatbot_logs` |
+| 12 | **Login** | [Login.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Login.tsx) | 3,602 | ✅ Completo | Autenticación |
+
+---
+
+## 🔍 Análisis Detallado de Cobertura por Tabla
+
+### ✅ MÓDULO: Configuración (3 tablas)
+
+#### 1. `units` - Unidades de Medida
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🔴 **CRÍTICO**
+
+**Problema**:
+- No hay interfaz para gestionar unidades personalizadas
+- No se pueden ver factores de conversión
+- El sistema depende de enums hardcodeados
+
+**Funcionalidad Faltante**:
+```typescript
+// Debería poder hacerse desde el frontend:
+- Crear nueva unidad: "bolsa 1kg"
+- Definir conversiones: 1 bolsa = 1 kg
+- Activar/desactivar unidades
+- Ver unidades por tipo (peso, volumen, pieza)
+```
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Crear componente `Units.tsx` para:
+> - CRUD completo de unidades
+> - Configurar conversiones automáticas
+> - Agrupar por tipo (peso, volumen, pieza, custom)
+
+---
+
+#### 2. `suppliers` - Proveedores
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([Suppliers.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Suppliers.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ Crear/editar/eliminar proveedores
+- ✅ Nombre, contacto, teléfono, email
+- ✅ Dirección (address, city, zone)
+- ✅ NIT (tax_id)
+- ✅ Términos de pago
+- ✅ Calificación (rating 1-5 estrellas)
+- ✅ Estado activo/inactivo
+- ✅ Notas adicionales
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐ (4/5)
+- Formulario completo y bien diseñado
+- Búsqueda funcional
+- Falta: Comparación de precios entre proveedores
+
+---
+
+#### 3. `business_locations` - Sucursales
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([BusinessLocations.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/BusinessLocations.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ Crear/editar/eliminar sucursales
+- ✅ Nombre, dirección, ciudad, zona
+- ✅ Teléfono, email
+- ✅ Marcar sucursal principal (is_main)
+- ✅ Estado activo/inactivo
+- ✅ Horarios de apertura (open_hours JSON)
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐⭐ (5/5)
+- Interfaz intuitiva
+- Switch para sucursal principal
+- Soporte multi-sucursal excelente
+
+---
+
+### 📦 MÓDULO: Inventario (5 tablas)
+
+#### 4. `inventory_items` - Items de Inventario
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ CRUD completo de insumos
+- ✅ Nombre, categoría, cantidad, unidad
+- ✅ Stock mínimo y máximo
+- ✅ Costo por unidad
+- ✅ Proveedor (selector + texto libre)
+- ✅ Sucursal
+- ✅ Fecha de caducidad
+- ✅ Código de barras
+- ✅ Alertas de stock crítico (visual)
+- ✅ Filtrado por sucursal
+- ✅ Búsqueda por nombre/categoría
+- ✅ Paginación (10 items por página)
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐⭐ (5/5)
+- Interfaz muy completa
+- Indicadores visuales de estado (crítico/bajo/bueno)
+- Formulario extenso pero bien organizado
+
+---
+
+#### 5. `inventory_cost_history` - Historial de Costos
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🔴 **CRÍTICO**
+
+**Problema**:
+- No se puede ver historial de precios de un ingrediente
+- No se puede comparar precios entre fechas
+- No se puede rastrear inflación
+
+**Funcionalidad Faltante**:
+```typescript
+// Usuario NO puede hacer:
+- Ver que el arroz costó 100 Bs en enero y 200 Bs en marzo
+- Comparar precios de diferentes proveedores históricamente
+- Analizar tendencias de costos
+- Ver razón de cambio de precio (compra, ajuste, inflación)
+```
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Agregar a [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx):
+> - Tab adicional "Historial de Precios"
+> - Gráfico de línea mostrando evolución de costo
+> - Tabla con: fecha, costo, proveedor, razón del cambio
+> - Filtrar por item y rango de fechas
+
+---
+
+#### 6. `inventory_movements` - Movimientos de Inventario
+- **Backend**: ✅ Implementado
+- **Frontend**: ⚠️ **PARCIAL** ([Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx) - tab History)
+- **Impacto**: 🟡 Funcional pero limitado
+
+**Funcionalidades Implementadas**:
+- ✅ Ver historial de movimientos
+- ✅ Filtrar por item específico
+- ✅ Ver tipo de movimiento (ENTRADA, SALIDA, MERMA, etc.)
+- ✅ Ver cantidad y costo unitario
+- ✅ Ver referencia (ID de venta/compra)
+
+**Funcionalidades Faltantes**:
+- ❌ **Crear movimientos manuales** (AJUSTE, MERMA, TRANSFERENCIA)
+- ❌ Transferir entre sucursales desde UI
+- ❌ Registrar mermas con razón
+- ❌ Filtrar por tipo de movimiento
+- ❌ Filtrar por rango de fechas
+
+**Experiencia de Usuario**: ⭐⭐⭐ (3/5)
+- Solo lectura, no permite crear
+- Falta interactividad para gestión activa
+
+**Recomendación**: 
+> [!WARNING]
+> Agregar diálogos para:
+> - **Registrar Merma**: seleccionar item, cantidad, razón
+> - **Ajustar Inventario**: corrección manual con notas
+> - **Transferir entre sucursales**: origen, destino, cantidad
+
+---
+
+#### 7. `purchase_orders` - Órdenes de Compra
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🔴 **CRÍTICO**
+
+**Problema**:
+- No hay ciclo completo de compras
+- Usuario debe crear inventario manualmente sin orden de compra
+- No hay seguimiento de órdenes (pendiente, recibida, cancelada)
+
+**Funcionalidad Faltante**:
+```typescript
+// Usuario NO puede:
+- Crear orden de compra a proveedor
+- Agregar items con cantidad y precio
+- Cambiar estado: PENDING → APPROVED → RECEIVED
+- Ver órdenes pendientes vs recibidas
+- Registrar fecha esperada vs fecha real de entrega
+- Al recibir orden, actualizar inventario automáticamente
+```
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Crear componente `PurchaseOrders.tsx`:
+> - Crear orden: seleccionar proveedor, sucursal, items
+> - Dashboard de órdenes con estados
+> - Botón "Recibir Orden" que crea movimientos de ENTRADA
+> - Validar cantidades recibidas vs solicitadas
+
+---
+
+#### 8. `purchase_order_items` - Items de Órdenes
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ No existe (dependencia de #7)
+- **Impacto**: 🔴 Crítico
+
+---
+
+### 🍽️ MÓDULO: Recetas (4 tablas)
+
+#### 9. `recipes` - Recetas
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([Recipes.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Recipes.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ CRUD completo de recetas
+- ✅ Nombre, descripción, categoría
+- ✅ Precio de venta
+- ✅ Costo calculado automáticamente
+- ✅ Margen calculado automáticamente
+- ✅ Tiempo de preparación
+- ✅ Porciones (servings)
+- ✅ Instrucciones
+- ✅ Sucursal
+- ✅ Disponibilidad (switch)
+- ✅ Gestión de ingredientes (agregar/quitar)
+- ✅ Vincular ingredientes a inventario
+- ✅ Ingredientes manuales (sin inventario)
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐⭐ (5/5)
+- Excelente gestión de ingredientes
+- Cálculo automático de costos y márgenes
+- Interfaz completa y funcional
+- Switch para disponibilidad muy útil
+
+---
+
+#### 10. `recipe_ingredients` - Ingredientes de Recetas
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** (integrado en [Recipes.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Recipes.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ Agregar ingredientes dinámicamente
+- ✅ Vincular con inventory_items (dropdown)
+- ✅ Ingredientes manuales (sin vincular)
+- ✅ Cantidad y unidad
+- ✅ Costo automático si vinculado
+- ✅ Costo manual si no vinculado
+- ✅ Eliminar ingredientes
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐⭐ (5/5)
+
+---
+
+#### 11. `recipe_components` - Sub-recetas
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🟡 Deseable
+
+**Problema**:
+- No se pueden crear preparaciones intermedias
+- Ejemplo: "Anticucho" no puede usar "Salsa para Anticucho" como componente
+
+**Funcionalidad Faltante**:
+```typescript
+// Usuario NO puede:
+- Crear receta "Salsa Anticucho"
+- Usarla como ingrediente en "Anticucho de Corazón"
+- Calcular costos anidados
+```
+
+**Recomendación**: 
+> [!NOTE]
+> Mejora futura (no crítica):
+> - Agregar selector "Usar otra receta como ingrediente"
+> - Calcular costos en cascada
+
+---
+
+#### 12. `recipe_versions` - Versiones de Recetas
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🟡 Deseable
+
+**Problema**:
+- No hay historial de cambios de recetas
+- Usuario no puede ver versiones anteriores
+- No se registra por qué cambió precio o costo
+
+**Funcionalidad Faltante**:
+```typescript
+// Usuario NO puede:
+- Ver historial: v1 (precio 25 Bs) → v2 (precio 30 Bs)
+- Comparar versiones
+- Razón del cambio: "aumento de carne"
+- Restaurar versión anterior
+```
+
+**Recomendación**: 
+> [!NOTE]
+> Agregar a [Recipes.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Recipes.tsx):
+> - Tab "Historial de Versiones"
+> - Tabla con: versión, fecha, costo, precio, margen, razón
+> - Botón "Ver detalles" para comparar ingredientes
+
+---
+
+### 💰 MÓDULO: Ventas (4 tablas)
+
+#### 13. `sales` - Ventas
+- **Backend**: ✅ Implementado
+- **Frontend**: ⚠️ **PARCIAL** ([Sales.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Sales.tsx))
+- **Impacto**: 🟡 Funcional pero incompleto
+
+**Funcionalidades Implementadas**:
+- ✅ Crear venta con items
+- ✅ Calcular subtotal, tax, total
+- ✅ Método de pago
+- ✅ Sucursal
+- ✅ Ver historial de ventas
+- ✅ Eliminar venta
+
+**Funcionalidades Faltantes**:
+- ❌ **Número de mesa**
+- ❌ **Mesero** (waiter_id)
+- ❌ **Tipo de venta** (LOCAL/DELIVERY/TAKEAWAY)
+- ❌ **Servicio de delivery** (PedidosYa, Ahora)
+- ❌ **Nombre de cliente**
+- ❌ **Teléfono de cliente**
+- ❌ **Aplicar promociones**
+- ❌ **Estado** (COMPLETED, CANCELLED, REFUNDED)
+
+**Experiencia de Usuario**: ⭐⭐⭐ (3/5)
+- Funcional para venta básica
+- Faltan campos críticos para restaurantes
+- No conecta con recetas (usa texto libre)
+
+**Recomendación**: 
+> [!WARNING]
+> Expandir formulario de venta:
+> - Selector de tipo: LOCAL, DELIVERY, TAKEAWAY
+> - Si LOCAL: número de mesa, mesero
+> - Si DELIVERY: servicio, cliente, teléfono
+> - Selector de recetas (no texto libre)
+> - Botón "Aplicar Promoción"
+
+---
+
+#### 14. `sale_items` - Items de Venta
+- **Backend**: ✅ Implementado
+- **Frontend**: ⚠️ **PARCIAL** (integrado en [Sales.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Sales.tsx))
+- **Impacto**: 🟡 Funcional pero limitado
+
+**Problema**:
+- Items son texto libre, no vinculados a recetas
+- No actualiza inventario automáticamente
+
+**Recomendación**: 
+> [!WARNING]
+> Cambiar de Input a Select con recetas disponibles
+> - Al seleccionar receta, traer precio automático
+> - Al guardar venta, descontar ingredientes de inventario
+
+---
+
+#### 15. `promotions` - Promociones
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([Promotions.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Promotions.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ CRUD completo
+- ✅ Tipos: percentage, fixed_amount, buy_x_get_y
+- ✅ Valor de descuento
+- ✅ Compra mínima
+- ✅ Descuento máximo
+- ✅ Fecha inicio/fin
+- ✅ Activo/inactivo
+- ✅ Aplicable a: all, recipes, categories, specific_items
+- ✅ Sucursal
+
+**Funcionalidades Faltantes**:
+- ❌ **Aplicar promoción en Sales** (no conectado)
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐ (4/5)
+- Componente completo
+- Falta integración con ventas
+
+---
+
+#### 16. `sale_discounts` - Descuentos Aplicados
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🟡 Dependencia de Sales
+
+**Problema**:
+- No se registran descuentos aplicados
+- No hay trazabilidad de promociones usadas
+
+---
+
+### 👥 MÓDULO: Usuarios y Seguridad (5 tablas)
+
+#### 17. `users` - Usuarios
+- **Backend**: ✅ Implementado
+- **Frontend**: ⚠️ **BÁSICO** ([Users.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Users.tsx))
+- **Impacto**: 🟡 Funcional pero incompleto
+
+**Funcionalidades Implementadas**:
+- ✅ CRUD de usuarios
+- ✅ Email, username, full_name, phone
+- ✅ is_active, is_superuser
+- ✅ Sucursal por defecto
+
+**Funcionalidades Faltantes**:
+- ❌ **Asignar roles** (admin, cook, waiter, cashier)
+- ❌ **Asignar permisos**
+- ❌ **Roles por sucursal**
+- ❌ Ver último acceso (last_login)
+- ❌ Gestión de contraseñas
+
+**Experiencia de Usuario**: ⭐⭐⭐ (3/5)
+- Básico, no gestiona roles
+- Crítico: tu requisito era "Administrador, Cocina, Sala"
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Expandir [Users.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Users.tsx):
+> - Selector de roles (multi-select)
+> - Tabla de permisos por rol
+> - Asignar roles específicos por sucursal
+> - Ejemplo: Juan es "cook" en Centro, "waiter" en El Alto
+
+---
+
+#### 18. `roles` - Roles del Sistema
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🔴 **CRÍTICO**
+
+**Problema**:
+- **No hay interfaz para gestionar roles**
+- Usuario no puede crear roles personalizados
+- No se ven roles existentes (admin, manager, cook, waiter, cashier)
+
+**Funcionalidad Faltante**:
+```typescript
+// Usuario NO puede:
+- Ver roles del sistema
+- Crear rol personalizado "Supervisor"
+- Editar descripción de roles
+- Marcar roles como "sistema" (no eliminables)
+```
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Crear componente `Roles.tsx` o tab en Settings:
+> - Lista de roles con descripciones
+> - Crear roles personalizados
+> - Ver qué permisos tiene cada rol
+
+---
+
+#### 19. `permissions` - Permisos
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ **NO EXISTE**
+- **Impacto**: 🔴 **CRÍTICO**
+
+**Problema**:
+- No hay gestión de permisos granulares
+- Usuario no puede configurar: inventory.create, sales.delete, etc.
+
+**Recomendación**: 
+> [!IMPORTANT]
+> Crear interfaz de permisos:
+> - Matriz: Rol × Recurso × Acción
+> - Ejemplo: "cook" puede "inventory.read" pero NO "inventory.delete"
+
+---
+
+#### 20. `role_permissions` - Asignación Rol-Permiso
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ No existe (dependencia de #18 y #19)
+- **Impacto**: 🔴 Crítico
+
+---
+
+#### 21. `user_roles` - Roles de Usuario
+- **Backend**: ✅ Implementado
+- **Frontend**: ❌ No existe (dependencia de #17 y #18)
+- **Impacto**: 🔴 Crítico
+
+---
+
+### 🤖 MÓDULO: IA (1 tabla)
+
+#### 22. `chatbot_logs` - Logs del Chatbot
+- **Backend**: ✅ Implementado
+- **Frontend**: ✅ **COMPLETO** ([Chatbot.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Chatbot.tsx))
+- **Impacto**: ✅ Funcional
+
+**Funcionalidades Implementadas**:
+- ✅ Enviar mensajes
+- ✅ Recibir respuestas de IA
+- ✅ Historial de conversación
+
+**Experiencia de Usuario**: ⭐⭐⭐⭐ (4/5)
+
+---
+
+## 📈 Resumen de Cobertura
+
+### Por Módulo
+
+| Módulo | Total Tablas | Implementado | Parcial | Faltante | % Completo |
+|--------|--------------|--------------|---------|----------|------------|
+| **Configuración** | 3 | 2 | 0 | 1 | 67% |
+| **Inventario** | 5 | 1 | 1 | 3 | 20% |
+| **Recetas** | 4 | 2 | 0 | 2 | 50% |
+| **Ventas** | 4 | 1 | 2 | 1 | 25% |
+| **Usuarios** | 5 | 0 | 1 | 4 | 0% |
+| **IA** | 1 | 1 | 0 | 0 | 100% |
+| **TOTAL** | **22** | **7** | **4** | **11** | **32%** |
+
+### Tabla Resumen Completa
+
+| # | Tabla Backend | Frontend | Estado | Componente | Prioridad |
+|---|---------------|----------|--------|-----------|-----------|
+| 1 | users | ⚠️ Parcial | Básico sin roles | Users.tsx | 🔴 Alta |
+| 2 | roles | ❌ No | - | - | 🔴 Alta |
+| 3 | permissions | ❌ No | - | - | 🔴 Alta |
+| 4 | role_permissions | ❌ No | - | - | 🔴 Alta |
+| 5 | user_roles | ❌ No | - | - | 🔴 Alta |
+| 6 | units | ❌ No | - | - | 🟡 Media |
+| 7 | suppliers | ✅ Sí | Completo | Suppliers.tsx | ✅ OK |
+| 8 | business_locations | ✅ Sí | Completo | BusinessLocations.tsx | ✅ OK |
+| 9 | inventory_items | ✅ Sí | Completo | Inventory.tsx | ✅ OK |
+| 10 | inventory_cost_history | ❌ No | - | - | 🔴 Alta |
+| 11 | inventory_movements | ⚠️ Parcial | Solo lectura | Inventory.tsx (tab) | 🟡 Media |
+| 12 | purchase_orders | ❌ No | - | - | 🔴 Alta |
+| 13 | purchase_order_items | ❌ No | - | - | 🔴 Alta |
+| 14 | recipes | ✅ Sí | Completo | Recipes.tsx | ✅ OK |
+| 15 | recipe_ingredients | ✅ Sí | Completo | Recipes.tsx | ✅ OK |
+| 16 | recipe_components | ❌ No | - | - | 🟢 Baja |
+| 17 | recipe_versions | ❌ No | - | - | 🟡 Media |
+| 18 | sales | ⚠️ Parcial | Campos faltantes | Sales.tsx | 🟡 Media |
+| 19 | sale_items | ⚠️ Parcial | No vincula recetas | Sales.tsx | 🟡 Media |
+| 20 | promotions | ✅ Sí | Completo | Promotions.tsx | ✅ OK |
+| 21 | sale_discounts | ❌ No | - | - | 🟡 Media |
+| 22 | chatbot_logs | ✅ Sí | Completo | Chatbot.tsx | ✅ OK |
+
+---
+
+## 🎯 Evaluación de Experiencia de Usuario (UX)
+
+### 1. Flujo de Onboarding (Primera Vez)
+
+**Escenario**: Usuario nuevo crea cuenta y configura sistema
+
+**Flujo Actual**:
+```
+1. Register → Login
+2. ¿Ahora qué?
+3. Usuario debe descubrir:
+   - Crear sucursales
+   - Crear proveedores
+   - Agregar insumos
+   - Crear recetas
+   - Registrar ventas
+```
+
+**Problemas**:
+- ❌ No hay wizard de configuración inicial
+- ❌ No se solicita información del restaurante
+- ❌ No se crea automáticamente primera sucursal
+- ❌ Usuario no tiene rol asignado automáticamente
+
+**Recomendación**:
+> [!IMPORTANT]
+> Crear `OnboardingWizard.tsx`:
+> ```
+> Paso 1: Datos del Restaurante
+> - Nombre
+> - Dirección
+> - Teléfono
+> 
+> Paso 2: Primera Sucursal
+> - Nombre (ej: "Sucursal Centro")
+> - Marcar como principal
+> 
+> Paso 3: Configura Roles
+> - Asignar al usuario como "admin"
+> 
+> Paso 4: Tutorial Rápido
+> - "Ahora puedes agregar insumos, recetas y ventas"
+> ```
+
+**Rating UX**: ⭐⭐ (2/5)
+
+---
+
+### 2. Gestión Multi-Sucursal
+
+**Escenario**: Restaurante con 3 sucursales
+
+**Funcionalidades Actuales**:
+- ✅ Crear sucursales fácilmente
+- ✅ Filtrar inventario por sucursal
+- ✅ Ventas por sucursal
+- ✅ Recetas por sucursal
+
+**Problemas**:
+- ❌ No hay selector global de sucursal
+- ❌ Usuario debe elegir en cada formulario
+- ❌ No hay transferencias entre sucursales desde UI
+
+**Recomendación**:
+> [!NOTE]
+> Agregar selector global en navbar:
+> ```tsx
+> <Select defaultValue={currentLocation}>
+>   <SelectItem value="all">Todas las Sucursales</SelectItem>
+>   <SelectItem value="centro">Sucursal Centro</SelectItem>
+>   <SelectItem value="elalto">Sucursal El Alto</SelectItem>
+> </Select>
+> ```
+
+**Rating UX**: ⭐⭐⭐⭐ (4/5)
+
+---
+
+### 3. Gestión de Inventario
+
+**Funcionalidades**:
+- ✅ Agregar insumos con formulario completo
+- ✅ Alertas visuales de stock crítico
+- ✅ Historial de movimientos (lectura)
+- ✅ Búsqueda y filtros
+- ✅ Paginación
+
+**Problemas**:
+- ❌ No se pueden crear movimientos manuales
+- ❌ No hay vista de "Historial de Precios" del insumo
+- ❌ No se puede comparar precios de proveedores
+
+**Rating UX**: ⭐⭐⭐⭐ (4/5)
+
+---
+
+### 4. Creación de Recetas
+
+**Funcionalidades**:
+- ✅ Agregar ingredientes dinámicamente
+- ✅ Vincular con inventario o manual
+- ✅ Cálculo automático de costo
+- ✅ Cálculo automático de margen
+- ✅ Switch de disponibilidad
+
+**Problemas**:
+- ❌ No se pueden usar sub-recetas
+- ❌ No hay historial de versiones
+
+**Rating UX**: ⭐⭐⭐⭐⭐ (5/5)
+
+---
+
+### 5. Registro de Ventas
+
+**Funcionalidades**:
+- ✅ Agregar items
+- ✅ Calcular totales
+- ✅ Método de pago
+
+**Problemas**:
+- ❌ Items son texto libre (no recetas)
+- ❌ No hay mesa/mesero
+- ❌ No hay tipo de venta (local/delivery)
+- ❌ No aplica promociones
+- ❌ No descuenta inventario automáticamente
+
+**Rating UX**: ⭐⭐ (2/5)
+
+---
+
+### 6. Sistema de Roles y Permisos
+
+**Funcionalidades**:
+- ⚠️ Básico en Users.tsx (is_superuser)
+
+**Problemas**:
+- ❌ **No existe interfaz**
+- ❌ Usuario no puede asignar roles
+- ❌ No hay permisos granulares desde UI
+
+**Rating UX**: ⭐ (1/5) - Crítico
+
+---
+
+### 7. Reportes y Análisis
+
+**Funcionalidades**:
+- ✅ Reportes visuales con gráficos
+- ✅ Exportar a CSV/JSON
+
+**Rating UX**: ⭐⭐⭐⭐ (4/5)
+
+---
+
+## 🚨 Funcionalidades Críticas Faltantes
+
+### Prioridad 🔴 ALTA (Bloqueantes)
+
+#### 1. **Sistema de Roles y Permisos**
+```
+Tu requisito: "Administración, Cocina, Sala (Mesero)"
+Estado: NO IMPLEMENTADO
+
+Necesitas:
+- Componente para gestionar roles
+- Asignar permisos a roles
+- Asignar roles a usuarios
+- Roles por sucursal
+
+Sin esto, NO puedes:
+- Restringir acceso por tipo de usuario
+- Cocina solo ve inventario/recetas
+- Sala solo registra ventas
+```
+
+#### 2. **Historial de Precios de Ingredientes**
+```
+Tu requisito: "Arroz 100 Bs → 200 Bs, ver historial"
+Estado: NO IMPLEMENTADO
+
+Necesitas:
+- Vista de historial de costos
+- Gráfico de evolución de precios
+- Comparación entre proveedores
+
+Sin esto, NO puedes:
+- Ver cuándo fue más barato
+- Analizar inflación
+- Justificar aumento de precio de platos
+```
+
+#### 3. **Órdenes de Compra**
+```
+Tu requisito: "Compras se realizan por sucursal"
+Estado: NO IMPLEMENTADO
+
+Necesitas:
+- Crear órdenes a proveedores
+- Seguimiento de órdenes
+- Al recibir, actualizar inventario
+
+Sin esto, NO puedes:
+- Flujo completo de compras
+- Estadísticas de compras mensuales
+- Comparar precios de proveedores
+```
+
+#### 4. **Registro de Mermas Manual**
+```
+Tu requisito: "Registrar mermas (ingredientes desperdiciados)"
+Estado: PARCIAL (solo lectura)
+
+Necesitas:
+- Botón "Registrar Merma"
+- Seleccionar item, cantidad, razón
+- Actualizar inventario
+
+Sin esto, NO puedes:
+- Documentar pérdidas
+- Analizar mermas por período
+```
+
+---
+
+### Prioridad 🟡 MEDIA (Importantes)
+
+#### 5. **Ventas con Recetas Vinculadas**
+```
+Problema: Items en Sale.tsx son texto libre
+Solución: Selector de recetas
+
+Impacto:
+- Al vender, descuenta ingredientes automáticamente
+- Reportes de platos más vendidos
+- Control de inventario real
+```
+
+#### 6. **Unidades de Medida Personalizadas**
+```
+Problema: Unidades hardcodeadas en enums
+Solución: Componente Units.tsx
+
+Impacto:
+- Crear "bolsa 1kg", "paquete 500g"
+- Conversiones automáticas
+```
+
+#### 7. **Versiones de Recetas**
+```
+Problema: No hay historial de cambios
+Solución: Tab en Recipes.tsx
+
+Impacto:
+- Ver evolución de costos
+- Razón de cambios (aumento de ingrediente)
+```
+
+---
+
+### Prioridad 🟢 BAJA (Mejoras)
+
+#### 8. **Sub-recetas (Recipe Components)**
+```
+Nice to have: Salsa como ingrediente de Anticucho
+```
+
+#### 9. **Descuentos Aplicados (Sale Discounts)**
+```
+Trazabilidad: Qué promoción se usó en cada venta
+```
+
+---
+
+## ✅ Recomendaciones Finales
+
+### Desarrollo Inmediato
+
+> [!IMPORTANT]
+> **Estas 4 funcionalidades son CRÍTICAS para tu caso de uso:**
+
+1. **Sistema de Roles** (`Roles.tsx` + expandir [Users.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Users.tsx))
+   - Admin: acceso total
+   - Cocina: solo inventario + recetas
+   - Sala: solo ventas
+   - Por sucursal
+
+2. **Historial de Precios** (Tab en [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx))
+   - Gráfico de evolución
+   - Tabla de cambios con proveedor
+
+3. **Órdenes de Compra** (`PurchaseOrders.tsx`)
+   - Crear orden
+   - Recibir orden → actualizar inventario
+   - Estadísticas mensuales
+
+4. **Registro de Mermas** (Dialog en [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx))
+   - Botón "Registrar Merma/Ajuste"
+   - Formulario simple: item, cantidad, razón
+
+---
+
+### Mejoras de UX
+
+1. **Onboarding Wizard** (primera configuración)
+2. **Selector global de sucursal** (navbar)
+3. **Vincular Sales con Recipes** (cambiar input a select)
+4. **Aplicar promociones en ventas** (botón en Sales.tsx)
+
+---
+
+### Tabla de Priorización de Desarrollo
+
+| Funcionalidad | Componente | Prioridad | Esfuerzo | Impacto | Orden |
+|---------------|-----------|-----------|----------|---------|-------|
+| Roles y Permisos | `Roles.tsx` | 🔴 Alta | Alto | Crítico | 1 |
+| Expandir Users | [Users.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Users.tsx) | 🔴 Alta | Medio | Crítico | 2 |
+| Historial Precios | Tab en [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx) | 🔴 Alta | Medio | Alto | 3 |
+| Órdenes Compra | `PurchaseOrders.tsx` | 🔴 Alta | Alto | Alto | 4 |
+| Registro Mermas | Dialog en [Inventory.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Inventory.tsx) | 🔴 Alta | Bajo | Alto | 5 |
+| Vincular Sales-Recipes | Modificar [Sales.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Sales.tsx) | 🟡 Media | Medio | Alto | 6 |
+| Unidades Custom | `Units.tsx` | 🟡 Media | Medio | Medio | 7 |
+| Versiones Recetas | Tab en [Recipes.tsx](file:///Users/amilcaryujra/Desktop/INNOVA/GastroSmart%20AI%20Project%20Overview/frontend/src/components/Recipes.tsx) | 🟡 Media | Medio | Medio | 8 |
+| Onboarding | `OnboardingWizard.tsx` | 🟡 Media | Alto | Alto | 9 |
+
+---
+
+## 📝 Conclusión
+
+**Cobertura Actual**: 32% de funcionalidad completa (7 de 22 tablas)
+
+**Estado General**:
+- ✅ **Fortalezas**: Inventario, Recetas, Sucursales muy bien implementados
+- ⚠️ **Débil**: Ventas incompletas, sin roles/permisos
+- ❌ **Faltante**: Órdenes de compra, historial de precios, sistema de roles
+
+**Para tu Caso de Uso Específico**:
+- ❌ **No puedes asignar roles** (Administración, Cocina, Sala)
+- ❌ **No puedes ver historial de precios** (arroz 100 → 200 Bs)
+- ❌ **No puedes registrar mermas manualmente**
+- ⚠️ **Ventas no actualizan inventario automáticamente**
+
+**Próximos Pasos Sugeridos**:
+1. Implementar sistema de roles (días 1-5)
+2. Agregar historial de precios (días 6-8)
+3. Crear módulo de órdenes de compra (días 9-15)
+4. Mejorar interfaz de ventas (días 16-20)
+5. Agregar registro de mermas (día 21)
+
+**Total Estimado**: ~4 semanas para funcionalidad completa según tu visión.
