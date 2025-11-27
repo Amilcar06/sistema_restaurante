@@ -377,12 +377,12 @@ export function Recipes() {
   }
 
   return (
-    <div className="space-y-6 w-full relative">
+    <div className="space-y-8 w-full relative">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-white mb-2">Recetas y Costos</h1>
-          <p className="text-white/60">Gestiona las recetas y calcula costos por plato</p>
+          <h1 className="text-white mb-3 text-3xl font-bold">Recetas y Costos</h1>
+          <p className="text-white/60 text-base">Gestiona las recetas y calcula costos por plato</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
@@ -717,7 +717,7 @@ export function Recipes() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
           <div className="flex items-center gap-4">
             <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
@@ -757,16 +757,16 @@ export function Recipes() {
 
       {/* Recipes Grid */}
       {filteredRecipes.length === 0 ? (
-        <Card className="bg-white/5 border-[#FF6B35]/20 p-8 text-center">
-          <p className="text-white/60">
+        <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
+          <p className="text-white/60 text-lg">
             {searchTerm ? "No se encontraron recetas" : "No hay recetas. Crea tu primera receta."}
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {paginatedRecipes.map((recipe) => (
             <Card key={recipe.id} className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-6">
                 <div>
                   <h3 className="text-white mb-2 text-lg font-semibold">{recipe.name}</h3>
                   <span className="px-3 py-1 bg-white/10 rounded-full text-white/70 text-sm font-medium">{recipe.category}</span>
@@ -799,7 +799,7 @@ export function Recipes() {
               </div>
 
               {recipe.ingredients.length > 0 && (
-                <div className="space-y-3 mb-4">
+                <div className="space-y-4 mb-6">
                   <div className="text-white/60">Ingredientes:</div>
                   {recipe.ingredients.map((ingredient, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm">

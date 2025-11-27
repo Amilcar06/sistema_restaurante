@@ -303,11 +303,10 @@ export function Inventory() {
   return (
     <div className="space-y-8 w-full relative">
       {/* Header */}
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-white mb-2">Inventario</h1>
-          <p className="text-white/60">Gestiona todos los insumos de tu negocio</p>
+          <h1 className="text-white mb-3 text-3xl font-bold">Inventario</h1>
+          <p className="text-white/60 text-base">Gestiona todos los insumos de tu negocio</p>
         </div>
         <Button
           type="button"
@@ -532,9 +531,9 @@ export function Inventory() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="inventory" className="space-y-6">
+        <TabsContent value="inventory" className="space-y-8">
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="bg-white/5 border-[#FF6B35]/20 p-6 hover:bg-white/10 hover:border-[#FF6B35]/40 transition-all duration-300">
               <div className="flex items-center gap-4">
                 <div className="bg-[#FF6B35]/10 p-3 rounded-lg hover:bg-[#FF6B35]/20 transition-colors">
@@ -731,126 +730,6 @@ export function Inventory() {
               </div>
             )}
           </Card>
-
-          {/* Inventory Cards - Mobile */}
-          <div className="md:hidden space-y-4">
-            {filteredItems.length === 0 ? (
-              <Card className="bg-white/5 border-[#FF6B35]/20 p-8 text-center">
-                <div className="flex flex-col items-center gap-4">
-                  <Package className="w-16 h-16 text-white/30" />
-                  <p className="text-white/70 text-lg font-medium">
-                    {searchTerm ? "No se encontraron insumos" : "No hay insumos. Agrega tu primer insumo."}
-                  </p>
-                  {!searchTerm && (
-                    <Button
-                      className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white mt-2"
-                      onClick={() => {
-                        resetForm();
-                        setIsDialogOpen(true);
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Agregar Primer Insumo
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            ) : (
-              paginatedItems.map((item) => {
-                const status = getStockStatus(item);
-                return (
-                  <Card key={item.id} className="bg-white/5 border-[#FF6B35]/20 p-4 hover:bg-white/10 transition-all">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold mb-1">{item.name}</h3>
-                        <span className="px-3 py-1 bg-white/10 rounded-full text-white/80 text-sm font-medium">{item.category}</span>
-                      </div>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${status.bg} ${status.border} border ${status.color}`}>
-                        {status.status === "critical" && <AlertTriangle className="w-3 h-3" />}
-                        {status.status === "low" && <AlertTriangle className="w-3 h-3" />}
-                        {status.status === "good" && <CheckCircle2 className="w-3 h-3" />}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                      <div>
-                        <span className="text-white/60">Cantidad:</span>
-                        <span className="text-white font-medium ml-2">{item.quantity} {item.unit}</span>
-                      </div>
-                      <div>
-                        <span className="text-white/60">Stock Mín:</span>
-                        <span className="text-white font-medium ml-2">{item.min_stock} {item.unit}</span>
-                      </div>
-                      <div>
-                        <span className="text-white/60">Costo:</span>
-                        <span className="text-white font-semibold ml-2">Bs. {item.cost_per_unit.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-white/60">Proveedor:</span>
-                        <span className="text-white/70 ml-2">{item.supplier || "-"}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pt-3 border-t border-[#FF6B35]/10">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(item)}
-                        className="flex-1 text-white hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] transition-all"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                        className="flex-1 text-white hover:bg-red-500/20 hover:text-red-400 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Eliminar
-                      </Button>
-                    </div>
-                  </Card>
-                );
-              })
-            )}
-
-            {/* Pagination - Mobile */}
-            {filteredItems.length > itemsPerPage && (
-              <div className="mt-6 flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage > 1) setCurrentPage(currentPage - 1);
-                        }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
-                      />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <span className="text-white px-4 py-2">
-                        Página {currentPage} de {totalPages}
-                      </span>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                        }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer text-white hover:text-[#FF6B35]"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
-          </div>
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">

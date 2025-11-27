@@ -8,8 +8,6 @@ import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { BusinessLocations } from "./BusinessLocations";
 import { Suppliers } from "./Suppliers";
-import { Users } from "./Users";
-import { Promotions } from "./Promotions";
 import { toast } from "sonner";
 
 export function Settings() {
@@ -82,34 +80,6 @@ export function Settings() {
           >
             <User className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Perfil</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="users"
-            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
-          >
-            <UsersIcon className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Usuarios</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="locations"
-            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
-          >
-            <MapPin className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Sucursales</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="suppliers"
-            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
-          >
-            <Truck className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Proveedores</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="promotions"
-            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
-          >
-            <Tag className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Promociones</span>
           </TabsTrigger>
           <TabsTrigger
             value="notifications"
@@ -199,26 +169,6 @@ export function Settings() {
               </div>
             </form>
           </Card>
-        </TabsContent>
-
-        {/* Tab Content: Sucursales */}
-        <TabsContent value="locations" className="mt-6">
-          <BusinessLocations />
-        </TabsContent>
-
-        {/* Tab Content: Usuarios */}
-        <TabsContent value="users" className="mt-6">
-          <Users />
-        </TabsContent>
-
-        {/* Tab Content: Proveedores */}
-        <TabsContent value="suppliers" className="mt-6">
-          <Suppliers />
-        </TabsContent>
-
-        {/* Tab Content: Promociones */}
-        <TabsContent value="promotions" className="mt-6">
-          <Promotions />
         </TabsContent>
 
         {/* Tab Content: Notificaciones */}

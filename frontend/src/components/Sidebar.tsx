@@ -1,25 +1,105 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ChefHat, ShoppingCart, BarChart3, Settings as SettingsIcon, Brain, Menu, X } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { 
+  LayoutDashboard, 
+  Package, 
+  ChefHat, 
+  ShoppingCart, 
+  BarChart3, 
+  Settings as SettingsIcon, 
+  Brain, 
+  Menu, 
+  X, 
+  LogOut,
+  Building2,
+  Truck,
+  Users,
+  Tag,
+  ChevronDown,
+  ChevronRight
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "./ui/button";
+
+interface MenuSection {
+  title?: string;
+  items: MenuItem[];
+}
+
+interface MenuItem {
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}
 
 export function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['principal', 'operaciones']));
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const menuItems = [
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const menuSections: MenuSection[] = [
+    {
+      // Sin título - siempre visible
+      items: [
     { path: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+      ]
+    },
+    {
+      title: "Operaciones",
+      items: [
     { path: "/inventory", icon: Package, label: "Inventario" },
     { path: "/recipes", icon: ChefHat, label: "Recetas" },
     { path: "/sales", icon: ShoppingCart, label: "Ventas" },
+      ]
+    },
+    {
+      // Sin título - siempre visible
+      items: [
     { path: "/reports", icon: BarChart3, label: "Reportes" },
+      ]
+    },
+    {
+      title: "Gestión",
+      items: [
+        { path: "/locations", icon: Building2, label: "Sucursales" },
+        { path: "/suppliers", icon: Truck, label: "Proveedores" },
+        { path: "/users", icon: Users, label: "Usuarios" },
+        { path: "/promotions", icon: Tag, label: "Promociones" },
+      ]
+    },
+    {
+      // Sin título - siempre visible
+      items: [
     { path: "/settings", icon: SettingsIcon, label: "Configuración" },
+      ]
+    },
   ];
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
       return location.pathname === "/" || location.pathname === "/dashboard";
     }
-    return location.pathname.startsWith(path);
+    if (path === "/settings") {
+      return location.pathname.startsWith("/settings");
+    }
+    return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
   return (
@@ -42,7 +122,7 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border-orange flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 h-screen bg-background border-r border-border-orange flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
         style={{ zIndex: isMobileMenuOpen ? 50 : 30 }}
       >
@@ -62,7 +142,30 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto" role="navigation" aria-label="Navegación principal">
-          {menuItems.map((item) => {
+          {menuSections.map((section, sectionIndex) => {
+            const sectionKey = section.title?.toLowerCase().replace(/\s+/g, '-') || `section-${sectionIndex}`;
+            const isExpanded = expandedSections.has(sectionKey);
+            const hasTitle = section.title && section.items.length > 1;
+
+            return (
+              <div key={sectionKey} className="space-y-2 mb-3">
+                {hasTitle ? (
+                  <button
+                    onClick={() => toggleSection(sectionKey)}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-white/40 hover:text-white/60 transition-colors text-xs font-semibold uppercase tracking-wider"
+                  >
+                    <span>{section.title}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="w-3 h-3" />
+                    ) : (
+                      <ChevronRight className="w-3 h-3" />
+                    )}
+                  </button>
+                ) : null}
+                
+                {(!hasTitle || isExpanded) && (
+                  <div className="space-y-2">
+                    {section.items.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
 
@@ -71,7 +174,8 @@ export function Sidebar() {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={({ isActive }) => `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive || active
+                          className={({ isActive: navIsActive }) => `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ${
+                            navIsActive || active
                   ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
                   : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
                   }`}
@@ -79,15 +183,35 @@ export function Sidebar() {
                 aria-label={`Ir a ${item.label}`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
-                <span className="font-medium">{item.label}</span>
+                          <span className="font-medium text-sm">{item.label}</span>
               </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border-orange">
-          <div className="text-white/40 text-center">
+        {/* User Info & Logout */}
+        <div className="p-4 border-t border-border-orange space-y-3">
+          {user && (
+            <div className="px-4 py-2 bg-surface-orange-subtle rounded-lg">
+              <div className="text-white text-sm font-medium truncate">
+                {user.full_name || user.username}
+              </div>
+            </div>
+          )}
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full justify-start text-white/60 hover:text-white hover:bg-surface-orange-light"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Cerrar Sesión
+          </Button>
+          <div className="text-white/40 text-center text-xs pt-2">
             <div>v1.0.0</div>
             <div>© 2025 GastroSmart</div>
           </div>

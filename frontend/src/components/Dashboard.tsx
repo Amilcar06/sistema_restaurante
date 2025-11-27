@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Package, DollarSign, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, ChefHat, ShoppingCart, BarChart3, AlertTriangle, CheckCircle2, Loader2, Settings, Users, Building2, Tag, DollarSign } from "lucide-react";
 import { Card } from "./ui/card";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { dashboardApi, type DashboardData } from "../services/api";
+import { Link } from "react-router-dom";
 
 export function Dashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -93,16 +94,28 @@ export function Dashboard() {
 
   const alerts = dashboardData.alerts;
 
+  // Páginas operativas del sistema
+  const operationalPages = [
+    { path: "/inventory", label: "Inventario", icon: Package, description: "Gestión de insumos y stock", status: "operativa" },
+    { path: "/recipes", label: "Recetas", icon: ChefHat, description: "Catálogo de platos y preparaciones", status: "operativa" },
+    { path: "/sales", label: "Ventas", icon: ShoppingCart, description: "Registro y seguimiento de ventas", status: "operativa" },
+    { path: "/reports", label: "Reportes", icon: BarChart3, description: "Análisis y reportes del negocio", status: "operativa" },
+    { path: "/settings", label: "Configuración", icon: Settings, description: "Ajustes y administración", status: "operativa" },
+    { path: "/settings/users", label: "Usuarios", icon: Users, description: "Gestión de usuarios del sistema", status: "operativa" },
+    { path: "/settings/locations", label: "Sucursales", icon: Building2, description: "Gestión de ubicaciones", status: "operativa" },
+    { path: "/settings/promotions", label: "Promociones", icon: Tag, description: "Ofertas y descuentos", status: "operativa" },
+  ];
+
   return (
     <div className="space-y-8 w-full relative">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-white mb-2">Dashboard</h1>
+      <div className="mb-8">
+        <h1 className="text-white mb-3 text-3xl font-bold">Dashboard</h1>
         <p className="text-white/70 text-base">Resumen general de tu negocio gastronómico</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
@@ -125,7 +138,7 @@ export function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Sales Chart */}
         <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Ventas de la Semana</h3>
@@ -171,7 +184,7 @@ export function Dashboard() {
       </div>
 
       {/* Top Dishes and Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top Dishes */}
         <Card className="p-6">
           <h3 className="text-white mb-6 text-xl font-semibold">Platos Más Vendidos</h3>

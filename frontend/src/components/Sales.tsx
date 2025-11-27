@@ -270,11 +270,10 @@ export function Sales() {
   return (
     <div className="space-y-8 w-full relative">
       {/* Header */}
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-white mb-2">Ventas</h1>
-          <p className="text-white/60">Registra y analiza las ventas diarias</p>
+          <h1 className="text-white mb-3 text-3xl font-bold">Ventas</h1>
+          <p className="text-white/60 text-base">Registra y analiza las ventas diarias</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);

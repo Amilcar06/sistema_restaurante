@@ -6,14 +6,17 @@
 2. [Arquitectura del Sistema](#arquitectura-del-sistema)
 3. [Estructura del Proyecto](#estructura-del-proyecto)
 4. [Configuración](#configuración)
-5. [Modelos de Base de Datos](#modelos-de-base-de-datos)
-6. [Schemas (Pydantic)](#schemas-pydantic)
-7. [Endpoints API](#endpoints-api)
-8. [Servicios](#servicios)
-9. [Validaciones](#validaciones)
-10. [Enums y Constantes](#enums-y-constantes)
-11. [Instalación y Configuración](#instalación-y-configuración)
-12. [Uso y Ejemplos](#uso-y-ejemplos)
+5. [Workflow del Sistema](#workflow-del-sistema)
+6. [Modelos de Base de Datos](#modelos-de-base-de-datos)
+7. [Schemas (Pydantic)](#schemas-pydantic)
+8. [Endpoints API](#endpoints-api)
+9. [Servicios](#servicios)
+10. [Validaciones](#validaciones)
+11. [Enums y Constantes](#enums-y-constantes)
+12. [Mejoras Implementadas](#mejoras-implementadas)
+13. [Mejoras Pendientes](#mejoras-pendientes)
+14. [Instalación y Configuración](#instalación-y-configuración)
+15. [Uso y Ejemplos](#uso-y-ejemplos)
 
 ---
 
@@ -212,68 +215,626 @@ class Settings(BaseSettings):
 
 ---
 
+## Workflow del Sistema
+
+### Flujo Principal de Operaciones
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    WORKFLOW GASTROSMART AI                   │
+└─────────────────────────────────────────────────────────────┘
+
+1. CONFIGURACIÓN INICIAL
+   ├── Crear Sucursales (BusinessLocations)
+   ├── Registrar Proveedores (Suppliers)
+   ├── Configurar Unidades de Medida (Units)
+   └── Crear Usuarios con Roles (Users + UserRoles)
+
+2. GESTIÓN DE INVENTARIO
+   ├── Registrar Items (InventoryItems)
+   │   ├── Asignar a Sucursal
+   │   ├── Asignar Proveedor
+   │   ├── Definir Unidad de Medida
+   │   └── Establecer Stock Mínimo/Máximo
+   ├── Registrar Historial de Costos (InventoryCostHistory)
+   └── Registrar Movimientos (InventoryMovements)
+       ├── ENTRADA: Compras de proveedores
+       ├── SALIDA: Uso en recetas/ventas
+       ├── AJUSTE: Correcciones manuales
+       ├── MERMA: Pérdidas por manipulación
+       ├── CADUCIDAD: Productos vencidos
+       └── TRANSFERENCIA: Entre sucursales
+
+3. GESTIÓN DE RECETAS
+   ├── Crear Receta (Recipes)
+   │   ├── Asignar a Sucursal
+   │   ├── Definir Categoría/Subcategoría
+   │   └── Establecer Precio
+   ├── Agregar Ingredientes (RecipeIngredients)
+   │   ├── Vincular con InventoryItems (opcional)
+   │   └── Definir Cantidad y Unidad
+   ├── Usar Sub-recetas (RecipeComponents)
+   │   └── Recetas que usan otras recetas como ingredientes
+   └── Versionar Recetas (RecipeVersions)
+       └── Mantener historial de cambios
+
+4. PROCESO DE VENTA
+   ├── Crear Venta (Sales)
+   │   ├── Seleccionar Sucursal
+   │   ├── Asignar Mesa/Mesero (opcional)
+   │   ├── Definir Tipo: LOCAL/DELIVERY/TAKEAWAY
+   │   └── Agregar Items (SaleItems)
+   ├── Aplicar Promociones (Promotions → SaleDiscounts)
+   ├── Validar Stock Disponible
+   ├── Calcular Totales (subtotal, descuentos, tax, total)
+   ├── Registrar Pago
+   └── Actualizar Inventario Automáticamente
+       └── Generar Movimientos de SALIDA
+
+5. REPORTES Y ANÁLISIS
+   ├── Dashboard con Estadísticas
+   ├── Reportes de Ventas
+   ├── Análisis de Márgenes
+   ├── Alertas de Stock Crítico
+   └── Predicciones de IA
+
+6. CHATBOT CON IA
+   ├── Usuario hace pregunta
+   ├── Sistema consulta datos (inventario, ventas, recetas)
+   ├── IA genera respuesta contextual
+   └── Registrar en ChatbotLogs
+```
+
+### Flujo de Datos entre Módulos
+
+```
+┌──────────────┐
+│  Suppliers   │──┐
+└──────────────┘  │
+                  ├──> InventoryItems ──> RecipeIngredients ──> Recipes
+┌──────────────┐  │
+│   Units      │──┘
+└──────────────┘
+                  │
+┌──────────────┐  │
+│BusinessLocs  │──┼──> InventoryItems
+└──────────────┘  │    Recipes
+                  │    Sales
+                  │    InventoryMovements
+                  │
+┌──────────────┐  │
+│   Recipes    │──┼──> SaleItems ──> Sales
+└──────────────┘  │
+                  │
+┌──────────────┐  │
+│ Promotions   │──┘──> SaleDiscounts ──> Sales
+└──────────────┘
+```
+
+---
+
 ## Modelos de Base de Datos
 
-### 1. User (Usuarios)
+### Resumen de Tablas
 
-**Ubicación**: `app/models/user.py`
+El sistema cuenta con **22 tablas** organizadas en los siguientes módulos:
+
+#### Módulo de Usuarios y Seguridad (4 tablas)
+- `users` - Usuarios del sistema
+- `roles` - Roles del sistema
+- `permissions` - Permisos disponibles
+- `role_permissions` - Asignación de permisos a roles
+- `user_roles` - Asignación de roles a usuarios
+
+#### Módulo de Configuración (3 tablas)
+- `units` - Unidades de medida
+- `suppliers` - Proveedores
+- `business_locations` - Sucursales
+
+#### Módulo de Inventario (4 tablas)
+- `inventory_items` - Items de inventario
+- `inventory_cost_history` - Historial de precios
+- `inventory_movements` - Movimientos de inventario
+- `purchase_orders` - Órdenes de compra
+- `purchase_order_items` - Items de órdenes de compra
+
+#### Módulo de Recetas (4 tablas)
+- `recipes` - Recetas
+- `recipe_ingredients` - Ingredientes de recetas
+- `recipe_components` - Sub-recetas (preparaciones intermedias)
+- `recipe_versions` - Versiones de recetas
+
+#### Módulo de Ventas (3 tablas)
+- `sales` - Ventas
+- `sale_items` - Items de venta
+- `promotions` - Promociones
+- `sale_discounts` - Descuentos aplicados
+
+#### Módulo de IA (1 tabla)
+- `chatbot_logs` - Logs del chatbot
+
+---
+
+### 1. Users (Usuarios) / Users Table
+
+**Ubicación**: `app/models/user.py`  
+**Tabla**: `users`
+
+**Descripción en Español**:  
+Almacena información de los usuarios del sistema. Incluye datos de autenticación, información personal y configuración de ubicación por defecto.
+
+**Description in English**:  
+Stores system user information. Includes authentication data, personal information, and default location configuration.
 
 ```python
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(String, primary_key=True)
-    email = Column(String, unique=True, nullable=False)
-    username = Column(String, unique=True, nullable=False)
+    id = Column(String, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String)
+    phone = Column(String)  # Teléfono / Phone
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    default_location_id = Column(String, ForeignKey("business_locations.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime)  # Último acceso / Last login
 ```
 
-**Relaciones**: Ninguna directa (FK desde otras tablas)
+**Campos Principales / Main Fields**:
+- `email`: Email único del usuario / Unique user email
+- `username`: Nombre de usuario único / Unique username
+- `hashed_password`: Contraseña hasheada / Hashed password
+- `phone`: Teléfono de contacto / Contact phone
+- `default_location_id`: Sucursal por defecto / Default location
+- `last_login`: Fecha del último acceso / Last login date
+
+**Relaciones / Relationships**:
+- `default_location`: Many-to-One con `BusinessLocation`
+- `roles`: One-to-Many con `UserRole`
+- `chatbot_logs`: One-to-Many con `ChatbotLog`
 
 ---
 
-### 2. InventoryItem (Inventario)
+### 2. Units (Unidades de Medida) / Units Table
 
-**Ubicación**: `app/models/inventory.py`
+**Ubicación**: `app/models/unit.py`  
+**Tabla**: `units`
+
+**Descripción en Español**:  
+Sistema centralizado de unidades de medida con soporte para conversiones automáticas. Permite definir unidades base y derivadas con factores de conversión.
+
+**Description in English**:  
+Centralized measurement unit system with support for automatic conversions. Allows defining base and derived units with conversion factors.
+
+```python
+class Unit(Base):
+    __tablename__ = "units"
+    
+    id = Column(String, primary_key=True, index=True)
+    code = Column(String, unique=True, nullable=False, index=True)  # kg, g, lb
+    name = Column(String, nullable=False)  # Kilogramo, Gramo, Libra
+    type = Column(String, nullable=False)  # weight, volume, piece, custom
+    base_unit_id = Column(String, ForeignKey("units.id"))
+    factor_to_base = Column(Float, nullable=False, default=1.0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+```
+
+**Campos Principales / Main Fields**:
+- `code`: Código único de la unidad (kg, g, L) / Unique unit code
+- `name`: Nombre completo de la unidad / Full unit name
+- `type`: Tipo: peso, volumen, pieza, personalizado / Type: weight, volume, piece, custom
+- `base_unit_id`: Unidad base para conversión / Base unit for conversion
+- `factor_to_base`: Factor de conversión a unidad base / Conversion factor to base unit
+
+**Relaciones / Relationships**:
+- `base_unit`: Many-to-One con `Unit` (self-referencing)
+- `inventory_items`: One-to-Many con `InventoryItem`
+- `recipe_ingredients`: One-to-Many con `RecipeIngredient`
+
+---
+
+### 3. Suppliers (Proveedores) / Suppliers Table
+
+**Ubicación**: `app/models/supplier.py`  
+**Tabla**: `suppliers`
+
+**Descripción en Español**:  
+Gestiona información de proveedores incluyendo datos de contacto, términos de pago, calificaciones y ubicación geográfica.
+
+**Description in English**:  
+Manages supplier information including contact data, payment terms, ratings, and geographic location.
+
+```python
+class Supplier(Base):
+    __tablename__ = "suppliers"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
+    contact_name = Column(String)  # Nombre de contacto / Contact name
+    phone = Column(String)
+    email = Column(String)
+    address = Column(Text)
+    city = Column(String)  # La Paz, El Alto
+    zone = Column(String)  # Zona específica / Specific zone
+    tax_id = Column(String)  # NIT para facturación / Tax ID
+    payment_terms = Column(String)  # "30 días", "contado" / Payment terms
+    rating = Column(Float)  # 1-5 estrellas / 1-5 stars
+    is_active = Column(Boolean, default=True)
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `inventory_items`: One-to-Many con `InventoryItem`
+- `purchase_orders`: One-to-Many con `PurchaseOrder`
+- `cost_history`: One-to-Many con `InventoryCostHistory`
+
+---
+
+### 4. BusinessLocations (Sucursales) / Business Locations Table
+
+**Ubicación**: `app/models/business_location.py`  
+**Tabla**: `business_locations`
+
+**Descripción en Español**:  
+Soporte multi-sucursal para restaurantes con múltiples ubicaciones. Cada sucursal puede tener su propio inventario, recetas y ventas.
+
+**Description in English**:  
+Multi-location support for restaurants with multiple locations. Each location can have its own inventory, recipes, and sales.
+
+```python
+class BusinessLocation(Base):
+    __tablename__ = "business_locations"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)  # "Sucursal Centro"
+    address = Column(Text, nullable=False)
+    city = Column(String, default="La Paz")
+    zone = Column(String)  # Zona específica / Specific zone
+    phone = Column(String)
+    email = Column(String)
+    is_main = Column(Boolean, default=False)  # Sucursal principal / Main location
+    is_active = Column(Boolean, default=True)
+    open_hours = Column(JSON)  # Horarios de apertura / Opening hours
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `inventory_items`: One-to-Many con `InventoryItem`
+- `recipes`: One-to-Many con `Recipe`
+- `sales`: One-to-Many con `Sale`
+- `inventory_movements`: One-to-Many con `InventoryMovement`
+- `users_default`: One-to-Many con `User` (default_location)
+
+---
+
+### 5. InventoryItem (Inventario) / Inventory Items Table
+
+**Ubicación**: `app/models/inventory.py`  
+**Tabla**: `inventory_items`
+
+**Descripción en Español**:  
+Items de inventario con soporte multi-sucursal, historial de precios, movimientos, y campos para análisis de IA (popularidad, estacionalidad, predicción de demanda).
+
+**Description in English**:  
+Inventory items with multi-location support, price history, movements, and fields for AI analysis (popularity, seasonality, demand forecasting).
 
 ```python
 class InventoryItem(Base):
     __tablename__ = "inventory_items"
     
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False, index=True)
-    category = Column(String, nullable=False)
+    category = Column(String, nullable=False, index=True)
     quantity = Column(Float, nullable=False, default=0.0)
-    unit = Column(String, nullable=False)  # kg, L, unid, etc.
+    unit = Column(String, nullable=False)  # kg, L, unid
+    unit_id = Column(String, ForeignKey("units.id"))  # FK a units
     min_stock = Column(Float, nullable=False)
+    max_stock = Column(Float)  # Stock máximo recomendado / Max recommended stock
     cost_per_unit = Column(Float, nullable=False)
-    supplier = Column(String)
-    last_updated = Column(DateTime, default=datetime.utcnow)
+    supplier_id = Column(String, ForeignKey("suppliers.id"))  # FK a suppliers
+    supplier = Column(String)  # Mantener para compatibilidad / Keep for compatibility
+    location_id = Column(String, ForeignKey("business_locations.id"), nullable=False)
+    expiry_date = Column(DateTime)  # Fecha de caducidad / Expiry date
+    barcode = Column(String, unique=True, index=True)  # Código de barras / Barcode
+    last_updated = Column(DateTime, default=datetime.utcnow, index=True)
     user_id = Column(String, ForeignKey("users.id"))
     
-    # Relaciones
-    recipe_ingredients = relationship("RecipeIngredient", back_populates="inventory_item")
+    # Campos para IA / AI Fields
+    popularity_score = Column(Float, default=0.0)  # Basado en uso / Based on usage
+    seasonal_factor = Column(JSON)  # {"enero": 1.2, "septiembre": 0.8}
+    demand_forecast = Column(Float)  # Predicción de demanda / Demand forecast
 ```
 
-**Relaciones**:
+**Relaciones / Relationships**:
+- `unit_ref`: Many-to-One con `Unit`
+- `supplier_ref`: Many-to-One con `Supplier`
+- `location`: Many-to-One con `BusinessLocation`
 - `recipe_ingredients`: One-to-Many con `RecipeIngredient`
+- `cost_history`: One-to-Many con `InventoryCostHistory`
+- `movements`: One-to-Many con `InventoryMovement`
+- `purchase_order_items`: One-to-Many con `PurchaseOrderItem`
 
 ---
 
-### 3. Recipe (Recetas)
+### 6. InventoryCostHistory (Historial de Precios) / Inventory Cost History Table
 
-**Ubicación**: `app/models/recipe.py`
+**Ubicación**: `app/models/inventory_cost_history.py`  
+**Tabla**: `inventory_cost_history`
+
+**Descripción en Español**:  
+Registra todos los cambios de precios de items de inventario para análisis histórico, auditoría y predicciones de IA basadas en estacionalidad.
+
+**Description in English**:  
+Records all price changes of inventory items for historical analysis, auditing, and AI predictions based on seasonality.
+
+```python
+class InventoryCostHistory(Base):
+    __tablename__ = "inventory_cost_history"
+    
+    id = Column(String, primary_key=True, index=True)
+    inventory_item_id = Column(String, ForeignKey("inventory_items.id"), nullable=False, index=True)
+    cost_per_unit = Column(Float, nullable=False)
+    supplier_id = Column(String, ForeignKey("suppliers.id"))
+    date = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+    reason = Column(String)  # "compra", "ajuste", "inflación", "estacional"
+    notes = Column(Text)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `inventory_item`: Many-to-One con `InventoryItem`
+- `supplier`: Many-to-One con `Supplier`
+
+---
+
+### 7. InventoryMovement (Movimientos de Inventario) / Inventory Movements Table
+
+**Ubicación**: `app/models/inventory_movement.py`  
+**Tabla**: `inventory_movements`
+
+**Descripción en Español**:  
+Auditoría completa de todos los movimientos de inventario. Registra entradas, salidas, ajustes, mermas, caducidades y transferencias entre sucursales.
+
+**Description in English**:  
+Complete audit trail of all inventory movements. Records entries, exits, adjustments, waste, expirations, and transfers between locations.
+
+```python
+class InventoryMovement(Base):
+    __tablename__ = "inventory_movements"
+    
+    id = Column(String, primary_key=True, index=True)
+    inventory_item_id = Column(String, ForeignKey("inventory_items.id"), nullable=False, index=True)
+    location_id = Column(String, ForeignKey("business_locations.id"), nullable=False)
+    movement_type = Column(String, nullable=False)  # ENTRADA, SALIDA, AJUSTE, MERMA, CADUCIDAD, ROBO, TRANSFERENCIA
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    cost_per_unit = Column(Float)  # Costo al momento del movimiento / Cost at movement time
+    reference_id = Column(String)  # ID de venta, compra, etc. / Reference ID
+    reference_type = Column(String)  # "sale", "purchase", "adjustment"
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Tipos de Movimiento / Movement Types**:
+- `ENTRADA` / `ENTRY`: Compra de proveedor / Supplier purchase
+- `SALIDA` / `EXIT`: Venta o uso en receta / Sale or recipe usage
+- `AJUSTE` / `ADJUSTMENT`: Corrección manual / Manual correction
+- `MERMA` / `WASTE`: Pérdida por manipulación / Loss from handling
+- `CADUCIDAD` / `EXPIRATION`: Producto vencido / Expired product
+- `ROBO` / `THEFT`: Pérdida por robo / Loss from theft
+- `TRANSFERENCIA` / `TRANSFER`: Entre sucursales / Between locations
+
+**Relaciones / Relationships**:
+- `inventory_item`: Many-to-One con `InventoryItem`
+- `location`: Many-to-One con `BusinessLocation`
+
+---
+
+### 8. PurchaseOrder (Órdenes de Compra) / Purchase Orders Table
+
+**Ubicación**: `app/models/purchase_order.py`  
+**Tabla**: `purchase_orders`
+
+**Descripción en Español**:  
+Gestión de órdenes de compra a proveedores con seguimiento de estado (PENDIENTE, APROBADA, RECIBIDA, CANCELADA).
+
+**Description in English**:  
+Purchase order management for suppliers with status tracking (PENDING, APPROVED, RECEIVED, CANCELLED).
+
+```python
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+    
+    id = Column(String, primary_key=True, index=True)
+    order_number = Column(String, unique=True, nullable=False, index=True)
+    supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=False)
+    location_id = Column(String, ForeignKey("business_locations.id"), nullable=False)
+    status = Column(String, nullable=False, default="PENDING")  # PENDING, APPROVED, RECEIVED, CANCELLED
+    total_amount = Column(Float, nullable=False)
+    expected_delivery_date = Column(DateTime)
+    received_date = Column(DateTime)
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_by = Column(String, ForeignKey("users.id"))
+    approved_by = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `supplier`: Many-to-One con `Supplier`
+- `location`: Many-to-One con `BusinessLocation`
+- `items`: One-to-Many con `PurchaseOrderItem`
+- `creator`: Many-to-One con `User` (created_by)
+- `approver`: Many-to-One con `User` (approved_by)
+
+---
+
+### 9. PurchaseOrderItem (Items de Orden de Compra) / Purchase Order Items Table
+
+**Ubicación**: `app/models/purchase_order.py`  
+**Tabla**: `purchase_order_items`
+
+**Descripción en Español**:  
+Items individuales de una orden de compra con cantidad solicitada y cantidad recibida.
+
+**Description in English**:  
+Individual items of a purchase order with requested and received quantities.
+
+```python
+class PurchaseOrderItem(Base):
+    __tablename__ = "purchase_order_items"
+    
+    id = Column(String, primary_key=True, index=True)
+    purchase_order_id = Column(String, ForeignKey("purchase_orders.id"), nullable=False)
+    inventory_item_id = Column(String, ForeignKey("inventory_items.id"))
+    item_name = Column(String, nullable=False)  # Por si no existe en inventario / If not in inventory
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    unit_price = Column(Float, nullable=False)
+    total = Column(Float, nullable=False)
+    received_quantity = Column(Float, default=0.0)  # Cantidad recibida / Received quantity
+```
+
+**Relaciones / Relationships**:
+- `purchase_order`: Many-to-One con `PurchaseOrder`
+- `inventory_item`: Many-to-One con `InventoryItem` (opcional)
+
+---
+
+### 10. Recipe (Recetas) / Recipes Table
+
+**Ubicación**: `app/models/recipe.py`  
+**Tabla**: `recipes`
+
+**Descripción en Español**:  
+Recetas de platos con cálculo automático de costos y márgenes. Soporta multi-sucursal, versionado, subcategorías y disponibilidad.
+
+**Description in English**:  
+Dish recipes with automatic cost and margin calculation. Supports multi-location, versioning, subcategories, and availability.
 
 ```python
 class Recipe(Base):
     __tablename__ = "recipes"
     
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
+    description = Column(Text)
+    category = Column(String, nullable=False, index=True)
+    subcategory = Column(String)  # "Carnes Rojas", "Carnes Blancas"
+    price = Column(Float, nullable=False)
+    cost = Column(Float, nullable=False, default=0.0)  # Calculado / Calculated
+    margin = Column(Float, nullable=False, default=0.0)  # Porcentaje / Percentage
+    preparation_time = Column(Integer)  # en minutos / in minutes
+    servings = Column(Integer, default=1)
+    instructions = Column(Text)
+    location_id = Column(String, ForeignKey("business_locations.id"))
+    is_available = Column(Boolean, default=True)  # Disponible para venta / Available for sale
+    popularity_score = Column(Float, default=0.0)  # Basado en ventas / Based on sales
+    current_version = Column(Integer, default=1)  # Versión actual / Current version
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `location`: Many-to-One con `BusinessLocation`
+- `ingredients`: One-to-Many con `RecipeIngredient`
+- `components`: One-to-Many con `RecipeComponent` (como receta principal)
+- `used_in_recipes`: One-to-Many con `RecipeComponent` (como sub-receta)
+- `versions`: One-to-Many con `RecipeVersion`
+- `sale_items`: One-to-Many con `SaleItem`
+
+---
+
+### 11. RecipeIngredient (Ingredientes de Recetas) / Recipe Ingredients Table
+
+**Ubicación**: `app/models/recipe.py`  
+**Tabla**: `recipe_ingredients`
+
+**Descripción en Español**:  
+Ingredientes individuales de una receta. Pueden estar vinculados a items de inventario o ser ingredientes manuales.
+
+**Description in English**:  
+Individual ingredients of a recipe. Can be linked to inventory items or be manual ingredients.
+
+```python
+class RecipeIngredient(Base):
+    __tablename__ = "recipe_ingredients"
+    
+    id = Column(String, primary_key=True, index=True)
+    recipe_id = Column(String, ForeignKey("recipes.id"), nullable=False)
+    inventory_item_id = Column(String, ForeignKey("inventory_items.id"))  # Opcional / Optional
+    ingredient_name = Column(String, nullable=False)  # Nombre si no está en inventario / Name if not in inventory
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False)
+    unit_id = Column(String, ForeignKey("units.id"))  # FK a units
+    cost = Column(Float, nullable=False)  # Costo de este ingrediente / Cost for this ingredient
+```
+
+**Relaciones / Relationships**:
+- `recipe`: Many-to-One con `Recipe`
+- `inventory_item`: Many-to-One con `InventoryItem` (opcional)
+- `unit_ref`: Many-to-One con `Unit`
+
+---
+
+### 12. RecipeComponent (Preparaciones Intermedias) / Recipe Components Table
+
+**Ubicación**: `app/models/recipe_component.py`  
+**Tabla**: `recipe_components`
+
+**Descripción en Español**:  
+Permite que recetas usen otras recetas como ingredientes (preparaciones intermedias). Ejemplo: "Anticucho" usa "Salsa para Anticucho".
+
+**Description in English**:  
+Allows recipes to use other recipes as ingredients (intermediate preparations). Example: "Anticucho" uses "Salsa para Anticucho".
+
+```python
+class RecipeComponent(Base):
+    __tablename__ = "recipe_components"
+    
+    id = Column(String, primary_key=True, index=True)
+    recipe_id = Column(String, ForeignKey("recipes.id"), nullable=False)  # Receta principal / Main recipe
+    subrecipe_id = Column(String, ForeignKey("recipes.id"), nullable=False)  # Sub-receta / Sub-recipe
+    quantity = Column(Float, nullable=False)  # Cantidad de la sub-receta / Sub-recipe quantity
+    unit = Column(String, nullable=False)
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+```
+
+**Relaciones / Relationships**:
+- `recipe`: Many-to-One con `Recipe` (receta principal)
+- `subrecipe`: Many-to-One con `Recipe` (sub-receta usada como ingrediente)
+
+---
+
+### 13. RecipeVersion (Versiones de Recetas) / Recipe Versions Table
+
+**Ubicación**: `app/models/recipe_version.py`  
+**Tabla**: `recipe_versions`
+
+**Descripción en Español**:  
+Mantiene historial de cambios en recetas para auditoría y análisis. Solo una versión activa por receta.
+
+**Description in English**:  
+Maintains change history of recipes for auditing and analysis. Only one active version per recipe.
+
+```python
+class RecipeVersion(Base):
+    __tablename__ = "recipe_versions"
+    
+    id = Column(String, primary_key=True, index=True)
+    recipe_id = Column(String, ForeignKey("recipes.id"), nullable=False, index=True)
+    version_number = Column(Integer, nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
     category = Column(String, nullable=False)
@@ -281,97 +842,302 @@ class Recipe(Base):
     cost = Column(Float, nullable=False)
     margin = Column(Float, nullable=False)
     preparation_time = Column(Integer)
-    servings = Column(Integer, nullable=False, default=1)
+    servings = Column(Integer, nullable=False)
     instructions = Column(Text)
+    is_active = Column(Boolean, default=False)  # Solo una activa / Only one active
+    change_reason = Column(String)  # "precio", "ingredientes", "presentación"
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(String, ForeignKey("users.id"))
-    
-    # Relaciones
-    ingredients = relationship("RecipeIngredient", back_populates="recipe", cascade="all, delete-orphan")
 ```
 
-**Relaciones**:
-- `ingredients`: One-to-Many con `RecipeIngredient`
-
----
-
-### 4. RecipeIngredient (Ingredientes de Recetas)
-
-**Ubicación**: `app/models/recipe.py`
-
-```python
-class RecipeIngredient(Base):
-    __tablename__ = "recipe_ingredients"
-    
-    id = Column(String, primary_key=True)
-    recipe_id = Column(String, ForeignKey("recipes.id"), nullable=False)
-    inventory_item_id = Column(String, ForeignKey("inventory_items.id"))
-    ingredient_name = Column(String, nullable=False)
-    quantity = Column(Float, nullable=False)
-    unit = Column(String, nullable=False)
-    cost = Column(Float, nullable=False)
-    
-    # Relaciones
-    recipe = relationship("Recipe", back_populates="ingredients")
-    inventory_item = relationship("InventoryItem", back_populates="recipe_ingredients")
-```
-
-**Relaciones**:
+**Relaciones / Relationships**:
 - `recipe`: Many-to-One con `Recipe`
-- `inventory_item`: Many-to-One con `InventoryItem` (opcional)
 
 ---
 
-### 5. Sale (Ventas)
+### 14. Sale (Ventas) / Sales Table
 
-**Ubicación**: `app/models/sale.py`
+**Ubicación**: `app/models/sale.py`  
+**Tabla**: `sales`
+
+**Descripción en Español**:  
+Ventas con soporte para mesas, meseros, tipos de venta (LOCAL/DELIVERY/TAKEAWAY), clientes, descuentos y múltiples métodos de pago.
+
+**Description in English**:  
+Sales with support for tables, waiters, sale types (LOCAL/DELIVERY/TAKEAWAY), customers, discounts, and multiple payment methods.
 
 ```python
 class Sale(Base):
     __tablename__ = "sales"
     
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, index=True)
+    sale_number = Column(String, unique=True, index=True)  # Número legible / Readable number
+    location_id = Column(String, ForeignKey("business_locations.id"), nullable=False)
+    table_number = Column(String)  # Número de mesa / Table number
+    waiter_id = Column(String, ForeignKey("users.id"))  # Mesero / Waiter
+    sale_type = Column(String, nullable=False, default="LOCAL")  # LOCAL, DELIVERY, TAKEAWAY
+    delivery_service = Column(String)  # PedidosYa, Ahora, etc.
+    customer_name = Column(String)  # Nombre del cliente / Customer name
+    customer_phone = Column(String)  # Teléfono del cliente / Customer phone
     subtotal = Column(Float, nullable=False)
-    tax = Column(Float, nullable=False, default=0.0)
+    discount_amount = Column(Float, default=0.0)  # Descuento total / Total discount
+    tax = Column(Float, default=0.0)
     total = Column(Float, nullable=False)
-    payment_method = Column(String, nullable=False)  # EFECTIVO, QR, TARJETA
+    payment_method = Column(String)  # EFECTIVO, QR, TARJETA
     notes = Column(Text)
+    status = Column(String, default="COMPLETED")  # COMPLETED, CANCELLED, REFUNDED
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     user_id = Column(String, ForeignKey("users.id"))
-    
-    # Relaciones
-    items = relationship("SaleItem", back_populates="sale", cascade="all, delete-orphan")
 ```
 
-**Relaciones**:
+**Relaciones / Relationships**:
+- `location`: Many-to-One con `BusinessLocation`
+- `waiter`: Many-to-One con `User` (waiter_id)
 - `items`: One-to-Many con `SaleItem`
+- `discounts`: One-to-Many con `SaleDiscount`
 
 ---
 
-### 6. SaleItem (Items de Venta)
+### 15. SaleItem (Items de Venta) / Sale Items Table
 
-**Ubicación**: `app/models/sale.py`
+**Ubicación**: `app/models/sale.py`  
+**Tabla**: `sale_items`
+
+**Descripción en Español**:  
+Items individuales de una venta. Vinculados a recetas para cálculo automático de costos y actualización de inventario.
+
+**Description in English**:  
+Individual items of a sale. Linked to recipes for automatic cost calculation and inventory updates.
 
 ```python
 class SaleItem(Base):
     __tablename__ = "sale_items"
     
-    id = Column(String, primary_key=True)
+    id = Column(String, primary_key=True, index=True)
     sale_id = Column(String, ForeignKey("sales.id"), nullable=False)
-    recipe_id = Column(String, ForeignKey("recipes.id"))
+    recipe_id = Column(String, ForeignKey("recipes.id"))  # Opcional / Optional
     item_name = Column(String, nullable=False)
-    quantity = Column(Integer, nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
     unit_price = Column(Float, nullable=False)
     total = Column(Float, nullable=False)
-    
-    # Relaciones
-    sale = relationship("Sale", back_populates="items")
 ```
 
-**Relaciones**:
+**Relaciones / Relationships**:
 - `sale`: Many-to-One con `Sale`
 - `recipe`: Many-to-One con `Recipe` (opcional)
+
+---
+
+### 16. Promotion (Promociones) / Promotions Table
+
+**Ubicación**: `app/models/promotion.py`  
+**Tabla**: `promotions`
+
+**Descripción en Español**:  
+Sistema de promociones y descuentos con múltiples tipos (porcentaje, monto fijo, compra X lleva Y) y aplicabilidad flexible.
+
+**Description in English**:  
+Promotion and discount system with multiple types (percentage, fixed amount, buy X get Y) and flexible applicability.
+
+```python
+class Promotion(Base):
+    __tablename__ = "promotions"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    discount_type = Column(String, nullable=False)  # percentage, fixed_amount, buy_x_get_y
+    discount_value = Column(Float, nullable=False)  # Porcentaje o monto / Percentage or amount
+    min_purchase = Column(Float)  # Compra mínima / Minimum purchase
+    max_discount = Column(Float)  # Descuento máximo / Maximum discount
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=False)
+    is_active = Column(Boolean, default=True)
+    applicable_to = Column(String)  # all, recipes, categories, specific_items
+    applicable_ids = Column(JSON)  # IDs específicos / Specific IDs
+    location_id = Column(String, ForeignKey("business_locations.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `location`: Many-to-One con `BusinessLocation`
+- `sale_discounts`: One-to-Many con `SaleDiscount`
+
+---
+
+### 17. SaleDiscount (Descuentos Aplicados) / Sale Discounts Table
+
+**Ubicación**: `app/models/promotion.py`  
+**Tabla**: `sale_discounts`
+
+**Descripción en Español**:  
+Registra descuentos aplicados a ventas, ya sea por promoción, manual o programa de lealtad.
+
+**Description in English**:  
+Records discounts applied to sales, whether from promotion, manual, or loyalty program.
+
+```python
+class SaleDiscount(Base):
+    __tablename__ = "sale_discounts"
+    
+    id = Column(String, primary_key=True, index=True)
+    sale_id = Column(String, ForeignKey("sales.id"), nullable=False)
+    promotion_id = Column(String, ForeignKey("promotions.id"))  # Opcional / Optional
+    discount_type = Column(String, nullable=False)  # promotion, manual, loyalty
+    discount_amount = Column(Float, nullable=False)
+    reason = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(String, ForeignKey("users.id"))
+```
+
+**Relaciones / Relationships**:
+- `sale`: Many-to-One con `Sale`
+- `promotion`: Many-to-One con `Promotion` (opcional)
+
+---
+
+### 18. Role (Roles) / Roles Table
+
+**Ubicación**: `app/models/role.py`  
+**Tabla**: `roles`
+
+**Descripción en Español**:  
+Roles del sistema (admin, manager, cashier, cook, waiter) con soporte para roles personalizados.
+
+**Description in English**:  
+System roles (admin, manager, cashier, cook, waiter) with support for custom roles.
+
+```python
+class Role(Base):
+    __tablename__ = "roles"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)  # admin, manager, cashier, cook, waiter
+    description = Column(Text)
+    is_system = Column(Boolean, default=False)  # No se puede eliminar / Cannot be deleted
+    created_at = Column(DateTime, default=datetime.utcnow)
+```
+
+**Relaciones / Relationships**:
+- `users`: One-to-Many con `UserRole`
+- `permissions`: One-to-Many con `RolePermission`
+
+---
+
+### 19. Permission (Permisos) / Permissions Table
+
+**Ubicación**: `app/models/role.py`  
+**Tabla**: `permissions`
+
+**Descripción en Español**:  
+Permisos granulares del sistema (inventory.create, sales.delete, etc.) organizados por recurso y acción.
+
+**Description in English**:  
+Granular system permissions (inventory.create, sales.delete, etc.) organized by resource and action.
+
+```python
+class Permission(Base):
+    __tablename__ = "permissions"
+    
+    id = Column(String, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)  # inventory.create, sales.delete
+    resource = Column(String, nullable=False)  # inventory, sales, recipes
+    action = Column(String, nullable=False)  # create, read, update, delete, export
+    description = Column(Text)
+```
+
+**Relaciones / Relationships**:
+- `roles`: One-to-Many con `RolePermission`
+
+---
+
+### 20. RolePermission (Permisos de Roles) / Role Permissions Table
+
+**Ubicación**: `app/models/role.py`  
+**Tabla**: `role_permissions`
+
+**Descripción en Español**:  
+Tabla de unión que asigna permisos a roles. Constraint único en (role_id, permission_id).
+
+**Description in English**:  
+Junction table that assigns permissions to roles. Unique constraint on (role_id, permission_id).
+
+```python
+class RolePermission(Base):
+    __tablename__ = "role_permissions"
+    
+    id = Column(String, primary_key=True, index=True)
+    role_id = Column(String, ForeignKey("roles.id"), nullable=False)
+    permission_id = Column(String, ForeignKey("permissions.id"), nullable=False)
+    
+    __table_args__ = (UniqueConstraint('role_id', 'permission_id'),)
+```
+
+---
+
+### 21. UserRole (Roles de Usuario) / User Roles Table
+
+**Ubicación**: `app/models/role.py`  
+**Tabla**: `user_roles`
+
+**Descripción en Español**:  
+Asigna roles a usuarios con soporte para roles específicos por sucursal. Un usuario puede tener múltiples roles.
+
+**Description in English**:  
+Assigns roles to users with support for location-specific roles. A user can have multiple roles.
+
+```python
+class UserRole(Base):
+    __tablename__ = "user_roles"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    role_id = Column(String, ForeignKey("roles.id"), nullable=False)
+    location_id = Column(String, ForeignKey("business_locations.id"))  # Rol por sucursal / Location-specific role
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+    assigned_by = Column(String, ForeignKey("users.id"))
+    
+    __table_args__ = (UniqueConstraint('user_id', 'role_id', 'location_id'),)
+```
+
+**Relaciones / Relationships**:
+- `user`: Many-to-One con `User`
+- `role`: Many-to-One con `Role`
+- `location`: Many-to-One con `BusinessLocation` (opcional)
+- `assigner`: Many-to-One con `User` (assigned_by)
+
+---
+
+### 22. ChatbotLog (Logs del Chatbot) / Chatbot Logs Table
+
+**Ubicación**: `app/models/chatbot_log.py`  
+**Tabla**: `chatbot_logs`
+
+**Descripción en Español**:  
+Registra todas las interacciones con el chatbot para análisis, mejora del modelo de IA y métricas de satisfacción.
+
+**Description in English**:  
+Records all chatbot interactions for analysis, AI model improvement, and satisfaction metrics.
+
+```python
+class ChatbotLog(Base):
+    __tablename__ = "chatbot_logs"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    session_id = Column(String, index=True)  # Para agrupar conversaciones / Group conversations
+    message = Column(Text, nullable=False)
+    response = Column(Text, nullable=False)
+    intent = Column(String)  # Clasificación de intención / Intent classification
+    confidence = Column(Float)  # Confianza de la respuesta / Response confidence
+    log_metadata = Column(JSON)  # Datos adicionales / Additional data
+    response_time_ms = Column(Integer)  # Tiempo de respuesta / Response time
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+```
+
+**Relaciones / Relationships**:
+- `user`: Many-to-One con `User`
 
 ---
 
@@ -1286,26 +2052,324 @@ curl http://localhost:8000/api/v1/enums/
 
 ---
 
-## Próximas Mejoras
+---
 
+## Mejoras Implementadas
+
+### ✅ Funcionalidades Completadas
+
+#### 1. Sistema Multi-Sucursal
+- ✅ Tabla `business_locations` implementada
+- ✅ Soporte para múltiples ubicaciones
+- ✅ Inventario, recetas y ventas por sucursal
+- ✅ Usuarios con ubicación por defecto
+- ✅ Roles específicos por sucursal
+
+#### 2. Gestión de Proveedores
+- ✅ Tabla `suppliers` implementada
+- ✅ Información de contacto completa
+- ✅ Calificación de proveedores (1-5 estrellas)
+- ✅ Términos de pago
+- ✅ Vinculación con items de inventario
+
+#### 3. Sistema de Unidades de Medida
+- ✅ Tabla `units` implementada
+- ✅ Soporte para conversiones automáticas
+- ✅ Tipos: peso, volumen, pieza, personalizado
+- ✅ Factores de conversión a unidad base
+- ✅ Vinculación con inventario y recetas
+
+#### 4. Historial de Precios
+- ✅ Tabla `inventory_cost_history` implementada
+- ✅ Registro de todos los cambios de precio
+- ✅ Razones de cambio (compra, ajuste, inflación, estacional)
+- ✅ Vinculación con proveedores
+- ✅ Soporte para análisis histórico y predicciones de IA
+
+#### 5. Movimientos de Inventario
+- ✅ Tabla `inventory_movements` implementada
+- ✅ Tipos: ENTRADA, SALIDA, AJUSTE, MERMA, CADUCIDAD, ROBO, TRANSFERENCIA
+- ✅ Auditoría completa de movimientos
+- ✅ Referencias a ventas, compras, ajustes
+- ✅ Costo al momento del movimiento
+
+#### 6. Versionado de Recetas
+- ✅ Tabla `recipe_versions` implementada
+- ✅ Historial completo de cambios
+- ✅ Razones de cambio (precio, ingredientes, presentación)
+- ✅ Solo una versión activa por receta
+- ✅ Soporte para auditoría
+
+#### 7. Preparaciones Intermedias
+- ✅ Tabla `recipe_components` implementada
+- ✅ Recetas que usan otras recetas como ingredientes
+- ✅ Cálculo de costos en cascada
+- ✅ Ejemplo: "Anticucho" usa "Salsa para Anticucho"
+
+#### 8. Órdenes de Compra
+- ✅ Tablas `purchase_orders` y `purchase_order_items` implementadas
+- ✅ Gestión completa de compras a proveedores
+- ✅ Estados: PENDIENTE, APROBADA, RECIBIDA, CANCELADA
+- ✅ Seguimiento de cantidad solicitada vs recibida
+- ✅ Fechas de entrega esperadas y reales
+
+#### 9. Sistema de Promociones
+- ✅ Tablas `promotions` y `sale_discounts` implementadas
+- ✅ Tipos: porcentaje, monto fijo, compra X lleva Y
+- ✅ Aplicabilidad flexible (todos, recetas, categorías, items específicos)
+- ✅ Descuentos máximos y compras mínimas
+- ✅ Promociones por sucursal
+- ✅ Registro de descuentos aplicados
+
+#### 10. Roles y Permisos
+- ✅ Tablas `roles`, `permissions`, `role_permissions`, `user_roles` implementadas
+- ✅ Sistema granular de permisos (recurso.acción)
+- ✅ Roles predefinidos: admin, manager, cashier, cook, waiter
+- ✅ Roles personalizados
+- ✅ Permisos específicos por sucursal
+- ✅ Roles del sistema protegidos
+
+#### 11. Ventas Mejoradas
+- ✅ Campos adicionales en `sales`:
+  - `sale_number`: Número de venta legible
+  - `location_id`: Sucursal
+  - `table_number`: Mesa
+  - `waiter_id`: Mesero
+  - `sale_type`: LOCAL, DELIVERY, TAKEAWAY
+  - `delivery_service`: Servicio de delivery
+  - `customer_name` y `customer_phone`: Datos del cliente
+  - `discount_amount`: Descuento total
+  - `status`: COMPLETED, CANCELLED, REFUNDED
+
+#### 12. Inventario Mejorado
+- ✅ Campos adicionales en `inventory_items`:
+  - `unit_id`: FK a tabla units
+  - `supplier_id`: FK a tabla suppliers
+  - `location_id`: FK a business_locations
+  - `max_stock`: Stock máximo recomendado
+  - `expiry_date`: Fecha de caducidad
+  - `barcode`: Código de barras
+  - `popularity_score`: Basado en uso
+  - `seasonal_factor`: Factores estacionales (JSON)
+  - `demand_forecast`: Predicción de demanda
+
+#### 13. Recetas Mejoradas
+- ✅ Campos adicionales en `recipes`:
+  - `subcategory`: Subcategoría (Carnes Rojas, Carnes Blancas)
+  - `location_id`: Sucursal
+  - `is_available`: Disponible para venta
+  - `popularity_score`: Basado en ventas
+  - `current_version`: Versión actual
+
+#### 14. Logs del Chatbot
+- ✅ Tabla `chatbot_logs` implementada
+- ✅ Registro de todas las interacciones
+- ✅ Agrupación por sesión
+- ✅ Clasificación de intenciones
+- ✅ Nivel de confianza
+- ✅ Tiempo de respuesta
+- ✅ Metadatos adicionales (JSON)
+
+#### 15. Usuarios Mejorados
+- ✅ Campos adicionales en `users`:
+  - `phone`: Teléfono de contacto
+  - `default_location_id`: Sucursal por defecto
+  - `last_login`: Último acceso
+
+---
+
+## Mejoras Pendientes
+
+### 🔄 Funcionalidades en Desarrollo
+
+#### 1. Autenticación y Seguridad
 - [ ] Autenticación JWT completa
-- [ ] Sistema de roles y permisos
-- [ ] Tests unitarios y de integración
-- [ ] Cache con Redis
-- [ ] WebSockets para notificaciones en tiempo real
+- [ ] Refresh tokens
+- [ ] Recuperación de contraseña
+- [ ] Verificación de email
+- [ ] Autenticación de dos factores (2FA)
+- [ ] Rate limiting por usuario/IP
+- [ ] Logs de seguridad y auditoría
+
+#### 2. Integraciones
+- [ ] Integración con sistemas de pago (Stripe, PayPal, etc.)
+- [ ] API de facturación electrónica (SUNAT para Bolivia)
+- [ ] Integración con servicios de delivery (PedidosYa, Ahora, etc.)
+- [ ] Sincronización con sistemas POS externos
+- [ ] Exportación a sistemas contables
+
+#### 3. Reportes Avanzados
 - [ ] Exportación de reportes a PDF
-- [ ] Integración con sistemas de pago
-- [ ] API de facturación electrónica
+- [ ] Reportes programados (email automático)
+- [ ] Dashboards personalizables
+- [ ] Análisis predictivo avanzado
+- [ ] Comparativas entre períodos
+- [ ] Reportes por sucursal comparativos
+
+#### 4. Optimización y Performance
+- [ ] Cache con Redis
+- [ ] Índices adicionales para consultas frecuentes
+- [ ] Vistas materializadas para reportes
+- [ ] Paginación optimizada
+- [ ] Compresión de respuestas
+- [ ] CDN para assets estáticos
+
+#### 5. Notificaciones en Tiempo Real
+- [ ] WebSockets para notificaciones
+- [ ] Notificaciones push
+- [ ] Alertas de stock crítico en tiempo real
+- [ ] Notificaciones de nuevas ventas
+- [ ] Sistema de mensajería interna
+
+#### 6. Funcionalidades de IA
+- [ ] Predicción de demanda mejorada
+- [ ] Sugerencias de precios dinámicos
+- [ ] Análisis de sentimiento en comentarios
+- [ ] Recomendaciones de menú personalizadas
+- [ ] Detección de anomalías en ventas
+- [ ] Optimización automática de inventario
+
+#### 7. Gestión Avanzada
+- [ ] Transferencias entre sucursales
+- [ ] Ajustes de inventario masivos
+- [ ] Importación/exportación de datos (CSV, Excel)
+- [ ] Plantillas de recetas
+- [ ] Menús estacionales
+- [ ] Gestión de comandas de cocina
+
+#### 8. Testing y Calidad
+- [ ] Tests unitarios completos
+- [ ] Tests de integración
+- [ ] Tests end-to-end
+- [ ] Cobertura de código > 80%
+- [ ] Tests de carga y performance
+- [ ] Tests de seguridad
+
+#### 9. Documentación
+- [ ] Documentación de API mejorada
+- [ ] Guías de integración
+- [ ] Tutoriales en video
+- [ ] Documentación de deployment
+- [ ] Runbooks operacionales
+
+#### 10. Mobile y Apps
+- [ ] API móvil optimizada
+- [ ] App para meseros (tablet)
+- [ ] App para cocina
+- [ ] App para administradores
+- [ ] Notificaciones push móviles
+
+---
+
+## Diagrama de Relaciones Completo
+
+```
+┌─────────────┐
+│    Users    │
+└──────┬──────┘
+       │
+       ├──> UserRoles ──> Roles ──> RolePermissions ──> Permissions
+       ├──> ChatbotLogs
+       ├──> Sales (waiter_id, user_id)
+       └──> DefaultLocation ──> BusinessLocations
+
+┌─────────────┐
+│BusinessLocs │
+└──────┬──────┘
+       │
+       ├──> InventoryItems
+       ├──> Recipes
+       ├──> Sales
+       ├──> InventoryMovements
+       ├──> UserRoles (location-specific)
+       ├──> Promotions
+       └──> PurchaseOrders
+
+┌─────────────┐
+│  Suppliers  │
+└──────┬──────┘
+       │
+       ├──> InventoryItems
+       ├──> PurchaseOrders
+       └──> InventoryCostHistory
+
+┌─────────────┐
+│    Units    │
+└──────┬──────┘
+       │
+       ├──> InventoryItems
+       └──> RecipeIngredients
+
+┌─────────────┐
+│InventoryItems│
+└──────┬───────┘
+       │
+       ├──> Unit (unit_id)
+       ├──> Supplier (supplier_id)
+       ├──> BusinessLocation (location_id)
+       ├──> InventoryCostHistory
+       ├──> InventoryMovements
+       ├──> RecipeIngredients
+       └──> PurchaseOrderItems
+
+┌─────────────┐
+│   Recipes   │
+└──────┬──────┘
+       │
+       ├──> BusinessLocation (location_id)
+       ├──> RecipeVersions
+       ├──> RecipeComponents (como recipe_id)
+       ├──> RecipeComponents (como subrecipe_id)
+       ├──> RecipeIngredients
+       └──> SaleItems
+
+┌─────────────┐
+│    Sales    │
+└──────┬──────┘
+       │
+       ├──> BusinessLocation (location_id)
+       ├──> User (waiter_id)
+       ├──> SaleItems ──> Recipes
+       └──> SaleDiscounts ──> Promotions
+
+┌─────────────┐
+│ Promotions  │
+└──────┬──────┘
+       │
+       ├──> BusinessLocation (location_id)
+       └──> SaleDiscounts ──> Sales
+
+┌─────────────┐
+│PurchaseOrders│
+└──────┬───────┘
+       │
+       ├──> Supplier
+       ├──> BusinessLocation
+       └──> PurchaseOrderItems ──> InventoryItems
+```
 
 ---
 
 ## Conclusión
 
-El backend de GastroSmart AI proporciona una API RESTful completa, robusta y bien documentada para gestionar todas las operaciones de un restaurante. Con validaciones exhaustivas, integración con IA, y un sistema de alertas, está listo para uso en producción con las configuraciones de seguridad adecuadas.
+El backend de GastroSmart AI proporciona una API RESTful completa, robusta y bien documentada para gestionar todas las operaciones de un restaurante. Con la nueva estructura de base de datos mejorada, el sistema soporta:
+
+✅ **Multi-sucursal** completo  
+✅ **Historial completo** de precios y movimientos  
+✅ **Versionado** de recetas para auditoría  
+✅ **Preparaciones intermedias** para recetas complejas  
+✅ **Sistema de unidades** con conversiones  
+✅ **Gestión de proveedores** y órdenes de compra  
+✅ **Promociones y descuentos** flexibles  
+✅ **Roles y permisos** granulares  
+✅ **Logs del chatbot** para análisis  
+✅ **Campos para IA** (popularidad, estacionalidad, predicciones)
+
+Con validaciones exhaustivas, integración con IA, y un sistema de alertas, está listo para uso en producción con las configuraciones de seguridad adecuadas.
 
 ---
 
-**Versión del Documento**: 1.0.0  
-**Última Actualización**: 2025-01-22  
+**Versión del Documento**: 2.0.0  
+**Última Actualización**: 2025-01-26  
 **Autor**: Sistema GastroSmart AI
 
