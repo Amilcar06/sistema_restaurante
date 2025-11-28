@@ -21,6 +21,16 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     AI_MODEL: str = "gpt-3.5-turbo"
     AI_TEMPERATURE: float = 0.7
+
+    # Email Configuration
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAILS_FROM_EMAIL: str = "info@gastrosmart.ai"
+    EMAILS_FROM_NAME: str = "GastroSmart AI"
+    SMTP_TLS: bool = True
+    SMTP_SSL: bool = False
     
     # CORS - Accepts comma-separated string from .env or list
     CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:5173"
