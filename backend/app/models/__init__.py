@@ -19,6 +19,7 @@ if Base:
     from app.models.promocion import Promocion, DescuentoVenta
     from app.models.orden_compra import OrdenCompra, ItemOrdenCompra
     from app.models.rol import Rol, Permiso, PermisoRol, UsuarioRol
+    from app.models.configuracion import Configuracion
     # from app.models.chatbot_log import ChatbotLog # Pendiente
 
 __all__ = [
@@ -42,5 +43,6 @@ __all__ = [
     "Rol",
     "Permiso",
     "PermisoRol",
-    "UsuarioRol"
+    "UsuarioRol",
+    "Configuracion"
 ]
