@@ -27,6 +27,13 @@ def seed_data():
             {"nombre": "gestionar_inventario", "recurso": "inventario", "accion": "manage", "descripcion": "Gestionar inventario"},
             {"nombre": "ver_reportes", "recurso": "reportes", "accion": "read", "descripcion": "Ver reportes"},
             {"nombre": "gestionar_ventas", "recurso": "ventas", "accion": "manage", "descripcion": "Registrar ventas"},
+            {"nombre": "gestionar_configuracion", "recurso": "configuracion", "accion": "manage", "descripcion": "Gestionar configuración del sistema"},
+            {"nombre": "gestionar_sucursales", "recurso": "sucursales", "accion": "manage", "descripcion": "Gestionar sucursales"},
+            {"nombre": "gestionar_proveedores", "recurso": "proveedores", "accion": "manage", "descripcion": "Gestionar proveedores"},
+            {"nombre": "gestionar_roles", "recurso": "roles", "accion": "manage", "descripcion": "Gestionar roles y permisos"},
+            {"nombre": "gestionar_promociones", "recurso": "promociones", "accion": "manage", "descripcion": "Gestionar promociones"},
+            {"nombre": "gestionar_recetas", "recurso": "recetas", "accion": "manage", "descripcion": "Gestionar recetas"},
+            {"nombre": "gestionar_compras", "recurso": "ordenes_compra", "accion": "manage", "descripcion": "Gestionar órdenes de compra"},
         ]
         
         permisos_db = []

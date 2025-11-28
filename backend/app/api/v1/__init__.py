@@ -18,6 +18,12 @@ from app.api.v1 import (
     chatbot, 
     dashboard, 
     reports, 
+    roles,
+    roles,
+    configuracion,
+    configuracion,
+    auth,
+    password_recovery,
     # alerts 
 )
 
@@ -37,6 +43,11 @@ api_router.include_router(promociones.router, prefix="/promociones", tags=["prom
 api_router.include_router(proveedores.router, prefix="/proveedores", tags=["proveedores"])
 api_router.include_router(movimientos_inventario.router, prefix="/movimientos-inventario", tags=["movimientos-inventario"])
 api_router.include_router(ordenes_compra.router, prefix="/ordenes-compra", tags=["ordenes-compra"])
+api_router.include_router(roles.router, prefix="/roles", tags=["roles"])
+api_router.include_router(roles.router, prefix="/roles", tags=["roles"])
+api_router.include_router(configuracion.router, prefix="/configuracion", tags=["configuracion"])
+api_router.include_router(auth.router, tags=["auth"])
+api_router.include_router(password_recovery.router, tags=["password-recovery"])
 
 # Pendientes
 api_router.include_router(chatbot.router, prefix="/chatbot", tags=["chatbot"])

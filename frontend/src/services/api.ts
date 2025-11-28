@@ -12,7 +12,6 @@ import {
   Proveedor,
   MovimientoInventario,
   OrdenCompra,
-  EstadisticasDashboard,
   ResumenReporte,
   DashboardResponse,
   ReporteMensual,
@@ -20,10 +19,12 @@ import {
   MargenGanancia,
   MetodoPagoReporte,
   MensajeChat,
-  RespuestaChat
+  RespuestaChat,
+  Rol,
+  Configuracion
 } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 class ApiClient {
   private baseURL: string;
@@ -37,11 +38,18 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+
+    const headers: any = {
+      ...options.headers,
+    };
+
+    // Only set Content-Type to json if body is NOT FormData
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       ...options,
     };
 
@@ -70,14 +78,14 @@ class ApiClient {
   async post<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
@@ -135,6 +143,31 @@ export const usuariosApi = {
   crear: (usuario: Partial<Usuario> & { contrasena: string }) => apiClient.post<Usuario>('/usuarios/', usuario),
   actualizar: (id: string, usuario: Partial<Usuario> & { contrasena?: string }) => apiClient.put<Usuario>(`/usuarios/${id}`, usuario),
   eliminar: (id: string) => apiClient.delete(`/usuarios/${id}`),
+};
+
+export const rolesApi = {
+  obtenerTodos: () => apiClient.get<Rol[]>('/roles/'),
+  obtenerPorId: (id: string) => apiClient.get<Rol>(`/roles/${id}`),
+  crear: (rol: Partial<Rol>) => apiClient.post<Rol>('/roles/', rol),
+  actualizar: (id: string, rol: Partial<Rol>) => apiClient.put<Rol>(`/roles/${id}`, rol),
+  eliminar: (id: string) => apiClient.delete(`/roles/${id}`),
+  obtenerPermisos: () => apiClient.get<{ id: string; nombre: string; descripcion: string; recurso: string; accion: string }[]>('/roles/permisos'),
+};
+
+export const configuracionApi = {
+  obtener: () => apiClient.get<Configuracion>('/configuracion/'),
+  actualizar: (config: Partial<Configuracion>) => apiClient.put<Configuracion>('/configuracion/', config),
+};
+
+export const authApi = {
+  login: (username: string, password: string) => {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    return apiClient.post<{ access_token: string; token_type: string; usuario: any }>('/login/access-token', formData);
+  },
+  recoverPassword: (email: string) => apiClient.post<{ message: string }>('/recover-password', { email }),
+  resetPassword: (token: string, new_password: string) => apiClient.post<{ message: string }>('/reset-password', { token, new_password: new_password }),
 };
 
 export const promocionesApi = {

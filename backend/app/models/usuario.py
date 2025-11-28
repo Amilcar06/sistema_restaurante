@@ -30,3 +30,26 @@ class Usuario(Base):
     roles = relationship("UsuarioRol", foreign_keys="UsuarioRol.usuario_id", back_populates="usuario")
     restaurantes_propios = relationship("Restaurante", back_populates="propietario")
     # chatbot_logs = relationship("ChatbotLog", back_populates="usuario") # Pendiente refactorizar ChatbotLog
+
+    @property
+    def permisos(self):
+        """
+        Retorna una lista plana de los nombres de permisos asignados al usuario
+        a través de sus roles.
+        """
+        perms = set()
+        if self.es_superusuario:
+            # Superusuario tiene todos los permisos (esto es una simplificación, 
+            # idealmente deberíamos listar todos los permisos existentes o manejarlo en la lógica)
+            # Por ahora retornamos una lista especial o todos los permisos si los consultamos.
+            # Para mantenerlo simple y compatible con el frontend, retornamos un permiso especial 'admin'
+            # y también podríamos consultar todos los permisos de la BD si fuera necesario.
+            perms.add("admin")
+            perms.add("all")
+        
+        for usuario_rol in self.roles:
+            if usuario_rol.rol:
+                for permiso_rol in usuario_rol.rol.permisos:
+                    if permiso_rol.permiso:
+                        perms.add(permiso_rol.permiso.nombre)
+        return list(perms)

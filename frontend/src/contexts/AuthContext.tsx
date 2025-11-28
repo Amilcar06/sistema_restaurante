@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Usuario } from '../types';
+import { authApi } from '../services/api';
 
 interface AuthContextType {
   usuario: Usuario | null;
@@ -9,6 +9,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (nombreUsuario: string, contrasena: string) => Promise<void>;
   logout: () => void;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,31 +39,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
 
-      // Simulación de login - En producción esto debería llamar a tu API
-      // Por ahora, aceptamos cualquier credencial para desarrollo
+      // Llamada real a la API
+      const response = await authApi.login(nombreUsuario, contrasena);
+      const { usuario: usuarioData, access_token } = response;
 
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Crear usuario simulado en español
-      const mockUsuario: Usuario = {
-        id: '1',
-        nombre_usuario: nombreUsuario,
-        email: `${nombreUsuario}@gastrosmart.com`,
-        nombre_completo: nombreUsuario,
-        activo: true,
-        es_superusuario: true, // Para facilitar pruebas
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      setUsuario(mockUsuario);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ usuario: mockUsuario }));
+      // Guardar token y usuario
+      localStorage.setItem('token', access_token);
+      setUsuario(usuarioData);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ usuario: usuarioData }));
 
       toast.success('Sesión iniciada correctamente');
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error?.message || 'Error al iniciar sesión');
+      console.error("Login error:", error.response?.data?.detail || error.message || error);
+      toast.error(error?.response?.data?.detail || 'Error al iniciar sesión');
       throw error;
     } finally {
       setIsLoading(false);
@@ -72,7 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUsuario(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem('token');
     toast.success('Sesión cerrada');
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (!usuario) return false;
+    if (usuario.es_superusuario) return true;
+    if (usuario.permisos?.includes('all') || usuario.permisos?.includes('admin')) return true;
+    return usuario.permisos?.includes(permission) || false;
   };
 
   return (
@@ -83,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         login,
         logout,
+        hasPermission,
       }}
     >
       {children}

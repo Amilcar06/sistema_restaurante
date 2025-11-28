@@ -14,9 +14,11 @@ import {
   Building2,
   Truck,
   Users,
+  Shield,
   Tag,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
@@ -34,27 +36,27 @@ interface MenuItem {
 
 export function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['principal', 'operaciones']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['operaciones', 'administracion']));
   const location = useLocation();
   const navigate = useNavigate();
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, hasPermission } = useAuth();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const toggleSection = (section: string) => {
+  const toggleSection = (title: string) => {
     const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(section)) {
-      newExpanded.delete(section);
+    if (newExpanded.has(title)) {
+      newExpanded.delete(title);
     } else {
-      newExpanded.add(section);
+      newExpanded.add(title);
     }
     setExpandedSections(newExpanded);
   };
 
-  const menuSections: MenuSection[] = [
+  const menuItems: MenuSection[] = [
     {
       // Sin título - siempre visible
       items: [
@@ -67,6 +69,7 @@ export function Sidebar() {
         { path: "/inventory", icon: Package, label: "Inventario" },
         { path: "/recipes", icon: ChefHat, label: "Recetas" },
         { path: "/sales", icon: ShoppingCart, label: "Ventas" },
+        { path: "/purchase-orders", icon: FileText, label: "Compras" },
       ]
     },
     {
@@ -76,21 +79,34 @@ export function Sidebar() {
       ]
     },
     {
-      title: "Gestión",
+      title: "Administración",
       items: [
         { path: "/locations", icon: Building2, label: "Sucursales" },
         { path: "/suppliers", icon: Truck, label: "Proveedores" },
         { path: "/users", icon: Users, label: "Usuarios" },
+        { path: "/roles", icon: Shield, label: "Roles" },
         { path: "/promotions", icon: Tag, label: "Promociones" },
-      ]
-    },
-    {
-      // Sin título - siempre visible
-      items: [
         { path: "/settings", icon: SettingsIcon, label: "Configuración" },
       ]
     },
   ];
+
+  // Filtrar menú basado en permisos
+  const filteredMenu = menuItems.map(section => {
+    if (section.title === "Administración") {
+      return {
+        ...section,
+        items: section.items.filter(item => {
+          // Solo admin puede ver Usuarios, Roles y Configuración
+          if (["/users", "/roles", "/settings"].includes(item.path)) {
+            return hasPermission("admin") || hasPermission("gestionar_usuarios");
+          }
+          return true;
+        })
+      };
+    }
+    return section;
+  }).filter(section => section.items.length > 0);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -142,7 +158,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto" role="navigation" aria-label="Navegación principal">
-          {menuSections.map((section, sectionIndex) => {
+          {filteredMenu.map((section, sectionIndex) => {
             const sectionKey = section.title?.toLowerCase().replace(/\s+/g, '-') || `section-${sectionIndex}`;
             const isExpanded = expandedSections.has(sectionKey);
             const hasTitle = section.title && section.items.length > 1;
@@ -175,8 +191,8 @@ export function Sidebar() {
                           to={item.path}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive: navIsActive }) => `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ${navIsActive || active
-                              ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
-                              : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
+                            ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
+                            : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
                             }`}
                           aria-current={active ? "page" : undefined}
                           aria-label={`Ir a ${item.label}`}

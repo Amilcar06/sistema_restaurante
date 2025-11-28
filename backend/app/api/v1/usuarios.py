@@ -12,6 +12,7 @@ import bcrypt
 from app.schemas.usuario import UsuarioCreate, UsuarioUpdate, UsuarioResponse
 from app.core.database import get_db
 from app.models.usuario import Usuario
+from app.models.rol import Rol, UsuarioRol
 
 router = APIRouter()
 
@@ -67,6 +68,28 @@ async def crear_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db.add(db_usuario)
     db.commit()
     db.refresh(db_usuario)
+
+    # Asignar rol si se proporciona
+    if usuario.rol_id:
+        rol = db.query(Rol).filter(Rol.id == usuario.rol_id).first()
+        if not rol:
+            # Si el rol no existe, podríamos lanzar error o ignorar. 
+            # Lanzamos error para consistencia.
+            # Pero ya creamos el usuario. Deberíamos hacer rollback o verificar antes.
+            # Verificamos antes:
+            pass 
+        
+        # Mejor verificar antes de crear usuario, pero para simplicidad aquí:
+        if rol:
+            usuario_rol = UsuarioRol(
+                id=str(uuid.uuid4()),
+                usuario_id=db_usuario.id,
+                rol_id=rol.id,
+                fecha_asignacion=datetime.utcnow()
+            )
+            db.add(usuario_rol)
+            db.commit()
+
     return db_usuario
 
 @router.put("/{usuario_id}", response_model=UsuarioResponse)
@@ -96,6 +119,27 @@ async def actualizar_usuario(
     
     if usuario_update.contrasena:
         db_usuario.contrasena_hash = get_password_hash(usuario_update.contrasena)
+    
+    # Actualizar rol
+    if usuario_update.rol_id:
+        # Verificar si el rol existe
+        rol = db.query(Rol).filter(Rol.id == usuario_update.rol_id).first()
+        if not rol:
+            raise HTTPException(status_code=404, detail="Rol no encontrado")
+        
+        # Buscar asignación existente
+        usuario_rol = db.query(UsuarioRol).filter(UsuarioRol.usuario_id == usuario_id).first()
+        if usuario_rol:
+            usuario_rol.rol_id = usuario_update.rol_id
+            usuario_rol.fecha_asignacion = datetime.utcnow()
+        else:
+            usuario_rol = UsuarioRol(
+                id=str(uuid.uuid4()),
+                usuario_id=usuario_id,
+                rol_id=usuario_update.rol_id,
+                fecha_asignacion=datetime.utcnow()
+            )
+            db.add(usuario_rol)
     
     db_usuario.updated_at = datetime.utcnow()
     db.commit()

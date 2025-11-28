@@ -15,6 +15,25 @@ export interface Usuario {
     created_at: string;
     updated_at: string;
     ultimo_acceso?: string;
+    rol_id?: string;
+    permisos?: string[];
+}
+
+export interface Permiso {
+    id: string;
+    nombre: string;
+    recurso: string;
+    accion: string;
+    descripcion?: string;
+}
+
+export interface Rol {
+    id: string;
+    nombre: string;
+    descripcion?: string;
+    es_sistema: boolean;
+    fecha_creacion: string;
+    permisos?: Permiso[];
 }
 
 export interface Sucursal {
@@ -308,4 +327,20 @@ export interface RespuestaChat {
     response: string;
     conversation_id: string;
     timestamp: string;
+}
+
+export interface Configuracion {
+    id: string;
+    moneda: string;
+    impuesto_porcentaje: number;
+    logo_url?: string;
+    nombre_empresa?: string;
+    direccion?: string;
+    telefono?: string;
+    email_contacto?: string;
+    notif_stock_critico: boolean;
+    notif_reporte_diario: boolean;
+    notif_sugerencias_ia: boolean;
+    notif_margen_bajo: boolean;
+    updated_at: string;
 }

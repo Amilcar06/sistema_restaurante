@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Users as UsersIcon, Edit, Trash2, Loader2, Shield, ShieldCheck } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Loader2, Shield, ShieldCheck } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -7,8 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { usuariosApi, sucursalesApi } from "../services/api";
-import { Usuario, Sucursal } from "../types";
+import { usuariosApi, sucursalesApi, rolesApi } from "../services/api";
+import { Usuario, Sucursal, Rol } from "../types";
 import { toast } from "sonner";
 
 export function Users() {
@@ -27,13 +27,26 @@ export function Users() {
     contrasena: "",
     activo: true,
     es_superusuario: false,
+    rol_id: "none",
     sucursal_default_id: "none"
   });
+
+  const [roles, setRoles] = useState<Rol[]>([]);
 
   useEffect(() => {
     loadUsers();
     loadSucursales();
+    loadRoles();
   }, []);
+
+  const loadRoles = async () => {
+    try {
+      const data = await rolesApi.obtenerTodos();
+      setRoles(data);
+    } catch (error) {
+      console.error("Error loading roles:", error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -67,6 +80,7 @@ export function Users() {
         telefono: formData.telefono || undefined,
         activo: formData.activo,
         es_superusuario: formData.es_superusuario,
+        rol_id: formData.rol_id === "none" ? undefined : formData.rol_id,
         sucursal_default_id: formData.sucursal_default_id === "none" ? undefined : formData.sucursal_default_id
       };
 
@@ -123,6 +137,7 @@ export function Users() {
       contrasena: "",
       activo: user.activo,
       es_superusuario: user.es_superusuario,
+      rol_id: user.rol_id || "none",
       sucursal_default_id: user.sucursal_default_id || "none"
     });
     setIsDialogOpen(true);
@@ -137,6 +152,7 @@ export function Users() {
       contrasena: "",
       activo: true,
       es_superusuario: false,
+      rol_id: "none",
       sucursal_default_id: "none"
     });
     setEditingUser(null);
@@ -179,7 +195,7 @@ export function Users() {
 
       <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
 
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        <Dialog open={isDialogOpen} onOpenChange={(open: boolean) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
@@ -271,17 +287,38 @@ export function Users() {
                 <Switch
                   id="activo"
                   checked={formData.activo}
-                  onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
                 />
                 <Label htmlFor="activo" className="text-white/80">Usuario Activo</Label>
+              </div>
+              <div>
+                <Label className="text-white/80">Rol de Usuario</Label>
+                <Select
+                  value={formData.rol_id}
+                  onValueChange={(value: string) => setFormData({ ...formData, rol_id: value })}
+                >
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectValue placeholder="Selecciona un rol" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                      (Sin rol específico)
+                    </SelectItem>
+                    {roles.map((rol) => (
+                      <SelectItem key={rol.id} value={rol.id} className="text-white focus:bg-[#FF6B35]/20">
+                        {rol.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="es_superusuario"
                   checked={formData.es_superusuario}
-                  onCheckedChange={(checked) => setFormData({ ...formData, es_superusuario: checked })}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, es_superusuario: checked })}
                 />
-                <Label htmlFor="es_superusuario" className="text-white/80">Administrador</Label>
+                <Label htmlFor="es_superusuario" className="text-white/80">Es Superusuario (Admin Total)</Label>
               </div>
               <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
                 {editingUser ? "Actualizar Usuario" : "Crear Usuario"}
@@ -296,7 +333,7 @@ export function Users() {
             className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
             placeholder="Buscar usuarios por nombre, email o usuario..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           />
         </div>
 
@@ -338,12 +375,12 @@ export function Users() {
                       {user.es_superusuario ? (
                         <span className="flex items-center text-yellow-400">
                           <ShieldCheck className="w-4 h-4 mr-1" />
-                          Admin
+                          Super Admin
                         </span>
                       ) : (
                         <span className="flex items-center text-white/60">
                           <Shield className="w-4 h-4 mr-1" />
-                          Usuario
+                          {roles.find(r => r.id === user.rol_id)?.nombre || "Usuario"}
                         </span>
                       )}
                     </td>

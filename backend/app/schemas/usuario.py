@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class UsuarioBase(BaseModel):
@@ -11,18 +11,20 @@ class UsuarioBase(BaseModel):
     es_superusuario: bool = False
 
 class UsuarioCreate(UsuarioBase):
-    password: str
+    contrasena: str
+    rol_id: Optional[str] = None
 
 class UsuarioUpdate(UsuarioBase):
-    password: Optional[str] = None
+    contrasena: Optional[str] = None
+    rol_id: Optional[str] = None
     email: Optional[EmailStr] = None
     nombre_usuario: Optional[str] = None
 
 class UsuarioResponse(UsuarioBase):
     id: str
-    sucursal_default_id: Optional[str]
     created_at: datetime
-    ultimo_acceso: Optional[datetime]
+    updated_at: datetime
+    permisos: List[str] = []
 
     class Config:
         from_attributes = True

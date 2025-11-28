@@ -62,6 +62,20 @@ export function Inventory() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
+  const [movementFormData, setMovementFormData] = useState({
+    item_inventario_id: "",
+    tipo_movimiento: "AJUSTE",
+    cantidad: 0,
+    unidad: "",
+    costo_unitario: 0,
+    notas: "",
+    sucursal_destino_id: ""
+  });
+
+  const [isCostHistoryDialogOpen, setIsCostHistoryDialogOpen] = useState(false);
+  const [costHistory, setCostHistory] = useState<{ fecha: string; costo: number; tipo: string }[]>([]);
+
   const loadMovements = async (itemId: string | null = null) => {
     try {
       setLoadingMovements(true);
@@ -156,6 +170,16 @@ export function Inventory() {
         sucursal_id: formData.sucursal_id || selectedSucursalId,
       };
 
+      if (!submitData.sucursal_id) {
+        toast.error("Debes seleccionar una sucursal");
+        return;
+      }
+
+      // Ensure numeric values are valid
+      if (isNaN(submitData.cantidad)) submitData.cantidad = 0;
+      if (isNaN(submitData.stock_minimo)) submitData.stock_minimo = 0;
+      if (isNaN(submitData.costo_unitario)) submitData.costo_unitario = 0;
+
       if (formData.stock_maximo !== undefined && formData.stock_maximo > 0) {
         submitData.stock_maximo = formData.stock_maximo;
       }
@@ -181,7 +205,10 @@ export function Inventory() {
       loadItems();
     } catch (error: any) {
       console.error("Error saving item:", error);
-      const errorMessage = error?.message || "Error al guardar el insumo";
+      const errorData = error.response?.data || error;
+      const errorMessage = errorData.detail
+        ? (typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail))
+        : "Error al guardar el insumo";
       toast.error(errorMessage);
     }
   };
@@ -233,6 +260,83 @@ export function Inventory() {
       });
     }
     setIsDialogOpen(true);
+  };
+
+  const handleMovementSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const submitData: any = {
+        item_inventario_id: movementFormData.item_inventario_id,
+        sucursal_id: selectedSucursalId,
+        tipo_movimiento: movementFormData.tipo_movimiento,
+        cantidad: movementFormData.cantidad,
+        unidad: movementFormData.unidad,
+        notas: movementFormData.notas
+      };
+
+      if (movementFormData.costo_unitario > 0) {
+        submitData.costo_unitario = movementFormData.costo_unitario;
+      }
+
+      if (movementFormData.tipo_movimiento === "TRANSFERENCIA" && movementFormData.sucursal_destino_id) {
+        // Logic for transfer would be handled by backend or creating two movements
+        // For now, we just send it as is if backend supports it, or we add it to notes
+        submitData.notas = `${submitData.notas} (Transferencia a sucursal ID: ${movementFormData.sucursal_destino_id})`;
+      }
+
+      await movimientosApi.crear(submitData);
+      toast.success("Movimiento registrado correctamente");
+      setIsMovementDialogOpen(false);
+
+      // Reset form
+      setMovementFormData({
+        item_inventario_id: "",
+        tipo_movimiento: "AJUSTE",
+        cantidad: 0,
+        unidad: "",
+        costo_unitario: 0,
+        notas: "",
+        sucursal_destino_id: ""
+      });
+
+      loadItems(); // Reload items to update stock
+      loadMovements(); // Reload history
+    } catch (error: any) {
+      console.error("Error registering movement:", error);
+      toast.error("Error al registrar el movimiento");
+    }
+  };
+
+  const handleViewCostHistory = async (item: ItemInventario) => {
+    setEditingItem(item);
+    try {
+      // Fetch movements for this item
+      const allMovements = await movimientosApi.obtenerTodos();
+      const itemMovements = allMovements
+        .filter(m => m.item_inventario_id === item.id && m.costo_unitario && m.costo_unitario > 0)
+        .sort((a, b) => new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime());
+
+      const history = itemMovements.map(m => ({
+        fecha: m.fecha_creacion,
+        costo: m.costo_unitario || 0,
+        tipo: m.tipo_movimiento
+      }));
+
+      // Add current cost as the latest if no movements or different
+      if (history.length === 0 || history[0].costo !== item.costo_unitario) {
+        history.unshift({
+          fecha: new Date().toISOString(),
+          costo: item.costo_unitario,
+          tipo: "ACTUAL"
+        });
+      }
+
+      setCostHistory(history);
+      setIsCostHistoryDialogOpen(true);
+    } catch (error) {
+      console.error("Error loading cost history:", error);
+      toast.error("Error al cargar historial de costos");
+    }
   };
 
   const resetForm = () => {
@@ -293,22 +397,44 @@ export function Inventory() {
           <h1 className="text-white mb-3 text-3xl font-bold">Inventario</h1>
           <p className="text-white/60 text-base">Gestiona todos los insumos de tu negocio</p>
         </div>
-        <Button
-          type="button"
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white shadow-lg hover:shadow-[#FF6B35]/50 transition-all duration-300"
-          onClick={() => {
-            resetForm();
-            setIsDialogOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          <span className="hidden sm:inline">Agregar Insumo</span>
-          <span className="sm:hidden">Agregar</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/10"
+            onClick={() => {
+              setMovementFormData({
+                item_inventario_id: "",
+                tipo_movimiento: "AJUSTE",
+                cantidad: 0,
+                unidad: "",
+                costo_unitario: 0,
+                notas: "",
+                sucursal_destino_id: ""
+              });
+              setIsMovementDialogOpen(true);
+            }}
+          >
+            <History className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Registrar Movimiento</span>
+            <span className="sm:hidden">Movimiento</span>
+          </Button>
+          <Button
+            type="button"
+            className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white shadow-lg hover:shadow-[#FF6B35]/50 transition-all duration-300"
+            onClick={() => {
+              resetForm();
+              setIsDialogOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Agregar Insumo</span>
+            <span className="sm:hidden">Agregar</span>
+          </Button>
+        </div>
       </div>
 
       {/* Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+      <Dialog open={isDialogOpen} onOpenChange={(open: boolean) => {
         setIsDialogOpen(open);
         if (!open) resetForm();
       }}>
@@ -321,33 +447,266 @@ export function Inventory() {
               {editingItem ? "Modifica los datos del insumo" : "Completa los datos para agregar un nuevo insumo al inventario"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label className="text-white/80">Nombre del Insumo</Label>
-              <Input
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Ej: Tomate"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                required
-              />
+          <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label className="text-white/80">Nombre del Insumo</Label>
+                <Input
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  placeholder="Ej: Tomate"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-white/80">Categoría</Label>
+                <Select
+                  value={formData.categoria}
+                  onValueChange={(value: string) => setFormData({ ...formData, categoria: value })}
+                  required
+                >
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    {enums.categories.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white/80">Cantidad</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    placeholder="0"
+                    value={formData.cantidad}
+                    onChange={(e) => setFormData({ ...formData, cantidad: parseFloat(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80">Unidad</Label>
+                  <Select
+                    value={formData.unidad}
+                    onValueChange={(value: string) => setFormData({ ...formData, unidad: value })}
+                    required
+                  >
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                      <SelectValue placeholder="Selecciona una unidad" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                      {enums.units.map((unit) => (
+                        <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white/80">Stock Mínimo</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    placeholder="0"
+                    value={formData.stock_minimo}
+                    onChange={(e) => setFormData({ ...formData, stock_minimo: parseFloat(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80">Costo por Unidad (Bs.)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    placeholder="0.00"
+                    value={formData.costo_unitario}
+                    onChange={(e) => setFormData({ ...formData, costo_unitario: parseFloat(e.target.value) || 0 })}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-white/80">Sucursal *</Label>
+                <Select
+                  value={formData.sucursal_id || selectedSucursalId}
+                  onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
+                  required
+                >
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectValue placeholder="Selecciona una sucursal" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    {sucursales.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                        {loc.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-white/80">Proveedor</Label>
+                <Select
+                  value={formData.proveedor_id || "none"}
+                  onValueChange={(value: string) => setFormData({ ...formData, proveedor_id: value === "none" ? undefined : value })}
+                >
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectValue placeholder="Selecciona un proveedor" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                      (Ninguno)
+                    </SelectItem>
+                    {proveedores.map((sup) => (
+                      <SelectItem key={sup.id} value={sup.id} className="text-white focus:bg-[#FF6B35]/20">
+                        {sup.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-white/80">Stock Máximo</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    placeholder="Opcional"
+                    value={formData.stock_maximo || ""}
+                    onChange={(e) => setFormData({ ...formData, stock_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80">Fecha de Caducidad</Label>
+                  <Input
+                    type="date"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    value={formData.fecha_vencimiento || ""}
+                    onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value || undefined })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-white/80">Código de Barras</Label>
+                <Input
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  placeholder="Código de barras (opcional)"
+                  value={formData.codigo_barras}
+                  onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
+                />
+              </div>
+              <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
+                {editingItem ? "Actualizar Insumo" : "Guardar Insumo"}
+              </Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cost History Dialog */}
+      <Dialog open={isCostHistoryDialogOpen} onOpenChange={setIsCostHistoryDialogOpen}>
+        <DialogContent className="bg-[#020617] border-[#FF6B35]/20">
+          <DialogHeader>
+            <DialogTitle className="text-white">Historial de Costos</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Evolución del costo unitario para: <span className="text-white font-medium">{editingItem?.nombre}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="relative overflow-x-auto">
+              <table className="w-full text-sm text-left text-white/60">
+                <thead className="text-xs text-white/40 uppercase bg-white/5">
+                  <tr>
+                    <th className="px-4 py-2">Fecha</th>
+                    <th className="px-4 py-2">Tipo</th>
+                    <th className="px-4 py-2 text-right">Costo Unit.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {costHistory.map((record, index) => (
+                    <tr key={index} className="border-b border-white/5">
+                      <td className="px-4 py-2">{new Date(record.fecha).toLocaleDateString()}</td>
+                      <td className="px-4 py-2">{record.tipo}</td>
+                      <td className="px-4 py-2 text-right font-medium text-white">Bs. {record.costo.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  {costHistory.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-4 py-4 text-center">No hay historial disponible</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Movement Dialog */}
+      <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
+        <DialogContent className="bg-[#020617] border-[#FF6B35]/20">
+          <DialogHeader>
+            <DialogTitle className="text-white">Registrar Movimiento Manual</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Registra entradas, salidas, mermas o ajustes de inventario.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleMovementSubmit} className="space-y-4">
             <div>
-              <Label className="text-white/80">Categoría</Label>
+              <Label className="text-white/80">Insumo</Label>
               <Select
-                value={formData.categoria}
-                onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+                value={movementFormData.item_inventario_id}
+                onValueChange={(value: string) => {
+                  const item = items.find(i => i.id === value);
+                  setMovementFormData({
+                    ...movementFormData,
+                    item_inventario_id: value,
+                    unidad: item?.unidad || ""
+                  });
+                }}
                 required
               >
                 <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder="Selecciona un insumo" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                  {enums.categories.map((cat) => (
-                    <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
-                      {cat}
+                  {items.map((item) => (
+                    <SelectItem key={item.id} value={item.id} className="text-white focus:bg-[#FF6B35]/20">
+                      {item.nombre} ({item.cantidad} {item.unidad})
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-white/80">Tipo de Movimiento</Label>
+              <Select
+                value={movementFormData.tipo_movimiento}
+                onValueChange={(value: string) => setMovementFormData({ ...movementFormData, tipo_movimiento: value })}
+                required
+              >
+                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                  <SelectValue placeholder="Selecciona el tipo" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                  <SelectItem value="ENTRADA" className="text-white focus:bg-[#FF6B35]/20">ENTRADA (Compra/Reposición)</SelectItem>
+                  <SelectItem value="SALIDA" className="text-white focus:bg-[#FF6B35]/20">SALIDA (Uso interno)</SelectItem>
+                  <SelectItem value="MERMA" className="text-white focus:bg-[#FF6B35]/20">MERMA (Desperdicio/Daño)</SelectItem>
+                  <SelectItem value="AJUSTE" className="text-white focus:bg-[#FF6B35]/20">AJUSTE (Corrección de stock)</SelectItem>
+                  <SelectItem value="TRANSFERENCIA" className="text-white focus:bg-[#FF6B35]/20">TRANSFERENCIA (Entre sucursales)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -359,130 +718,65 @@ export function Inventory() {
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="0"
-                  value={formData.cantidad}
-                  onChange={(e) => setFormData({ ...formData, cantidad: parseFloat(e.target.value) || 0 })}
+                  value={movementFormData.cantidad}
+                  onChange={(e) => setMovementFormData({ ...movementFormData, cantidad: parseFloat(e.target.value) || 0 })}
                   required
                 />
               </div>
               <div>
                 <Label className="text-white/80">Unidad</Label>
-                <Select
-                  value={formData.unidad}
-                  onValueChange={(value) => setFormData({ ...formData, unidad: value })}
-                  required
-                >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                    <SelectValue placeholder="Selecciona una unidad" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    {enums.units.map((unit) => (
-                      <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
-                        {unit}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-white/80">Stock Mínimo</Label>
                 <Input
-                  type="number"
-                  step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="0"
-                  value={formData.stock_minimo}
-                  onChange={(e) => setFormData({ ...formData, stock_minimo: parseFloat(e.target.value) || 0 })}
-                  required
-                />
-              </div>
-              <div>
-                <Label className="text-white/80">Costo por Unidad (Bs.)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="0.00"
-                  value={formData.costo_unitario}
-                  onChange={(e) => setFormData({ ...formData, costo_unitario: parseFloat(e.target.value) || 0 })}
-                  required
+                  value={movementFormData.unidad}
+                  readOnly
                 />
               </div>
             </div>
-            <div>
-              <Label className="text-white/80">Sucursal *</Label>
-              <Select
-                value={formData.sucursal_id || selectedSucursalId}
-                onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
-                required
-              >
-                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                  <SelectValue placeholder="Selecciona una sucursal" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                  {sucursales.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                      {loc.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-white/80">Proveedor</Label>
-              <Select
-                value={formData.proveedor_id || "none"}
-                onValueChange={(value) => setFormData({ ...formData, proveedor_id: value === "none" ? undefined : value })}
-              >
-                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                  <SelectValue placeholder="Selecciona un proveedor" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                  <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
-                    (Ninguno)
-                  </SelectItem>
-                  {proveedores.map((sup) => (
-                    <SelectItem key={sup.id} value={sup.id} className="text-white focus:bg-[#FF6B35]/20">
-                      {sup.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+            {movementFormData.tipo_movimiento === "ENTRADA" && (
               <div>
-                <Label className="text-white/80">Stock Máximo</Label>
+                <Label className="text-white/80">Costo Unitario (Bs.)</Label>
                 <Input
                   type="number"
                   step="0.01"
                   className="bg-white/5 border-[#FF6B35]/20 text-white"
                   placeholder="Opcional"
-                  value={formData.stock_maximo || ""}
-                  onChange={(e) => setFormData({ ...formData, stock_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  value={movementFormData.costo_unitario}
+                  onChange={(e) => setMovementFormData({ ...movementFormData, costo_unitario: parseFloat(e.target.value) || 0 })}
                 />
               </div>
+            )}
+            {movementFormData.tipo_movimiento === "TRANSFERENCIA" && (
               <div>
-                <Label className="text-white/80">Fecha de Caducidad</Label>
-                <Input
-                  type="date"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  value={formData.fecha_vencimiento || ""}
-                  onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value || undefined })}
-                />
+                <Label className="text-white/80">Sucursal Destino</Label>
+                <Select
+                  value={movementFormData.sucursal_destino_id}
+                  onValueChange={(value: string) => setMovementFormData({ ...movementFormData, sucursal_destino_id: value })}
+                  required
+                >
+                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectValue placeholder="Selecciona sucursal destino" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                    {sucursales.filter(s => s.id !== selectedSucursalId).map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                        {loc.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
+            )}
             <div>
-              <Label className="text-white/80">Código de Barras</Label>
+              <Label className="text-white/80">Notas / Motivo</Label>
               <Input
                 className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Código de barras (opcional)"
-                value={formData.codigo_barras}
-                onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
+                placeholder="Explica el motivo del movimiento"
+                value={movementFormData.notas}
+                onChange={(e) => setMovementFormData({ ...movementFormData, notas: e.target.value })}
               />
             </div>
             <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
-              {editingItem ? "Actualizar Insumo" : "Guardar Insumo"}
+              Registrar Movimiento
             </Button>
           </form>
         </DialogContent>
@@ -638,6 +932,16 @@ export function Inventory() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
+                                onClick={() => handleViewCostHistory(item)}
+                                className="text-white hover:bg-blue-500/20 hover:text-blue-400 transition-all"
+                                title="Ver Historial de Costos"
+                              >
+                                <History className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleEdit(item)}
                                 className="text-white hover:bg-[#FF6B35]/20 hover:text-[#FF6B35] transition-all"
                               >
@@ -719,7 +1023,7 @@ export function Inventory() {
               <div className="flex gap-2">
                 <Select
                   value={selectedItemForHistory || "all"}
-                  onValueChange={(value) => {
+                  onValueChange={(value: string) => {
                     setSelectedItemForHistory(value === "all" ? null : value);
                     loadMovements(value === "all" ? null : value);
                   }}

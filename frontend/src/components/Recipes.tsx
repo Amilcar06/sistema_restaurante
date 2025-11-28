@@ -16,8 +16,7 @@ import {
 import {
   Receta,
   ItemInventario,
-  Sucursal,
-  IngredienteReceta
+  Sucursal
 } from "../types";
 import { toast } from "sonner";
 import { Switch } from "./ui/switch";
@@ -362,7 +361,7 @@ export function Recipes() {
           <h1 className="text-white mb-3 text-3xl font-bold">Recetas y Costos</h1>
           <p className="text-white/60 text-base">Gestiona las recetas y calcula costos por plato</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        <Dialog open={isDialogOpen} onOpenChange={(open: boolean) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
@@ -372,8 +371,8 @@ export function Recipes() {
               Nueva Receta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-4xl">
+            <DialogHeader className="px-1">
               <DialogTitle className="text-white">
                 {editingRecipe ? "Editar Receta" : "Crear Nueva Receta"}
               </DialogTitle>
@@ -381,314 +380,317 @@ export function Recipes() {
                 {editingRecipe ? "Modifica los datos de la receta" : "Completa los datos para crear una nueva receta"}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-white/80">Nombre del Plato</Label>
-                  <Input
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="Ej: Pique Macho"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    required
-                  />
+            <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white/80">Nombre del Plato</Label>
+                    <Input
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="Ej: Pique Macho"
+                      value={formData.nombre}
+                      onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Categoría</Label>
+                    <Select
+                      value={formData.categoria}
+                      onValueChange={(value: string) => setFormData({ ...formData, categoria: value })}
+                      required
+                    >
+                      <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                        {enums.recipeCategories.map((cat) => (
+                          <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-white/80">Categoría</Label>
-                  <Select
-                    value={formData.categoria}
-                    onValueChange={(value) => setFormData({ ...formData, categoria: value })}
-                    required
-                  >
-                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      {enums.recipeCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat} className="text-white focus:bg-[#FF6B35]/20">
-                          {cat}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-white/80">Subcategoría</Label>
-                  <Input
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="Ej: Carnes Rojas, Carnes Blancas"
-                    value={formData.subcategoria}
-                    onChange={(e) => setFormData({ ...formData, subcategoria: e.target.value })}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white/80">Subcategoría</Label>
+                    <Input
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="Ej: Carnes Rojas, Carnes Blancas"
+                      value={formData.subcategoria}
+                      onChange={(e) => setFormData({ ...formData, subcategoria: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Sucursal</Label>
+                    <Select
+                      value={formData.sucursal_id}
+                      onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
+                    >
+                      <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                        <SelectValue placeholder="Selecciona una sucursal" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                        {sucursales.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                            {loc.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-white/80">Sucursal</Label>
-                  <Select
-                    value={formData.sucursal_id}
-                    onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
-                  >
-                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                      <SelectValue placeholder="Selecciona una sucursal" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      {sucursales.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                          {loc.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.disponible}
-                  onCheckedChange={(checked) => setFormData({ ...formData, disponible: checked })}
-                />
-                <Label className="text-white/80">Disponible para venta</Label>
-              </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={formData.disponible}
+                    onCheckedChange={(checked: boolean) => setFormData({ ...formData, disponible: checked })}
+                  />
+                  <Label className="text-white/80">Disponible para venta</Label>
+                </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-white/80">Precio de Venta (Bs.)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="0.00"
-                    value={formData.precio}
-                    onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
-                    required
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-white/80">Precio de Venta (Bs.)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="0.00"
+                      value={formData.precio}
+                      onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Porciones</Label>
+                    <Input
+                      type="number"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="1"
+                      value={formData.porciones}
+                      onChange={(e) => setFormData({ ...formData, porciones: parseInt(e.target.value) || 1 })}
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Tiempo Preparación (min)</Label>
+                    <Input
+                      type="number"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="0"
+                      value={formData.tiempo_preparacion}
+                      onChange={(e) => setFormData({ ...formData, tiempo_preparacion: parseInt(e.target.value) || 0 })}
+                      min="0"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-white/80">Porciones</Label>
-                  <Input
-                    type="number"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="1"
-                    value={formData.porciones}
-                    onChange={(e) => setFormData({ ...formData, porciones: parseInt(e.target.value) || 1 })}
-                    required
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80">Tiempo Preparación (min)</Label>
-                  <Input
-                    type="number"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="0"
-                    value={formData.tiempo_preparacion}
-                    onChange={(e) => setFormData({ ...formData, tiempo_preparacion: parseInt(e.target.value) || 0 })}
-                    min="0"
-                  />
-                </div>
-              </div>
 
-              {/* Ingredients Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-white/80">Ingredientes</Label>
+                {/* Ingredients Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white/80">Ingredientes</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={(e: React.MouseEvent) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addIngredient();
+                      }}
+                      className="border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Ingrediente
+                    </Button>
+                  </div>
+
+                  {ingredientes.length === 0 && (
+                    <div className="text-center py-4 text-white/60 text-sm">
+                      No hay ingredientes. Agrega al menos uno.
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {ingredientes.map((ingredient, index) => (
+                      <Card key={ingredient.id} className="bg-white/5 border-[#FF6B35]/20 p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1 grid grid-cols-12 gap-2">
+                            <div className="col-span-12 md:col-span-4">
+                              <Label className="text-white/60 text-xs mb-1 block">Ingrediente</Label>
+                              <Select
+                                value={ingredient.item_inventario_id || "manual"}
+                                onValueChange={(value: string) => {
+                                  if (value === "manual") {
+                                    updateIngredient(index, "item_inventario_id", null);
+                                  } else {
+                                    updateIngredient(index, "item_inventario_id", value);
+                                  }
+                                }}
+                                disabled={loadingInventory}
+                              >
+                                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
+                                  <SelectValue placeholder="Seleccionar del inventario" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#020617] border-[#FF6B35]/20 max-h-60">
+                                  <SelectItem value="manual" className="text-white/60 focus:bg-[#FF6B35]/20">
+                                    Ingrediente manual
+                                  </SelectItem>
+                                  {inventoryItems.map((item) => (
+                                    <SelectItem
+                                      key={item.id}
+                                      value={item.id}
+                                      className="text-white focus:bg-[#FF6B35]/20"
+                                    >
+                                      {item.nombre} ({item.categoria}) - Bs. {item.costo_unitario.toFixed(2)}/{item.unidad}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {!ingredient.item_inventario_id && (
+                              <div className="col-span-12 md:col-span-4">
+                                <Label className="text-white/60 text-xs mb-1 block">Nombre Manual</Label>
+                                <Input
+                                  className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
+                                  placeholder="Nombre del ingrediente"
+                                  value={ingredient.nombre_ingrediente}
+                                  onChange={(e) => updateIngredient(index, "nombre_ingrediente", e.target.value)}
+                                  required={!ingredient.item_inventario_id}
+                                />
+                              </div>
+                            )}
+
+                            <div className="col-span-6 md:col-span-2">
+                              <Label className="text-white/60 text-xs mb-1 block">Cantidad</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
+                                placeholder="0"
+                                value={ingredient.cantidad || ""}
+                                onChange={(e) => updateIngredient(index, "cantidad", e.target.value)}
+                                required
+                                min="0"
+                              />
+                            </div>
+
+                            <div className="col-span-6 md:col-span-2">
+                              <Label className="text-white/60 text-xs mb-1 block">Unidad</Label>
+                              <Select
+                                value={ingredient.unidad}
+                                onValueChange={(value: string) => updateIngredient(index, "unidad", value)}
+                                required
+                                disabled={!!ingredient.item_inventario_id}
+                              >
+                                <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
+                                  <SelectValue placeholder="Selecciona unidad" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                                  {enums.ingredientUnits.map((unit) => (
+                                    <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
+                                      {unit}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="col-span-12 md:col-span-2">
+                              <Label className="text-white/60 text-xs mb-1 block">Costo (Bs.)</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
+                                placeholder="0.00"
+                                value={ingredient.costo.toFixed(2)}
+                                onChange={(e) => updateIngredient(index, "costo", parseFloat(e.target.value) || 0)}
+                                required
+                                disabled={!!ingredient.item_inventario_id}
+                              />
+                              {ingredient.item_inventario_id && (
+                                <p className="text-xs text-white/40 mt-1">Calculado automáticamente</p>
+                              )}
+                            </div>
+
+                            <div className="col-span-12 md:col-span-2 flex items-end">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeIngredient(index)}
+                                className="text-red-400 hover:bg-red-500/10 h-9"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cost Summary */}
+                {ingredientes.length > 0 && (
+                  <Card className="bg-[#FF6B35]/10 border-[#FF6B35]/30 p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/80">Costo Total de Ingredientes:</span>
+                        <span className="text-white font-semibold">Bs. {calculateTotalCost().toFixed(2)}</span>
+                      </div>
+                      {formData.precio > 0 && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/80">Precio de Venta:</span>
+                            <span className="text-[#FF6B35] font-semibold">Bs. {formData.precio.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
+                            <span className="text-white/80">Ganancia:</span>
+                            <span className="text-[#FF6B35] font-semibold">
+                              Bs. {(formData.precio - calculateTotalCost()).toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-white/80">Margen:</span>
+                            <span className={`font-semibold ${calculateMargin() >= 70 ? "text-[#FF6B35]" :
+                              calculateMargin() >= 50 ? "text-yellow-400" :
+                                "text-red-400"
+                              }`}>
+                              {calculateMargin().toFixed(1)}%
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </Card>
+                )}
+
+                <div className="flex gap-2 pt-2">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      addIngredient();
-                    }}
-                    className="border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
-                    size="sm"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex-1 border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Agregar Ingrediente
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+                    disabled={ingredientes.length === 0}
+                  >
+                    {editingRecipe ? "Actualizar Receta" : "Guardar Receta"}
                   </Button>
                 </div>
-
-                {ingredientes.length === 0 && (
-                  <div className="text-center py-4 text-white/60 text-sm">
-                    No hay ingredientes. Agrega al menos uno.
-                  </div>
-                )}
-
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {ingredientes.map((ingredient, index) => (
-                    <Card key={ingredient.id} className="bg-white/5 border-[#FF6B35]/20 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 grid grid-cols-12 gap-2">
-                          <div className="col-span-12 md:col-span-4">
-                            <Label className="text-white/60 text-xs mb-1 block">Ingrediente</Label>
-                            <Select
-                              value={ingredient.item_inventario_id || "manual"}
-                              onValueChange={(value) => {
-                                if (value === "manual") {
-                                  updateIngredient(index, "item_inventario_id", null);
-                                } else {
-                                  updateIngredient(index, "item_inventario_id", value);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
-                                <SelectValue placeholder="Seleccionar del inventario" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#020617] border-[#FF6B35]/20 max-h-60">
-                                <SelectItem value="manual" className="text-white/60 focus:bg-[#FF6B35]/20">
-                                  Ingrediente manual
-                                </SelectItem>
-                                {inventoryItems.map((item) => (
-                                  <SelectItem
-                                    key={item.id}
-                                    value={item.id}
-                                    className="text-white focus:bg-[#FF6B35]/20"
-                                  >
-                                    {item.nombre} ({item.categoria}) - Bs. {item.costo_unitario.toFixed(2)}/{item.unidad}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {!ingredient.item_inventario_id && (
-                            <div className="col-span-12 md:col-span-4">
-                              <Label className="text-white/60 text-xs mb-1 block">Nombre Manual</Label>
-                              <Input
-                                className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
-                                placeholder="Nombre del ingrediente"
-                                value={ingredient.nombre_ingrediente}
-                                onChange={(e) => updateIngredient(index, "nombre_ingrediente", e.target.value)}
-                                required={!ingredient.item_inventario_id}
-                              />
-                            </div>
-                          )}
-
-                          <div className="col-span-6 md:col-span-2">
-                            <Label className="text-white/60 text-xs mb-1 block">Cantidad</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
-                              placeholder="0"
-                              value={ingredient.cantidad || ""}
-                              onChange={(e) => updateIngredient(index, "cantidad", e.target.value)}
-                              required
-                              min="0"
-                            />
-                          </div>
-
-                          <div className="col-span-6 md:col-span-2">
-                            <Label className="text-white/60 text-xs mb-1 block">Unidad</Label>
-                            <Select
-                              value={ingredient.unidad}
-                              onValueChange={(value) => updateIngredient(index, "unidad", value)}
-                              required
-                              disabled={!!ingredient.item_inventario_id}
-                            >
-                              <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-9">
-                                <SelectValue placeholder="Selecciona unidad" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                                {enums.ingredientUnits.map((unit) => (
-                                  <SelectItem key={unit} value={unit} className="text-white focus:bg-[#FF6B35]/20">
-                                    {unit}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          <div className="col-span-12 md:col-span-2">
-                            <Label className="text-white/60 text-xs mb-1 block">Costo (Bs.)</Label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              className="bg-white/5 border-[#FF6B35]/20 text-white h-9"
-                              placeholder="0.00"
-                              value={ingredient.costo.toFixed(2)}
-                              onChange={(e) => updateIngredient(index, "costo", parseFloat(e.target.value) || 0)}
-                              required
-                              disabled={!!ingredient.item_inventario_id}
-                            />
-                            {ingredient.item_inventario_id && (
-                              <p className="text-xs text-white/40 mt-1">Calculado automáticamente</p>
-                            )}
-                          </div>
-
-                          <div className="col-span-12 md:col-span-2 flex items-end">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeIngredient(index)}
-                              className="text-red-400 hover:bg-red-500/10 h-9"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cost Summary */}
-              {ingredientes.length > 0 && (
-                <Card className="bg-[#FF6B35]/10 border-[#FF6B35]/30 p-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-white/80">Costo Total de Ingredientes:</span>
-                      <span className="text-white font-semibold">Bs. {calculateTotalCost().toFixed(2)}</span>
-                    </div>
-                    {formData.precio > 0 && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/80">Precio de Venta:</span>
-                          <span className="text-[#FF6B35] font-semibold">Bs. {formData.precio.toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
-                          <span className="text-white/80">Ganancia:</span>
-                          <span className="text-[#FF6B35] font-semibold">
-                            Bs. {(formData.precio - calculateTotalCost()).toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/80">Margen:</span>
-                          <span className={`font-semibold ${calculateMargin() >= 70 ? "text-[#FF6B35]" :
-                              calculateMargin() >= 50 ? "text-yellow-400" :
-                                "text-red-400"
-                            }`}>
-                            {calculateMargin().toFixed(1)}%
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </Card>
-              )}
-
-              <div className="flex gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="flex-1 border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
-                  disabled={ingredientes.length === 0}
-                >
-                  {editingRecipe ? "Actualizar Receta" : "Guardar Receta"}
-                </Button>
-              </div>
-            </form>
+              </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -750,8 +752,8 @@ export function Recipes() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`px-3 py-1 rounded-full ${recipe.margen >= 70 ? "bg-[#FF6B35]/20 text-[#FF6B35]" :
-                      recipe.margen >= 50 ? "bg-yellow-500/20 text-yellow-400" :
-                        "bg-red-500/20 text-red-400"
+                    recipe.margen >= 50 ? "bg-yellow-500/20 text-yellow-400" :
+                      "bg-red-500/20 text-red-400"
                     }`}>
                     {recipe.margen.toFixed(1)}% margen
                   </div>

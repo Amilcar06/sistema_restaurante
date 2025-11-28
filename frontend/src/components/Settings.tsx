@@ -1,15 +1,42 @@
-import { useState } from "react";
-import { User, Bell, Lock, Database, HelpCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Bell, Lock, Database, HelpCircle, Settings as SettingsIcon } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { toast } from "sonner";
+import { configuracionApi } from "../services/api";
+import { Configuracion } from "../types";
 
 export function Settings() {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("general");
+
+  const [generalSettings, setGeneralSettings] = useState<Partial<Configuracion>>({
+    moneda: "BOB",
+    impuesto_porcentaje: 13,
+    logo_url: "",
+    notif_stock_critico: true,
+    notif_reporte_diario: true,
+    notif_sugerencias_ia: true,
+    notif_margen_bajo: false
+  });
+
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    try {
+      const data = await configuracionApi.obtener();
+      setGeneralSettings(data);
+    } catch (error) {
+      console.error("Error loading config:", error);
+      toast.error("Error al cargar la configuración");
+    }
+  };
 
   // Estado para formulario de perfil
   const [profileData, setProfileData] = useState({
@@ -17,14 +44,6 @@ export function Settings() {
     owner: "",
     phone: "",
     address: ""
-  });
-
-  // Estado para notificaciones
-  const [notifications, setNotifications] = useState({
-    criticalStock: true,
-    dailyReport: true,
-    aiSuggestions: true,
-    lowMargin: false
   });
 
   // Estado para seguridad
@@ -61,6 +80,18 @@ export function Settings() {
     });
   };
 
+  // Handler para general
+  const handleGeneralSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await configuracionApi.actualizar(generalSettings);
+      toast.success("Configuración general actualizada");
+    } catch (error) {
+      console.error("Error saving config:", error);
+      toast.error("Error al guardar la configuración");
+    }
+  };
+
   return (
     <div className="space-y-6 w-full relative">
       {/* Header */}
@@ -71,7 +102,14 @@ export function Settings() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-white/5 border-[#FF6B35]/20 p-1 h-auto gap-1">
+        <TabsList className="grid w-full grid-cols-4 bg-white/5 border-[#FF6B35]/20 p-1 h-auto gap-1">
+          <TabsTrigger
+            value="general"
+            className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
+          >
+            <SettingsIcon className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">General</span>
+          </TabsTrigger>
           <TabsTrigger
             value="profile"
             className="text-white/60 data-[state=active]:text-[#FF6B35] data-[state=active]:bg-[#FF6B35]/10 py-2.5 transition-all duration-300 hover:text-white"
@@ -94,6 +132,69 @@ export function Settings() {
             <span className="hidden sm:inline">Sistema</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Tab Content: General */}
+        <TabsContent value="general" className="mt-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-white text-xl font-semibold mb-1">Configuración General</h2>
+              <p className="text-white/60">Ajustes básicos del sistema</p>
+            </div>
+          </div>
+          <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
+            <form onSubmit={handleGeneralSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currency" className="text-white/80 mb-2 block">
+                    Moneda del Sistema
+                  </Label>
+                  <Select
+                    value={generalSettings.moneda}
+                    onValueChange={(value: string) => setGeneralSettings({ ...generalSettings, moneda: value })}
+                  >
+                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                      <SelectValue placeholder="Selecciona moneda" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                      <SelectItem value="BOB" className="text-white focus:bg-[#FF6B35]/20">Boliviano (BOB)</SelectItem>
+                      <SelectItem value="USD" className="text-white focus:bg-[#FF6B35]/20">Dólar (USD)</SelectItem>
+                      <SelectItem value="EUR" className="text-white focus:bg-[#FF6B35]/20">Euro (EUR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="taxRate" className="text-white/80 mb-2 block">
+                    Impuesto (%)
+                  </Label>
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    value={generalSettings.impuesto_porcentaje}
+                    onChange={(e) => setGeneralSettings({ ...generalSettings, impuesto_porcentaje: parseFloat(e.target.value) })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="logoUrl" className="text-white/80 mb-2 block">
+                  URL del Logo
+                </Label>
+                <Input
+                  id="logoUrl"
+                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  placeholder="https://ejemplo.com/logo.png"
+                  value={generalSettings.logo_url || ""}
+                  onChange={(e) => setGeneralSettings({ ...generalSettings, logo_url: e.target.value })}
+                />
+              </div>
+              <div className="pt-4">
+                <Button type="submit" className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
+                  Guardar Configuración
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </TabsContent>
 
         {/* Tab Content: Perfil */}
         <TabsContent value="profile" className="mt-6 space-y-6">
@@ -187,9 +288,9 @@ export function Settings() {
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.criticalStock}
+                  checked={generalSettings.notif_stock_critico}
                   onCheckedChange={(checked: boolean) =>
-                    setNotifications({ ...notifications, criticalStock: checked })
+                    setGeneralSettings({ ...generalSettings, notif_stock_critico: checked })
                   }
                 />
               </div>
@@ -202,9 +303,9 @@ export function Settings() {
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.dailyReport}
+                  checked={generalSettings.notif_reporte_diario}
                   onCheckedChange={(checked: boolean) =>
-                    setNotifications({ ...notifications, dailyReport: checked })
+                    setGeneralSettings({ ...generalSettings, notif_reporte_diario: checked })
                   }
                 />
               </div>
@@ -217,9 +318,9 @@ export function Settings() {
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.aiSuggestions}
+                  checked={generalSettings.notif_sugerencias_ia}
                   onCheckedChange={(checked: boolean) =>
-                    setNotifications({ ...notifications, aiSuggestions: checked })
+                    setGeneralSettings({ ...generalSettings, notif_sugerencias_ia: checked })
                   }
                 />
               </div>
@@ -232,19 +333,16 @@ export function Settings() {
                   </div>
                 </div>
                 <Switch
-                  checked={notifications.lowMargin}
+                  checked={generalSettings.notif_margen_bajo}
                   onCheckedChange={(checked: boolean) =>
-                    setNotifications({ ...notifications, lowMargin: checked })
+                    setGeneralSettings({ ...generalSettings, notif_margen_bajo: checked })
                   }
                 />
               </div>
 
               <div className="pt-4">
                 <Button
-                  onClick={() => {
-                    // Aquí iría la lógica para guardar las preferencias
-                    toast.success("Preferencias de notificaciones guardadas");
-                  }}
+                  onClick={handleGeneralSubmit}
                   className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
                 >
                   Guardar Preferencias

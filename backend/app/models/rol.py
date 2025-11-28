@@ -16,8 +16,10 @@ class Rol(Base):
     fecha_creacion = Column(DateTime, default=datetime.utcnow)
     
     # Relaciones
+    # Relaciones
     usuarios = relationship("UsuarioRol", back_populates="rol")
-    permisos = relationship("PermisoRol", back_populates="rol")
+    permisos_rol = relationship("PermisoRol", back_populates="rol", cascade="all, delete-orphan")
+    permisos = relationship("Permiso", secondary="permisos_rol", viewonly=True)
 
 class Permiso(Base):
     __tablename__ = "permisos"
@@ -39,7 +41,7 @@ class PermisoRol(Base):
     permiso_id = Column(String, ForeignKey("permisos.id"), nullable=False)
     
     # Relaciones
-    rol = relationship("Rol", back_populates="permisos")
+    rol = relationship("Rol", back_populates="permisos_rol")
     permiso = relationship("Permiso", back_populates="roles")
     
     __table_args__ = (UniqueConstraint('rol_id', 'permiso_id'),)

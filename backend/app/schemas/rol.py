@@ -20,7 +20,13 @@ class RolBase(BaseModel):
     es_sistema: bool = False
 
 class RolCreate(RolBase):
-    pass
+    permisos: Optional[List[str]] = []
+
+class RolUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    es_sistema: Optional[bool] = None
+    permisos: Optional[List[str]] = None
 
 class RolResponse(RolBase):
     id: str

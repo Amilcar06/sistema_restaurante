@@ -10,16 +10,22 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import {
   ventasApi,
   enumsApi,
-  sucursalesApi
+  sucursalesApi,
+  recetasApi,
+  usuariosApi,
+  promocionesApi
 } from "../services/api";
 import {
   Venta,
   Sucursal,
-  ItemVenta
+  Receta,
+  Usuario,
+  Promocion
 } from "../types";
 import { toast } from "sonner";
 
 interface VentaFormItem {
+  receta_id?: string;
   nombre_item: string;
   cantidad: number;
   precio_unitario: number;
@@ -48,12 +54,46 @@ export function Sales() {
 
   const [paymentMethods, setPaymentMethods] = useState<string[]>([]);
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
+  const [recipes, setRecipes] = useState<Receta[]>([]);
+  const [users, setUsers] = useState<Usuario[]>([]);
+  const [promotions, setPromotions] = useState<Promocion[]>([]);
+  const [selectedPromotionId, setSelectedPromotionId] = useState<string>("none");
 
   useEffect(() => {
     loadSales();
     loadPaymentMethods();
     loadSucursales();
+    loadRecipes();
+    loadUsers();
+    loadPromotions();
   }, []);
+
+  const loadRecipes = async () => {
+    try {
+      const data = await recetasApi.obtenerTodos();
+      setRecipes(data.filter(r => r.disponible));
+    } catch (error) {
+      console.error("Error loading recipes:", error);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const data = await usuariosApi.obtenerTodos();
+      setUsers(data.filter(u => u.activo));
+    } catch (error) {
+      console.error("Error loading users:", error);
+    }
+  };
+
+  const loadPromotions = async () => {
+    try {
+      const data = await promocionesApi.obtenerTodos();
+      setPromotions(data.filter(p => p.activa));
+    } catch (error) {
+      console.error("Error loading promotions:", error);
+    }
+  };
 
   const loadSucursales = async () => {
     try {
@@ -180,18 +220,28 @@ export function Sales() {
       notas: "",
       monto_descuento: 0
     });
+    setSelectedPromotionId("none");
   };
 
   const addItem = () => {
     setFormData({
       ...formData,
-      items: [...formData.items, { nombre_item: "", cantidad: 1, precio_unitario: 0 }]
+      items: [...formData.items, { nombre_item: "", cantidad: 1, precio_unitario: 0, receta_id: undefined }]
     });
   };
 
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...formData.items];
     (newItems[index] as any)[field] = value;
+
+    if (field === "receta_id") {
+      const recipe = recipes.find(r => r.id === value);
+      if (recipe) {
+        newItems[index].nombre_item = recipe.nombre;
+        newItems[index].precio_unitario = recipe.precio;
+      }
+    }
+
     setFormData({ ...formData, items: newItems });
   };
 
@@ -206,6 +256,34 @@ export function Sales() {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-BO');
   };
+
+  const applyPromotion = () => {
+    if (selectedPromotionId === "none") {
+      setFormData(prev => ({ ...prev, monto_descuento: 0 }));
+      return;
+    }
+    const promo = promotions.find(p => p.id === selectedPromotionId);
+    if (!promo) return;
+
+    const subtotal = formData.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+    let discount = 0;
+
+    if (promo.tipo_descuento === "porcentaje") {
+      discount = subtotal * (promo.valor_descuento / 100);
+    } else if (promo.tipo_descuento === "monto_fijo") {
+      discount = promo.valor_descuento;
+    }
+
+    if (promo.descuento_maximo && discount > promo.descuento_maximo) {
+      discount = promo.descuento_maximo;
+    }
+
+    setFormData(prev => ({ ...prev, monto_descuento: discount }));
+  };
+
+  useEffect(() => {
+    applyPromotion();
+  }, [selectedPromotionId, formData.items]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -242,7 +320,7 @@ export function Sales() {
           <h1 className="text-white mb-3 text-3xl font-bold">Ventas</h1>
           <p className="text-white/60 text-base">Registra y analiza las ventas diarias</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+        <Dialog open={isDialogOpen} onOpenChange={(open: boolean) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
@@ -252,228 +330,304 @@ export function Sales() {
               Nueva Venta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-white">Registrar Nueva Venta</DialogTitle>
               <DialogDescription className="text-white/60">
                 Agrega los platos vendidos y selecciona el método de pago
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white/80">Sucursal *</Label>
+                    <Select
+                      value={formData.sucursal_id}
+                      onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
+                      required
+                    >
+                      <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                        <SelectValue placeholder="Selecciona sucursal" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                        {sucursales.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                            {loc.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Tipo de Venta</Label>
+                    <Select
+                      value={formData.tipo_venta}
+                      onValueChange={(value: "LOCAL" | "DELIVERY" | "TAKEAWAY") => setFormData({ ...formData, tipo_venta: value })}
+                    >
+                      <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                        <SelectItem value="LOCAL" className="text-white focus:bg-[#FF6B35]/20">Local</SelectItem>
+                        <SelectItem value="DELIVERY" className="text-white focus:bg-[#FF6B35]/20">Delivery</SelectItem>
+                        <SelectItem value="TAKEAWAY" className="text-white focus:bg-[#FF6B35]/20">Para Llevar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {formData.tipo_venta === "LOCAL" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white/80">Número de Mesa</Label>
+                      <Input
+                        className="bg-white/5 border-[#FF6B35]/20 text-white"
+                        placeholder="Ej: 5"
+                        value={formData.numero_mesa}
+                        onChange={(e) => setFormData({ ...formData, numero_mesa: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white/80">Mesero</Label>
+                      <Select
+                        value={formData.mesero_id}
+                        onValueChange={(value: string) => setFormData({ ...formData, mesero_id: value })}
+                      >
+                        <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                          <SelectValue placeholder="Selecciona mesero" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id} className="text-white focus:bg-[#FF6B35]/20">
+                              {user.nombre_completo || user.nombre_usuario}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                {formData.tipo_venta === "DELIVERY" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-white/80">Servicio de Delivery</Label>
+                      <Input
+                        className="bg-white/5 border-[#FF6B35]/20 text-white"
+                        placeholder="PedidosYa, Ahora, etc."
+                        value={formData.servicio_delivery}
+                        onChange={(e) => setFormData({ ...formData, servicio_delivery: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-white/80">Cliente</Label>
+                      <Input
+                        className="bg-white/5 border-[#FF6B35]/20 text-white"
+                        placeholder="Nombre del cliente"
+                        value={formData.nombre_cliente}
+                        onChange={(e) => setFormData({ ...formData, nombre_cliente: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
-                  <Label className="text-white/80">Sucursal *</Label>
+                  <Label className="text-white/80 mb-2 block">Platos</Label>
+                  <div className="space-y-2">
+                    {formData.items.map((item, index) => (
+                      <div key={index} className="flex gap-2 items-center bg-white/5 p-2 rounded">
+                        <div className="flex-1 min-w-[200px]">
+                          <Select
+                            value={item.receta_id || "custom"}
+                            onValueChange={(value: string) => {
+                              if (value === "custom") {
+                                updateItem(index, "receta_id", undefined);
+                                updateItem(index, "nombre_item", "");
+                                updateItem(index, "precio_unitario", 0);
+                              } else {
+                                updateItem(index, "receta_id", value);
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white h-10 w-full">
+                              <SelectValue placeholder="Selecciona plato" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                              <SelectItem value="custom" className="text-white/60 focus:bg-[#FF6B35]/20">
+                                (Item Manual)
+                              </SelectItem>
+                              {recipes.map((recipe) => (
+                                <SelectItem key={recipe.id} value={recipe.id} className="text-white focus:bg-[#FF6B35]/20">
+                                  {recipe.nombre}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {!item.receta_id && (
+                          <Input
+                            className="bg-white/5 border-[#FF6B35]/20 text-white flex-1"
+                            placeholder="Nombre del plato"
+                            value={item.nombre_item}
+                            onChange={(e) => updateItem(index, "nombre_item", e.target.value)}
+                            required
+                          />
+                        )}
+                        <Input
+                          type="number"
+                          className="bg-white/5 border-[#FF6B35]/20 text-white w-20"
+                          placeholder="Cant."
+                          value={item.cantidad}
+                          onChange={(e) => updateItem(index, "cantidad", parseInt(e.target.value) || 1)}
+                          required
+                          min="1"
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="bg-white/5 border-[#FF6B35]/20 text-white w-24"
+                          placeholder="Precio"
+                          value={item.precio_unitario}
+                          onChange={(e) => updateItem(index, "precio_unitario", parseFloat(e.target.value) || 0)}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItem(index)}
+                          className="text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addItem}
+                      className="w-full border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Agregar Plato
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-white/80">Promoción</Label>
+                    <Select
+                      value={selectedPromotionId}
+                      onValueChange={setSelectedPromotionId}
+                    >
+                      <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                        <SelectValue placeholder="Selecciona promoción" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
+                        <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                          (Sin promoción)
+                        </SelectItem>
+                        {promotions.map((promo) => (
+                          <SelectItem key={promo.id} value={promo.id} className="text-white focus:bg-[#FF6B35]/20">
+                            {promo.nombre} ({promo.tipo_descuento === "porcentaje" ? `${promo.valor_descuento}%` : `Bs. ${promo.valor_descuento}`})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-white/80">Descuento (Bs.)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="bg-white/5 border-[#FF6B35]/20 text-white"
+                      placeholder="0.00"
+                      value={formData.monto_descuento}
+                      onChange={(e) => setFormData({ ...formData, monto_descuento: parseFloat(e.target.value) || 0 })}
+                      min="0"
+                      readOnly={selectedPromotionId !== "none"}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-white/80">Método de Pago</Label>
                   <Select
-                    value={formData.sucursal_id}
-                    onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
-                    required
+                    value={formData.metodo_pago}
+                    onValueChange={(value: "EFECTIVO" | "QR" | "TARJETA") =>
+                      setFormData({ ...formData, metodo_pago: value })
+                    }
                   >
                     <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                      <SelectValue placeholder="Selecciona sucursal" />
+                      <SelectValue placeholder="Selecciona método de pago" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      {sucursales.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
-                          {loc.nombre}
+                      {paymentMethods.map((method) => (
+                        <SelectItem
+                          key={method}
+                          value={method}
+                          className="text-white focus:bg-[#FF6B35]/20"
+                        >
+                          {method === "EFECTIVO" ? "Efectivo" :
+                            method === "QR" ? "QR" :
+                              method === "TARJETA" ? "Tarjeta" : method}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-white/80">Tipo de Venta</Label>
-                  <Select
-                    value={formData.tipo_venta}
-                    onValueChange={(value: "LOCAL" | "DELIVERY" | "TAKEAWAY") => setFormData({ ...formData, tipo_venta: value })}
-                  >
-                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      <SelectItem value="LOCAL" className="text-white focus:bg-[#FF6B35]/20">Local</SelectItem>
-                      <SelectItem value="DELIVERY" className="text-white focus:bg-[#FF6B35]/20">Delivery</SelectItem>
-                      <SelectItem value="TAKEAWAY" className="text-white focus:bg-[#FF6B35]/20">Para Llevar</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {formData.tipo_venta === "LOCAL" && (
-                <div>
-                  <Label className="text-white/80">Número de Mesa</Label>
+                  <Label className="text-white/80">Notas</Label>
                   <Input
                     className="bg-white/5 border-[#FF6B35]/20 text-white"
-                    placeholder="Ej: 5"
-                    value={formData.numero_mesa}
-                    onChange={(e) => setFormData({ ...formData, numero_mesa: e.target.value })}
+                    placeholder="Notas adicionales (opcional)"
+                    value={formData.notas}
+                    onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
                   />
                 </div>
-              )}
-              {formData.tipo_venta === "DELIVERY" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-white/80">Servicio de Delivery</Label>
-                    <Input
-                      className="bg-white/5 border-[#FF6B35]/20 text-white"
-                      placeholder="PedidosYa, Ahora, etc."
-                      value={formData.servicio_delivery}
-                      onChange={(e) => setFormData({ ...formData, servicio_delivery: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-white/80">Cliente</Label>
-                    <Input
-                      className="bg-white/5 border-[#FF6B35]/20 text-white"
-                      placeholder="Nombre del cliente"
-                      value={formData.nombre_cliente}
-                      onChange={(e) => setFormData({ ...formData, nombre_cliente: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-              <div>
-                <Label className="text-white/80 mb-2 block">Platos</Label>
-                <div className="space-y-2">
-                  {formData.items.map((item, index) => (
-                    <div key={index} className="flex gap-2 items-center bg-white/5 p-2 rounded">
-                      <Input
-                        className="bg-white/5 border-[#FF6B35]/20 text-white flex-1"
-                        placeholder="Nombre del plato"
-                        value={item.nombre_item}
-                        onChange={(e) => updateItem(index, "nombre_item", e.target.value)}
-                        required
-                      />
-                      <Input
-                        type="number"
-                        className="bg-white/5 border-[#FF6B35]/20 text-white w-20"
-                        placeholder="Cant."
-                        value={item.cantidad}
-                        onChange={(e) => updateItem(index, "cantidad", parseInt(e.target.value) || 1)}
-                        required
-                        min="1"
-                      />
-                      <Input
-                        type="number"
-                        step="0.01"
-                        className="bg-white/5 border-[#FF6B35]/20 text-white w-24"
-                        placeholder="Precio"
-                        value={item.precio_unitario}
-                        onChange={(e) => updateItem(index, "precio_unitario", parseFloat(e.target.value) || 0)}
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeItem(index)}
-                        className="text-red-400 hover:bg-red-500/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addItem}
-                    className="w-full border-[#FF6B35]/40 text-[#FF6B35] hover:bg-[#FF6B35]/20 hover:text-white hover:border-[#FF6B35] bg-transparent"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Agregar Plato
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <Label className="text-white/80">Descuento (Bs.)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="0.00"
-                  value={formData.monto_descuento}
-                  onChange={(e) => setFormData({ ...formData, monto_descuento: parseFloat(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-              <div>
-                <Label className="text-white/80">Método de Pago</Label>
-                <Select
-                  value={formData.metodo_pago}
-                  onValueChange={(value: "EFECTIVO" | "QR" | "TARJETA") =>
-                    setFormData({ ...formData, metodo_pago: value })
-                  }
-                >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
-                    <SelectValue placeholder="Selecciona método de pago" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    {paymentMethods.map((method) => (
-                      <SelectItem
-                        key={method}
-                        value={method}
-                        className="text-white focus:bg-[#FF6B35]/20"
-                      >
-                        {method === "EFECTIVO" ? "Efectivo" :
-                          method === "QR" ? "QR" :
-                            method === "TARJETA" ? "Tarjeta" : method}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-white/80">Notas</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="Notas adicionales (opcional)"
-                  value={formData.notas}
-                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                />
-              </div>
-              <div className="pt-4 border-t border-[#FF6B35]/20">
-                {(() => {
-                  const subtotal = formData.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
-                  const impuesto = subtotal * 0.13;
-                  const total = subtotal - formData.monto_descuento + impuesto;
-                  return (
-                    <>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white/60">Subtotal:</span>
-                        <span className="text-white">
-                          Bs. {subtotal.toFixed(2)}
-                        </span>
-                      </div>
-                      {formData.monto_descuento > 0 && (
+                <div className="pt-4 border-t border-[#FF6B35]/20">
+                  {(() => {
+                    const subtotal = formData.items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+                    const impuesto = subtotal * 0.13;
+                    const total = subtotal - formData.monto_descuento + impuesto;
+                    return (
+                      <>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-white/60">Descuento:</span>
-                          <span className="text-red-400">
-                            - Bs. {formData.monto_descuento.toFixed(2)}
+                          <span className="text-white/60">Subtotal:</span>
+                          <span className="text-white">
+                            Bs. {subtotal.toFixed(2)}
                           </span>
                         </div>
-                      )}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white/60">IVA (13%):</span>
-                        <span className="text-white">
-                          Bs. {impuesto.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
-                        <span className="text-white font-semibold">Total:</span>
-                        <span className="text-[#FF6B35] text-lg font-semibold">
-                          Bs. {total.toFixed(2)}
-                        </span>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
-                disabled={formData.items.length === 0}
-              >
-                Registrar Venta
-              </Button>
-            </form>
+                        {formData.monto_descuento > 0 && (
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-white/60">Descuento:</span>
+                            <span className="text-red-400">
+                              - Bs. {formData.monto_descuento.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-white/60">IVA (13%):</span>
+                          <span className="text-white">
+                            Bs. {impuesto.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-[#FF6B35]/20">
+                          <span className="text-white font-semibold">Total:</span>
+                          <span className="text-[#FF6B35] text-lg font-semibold">
+                            Bs. {total.toFixed(2)}
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+                  disabled={formData.items.length === 0}
+                >
+                  Registrar Venta
+                </Button>
+              </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
