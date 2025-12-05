@@ -118,12 +118,12 @@ export function BusinessLocations() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-3xl font-bold mb-2">Sucursales</h1>
-          <p className="text-white/60">Gestiona las ubicaciones de tu negocio</p>
+          <h1 className="text-foreground text-3xl font-bold mb-2">Sucursales</h1>
+          <p className="text-muted-foreground">Gestiona las ubicaciones de tu negocio</p>
         </div>
         <Button
           onClick={() => handleOpenDialog()}
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nueva Sucursal
@@ -132,39 +132,39 @@ export function BusinessLocations() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Input
           placeholder="Buscar sucursales..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
+          className="pl-10 bg-muted/50 border-primary/20 text-foreground"
         />
       </div>
 
       {/* Locations List */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-[#FF6B35] animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filteredSucursales.length === 0 ? (
-        <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
-          <Building2 className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <p className="text-white/60">No hay sucursales registradas</p>
+        <Card className="bg-muted/50 border-primary/20 p-12 text-center">
+          <Building2 className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+          <p className="text-muted-foreground">No hay sucursales registradas</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredSucursales.map((sucursal) => (
             <Card
               key={sucursal.id}
-              className="bg-white/5 border-[#FF6B35]/20 p-6 hover:border-[#FF6B35]/40 transition-all"
+              className="bg-card border-primary/20 p-6 hover:border-primary/40 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-[#FF6B35]" />
+                  <MapPin className="w-5 h-5 text-primary" />
                   <div>
-                    <h3 className="text-white font-semibold">{sucursal.nombre}</h3>
+                    <h3 className="text-foreground font-semibold">{sucursal.nombre}</h3>
                     {sucursal.es_principal && (
-                      <span className="text-xs text-[#FF6B35] bg-[#FF6B35]/20 px-2 py-1 rounded">
+                      <span className="text-xs text-primary bg-primary/20 px-2 py-1 rounded">
                         Principal
                       </span>
                     )}
@@ -175,7 +175,7 @@ export function BusinessLocations() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenDialog(sucursal)}
-                    className="text-[#FF6B35] hover:bg-[#FF6B35]/20"
+                    className="text-primary hover:bg-primary/20"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -190,21 +190,21 @@ export function BusinessLocations() {
                 </div>
               </div>
               <div className="space-y-2 text-sm">
-                <p className="text-white/80">
-                  <span className="text-white/60">Dirección:</span> {sucursal.direccion}
+                <p className="text-foreground/80">
+                  <span className="text-muted-foreground">Dirección:</span> {sucursal.direccion}
                 </p>
-                <p className="text-white/80">
-                  <span className="text-white/60">Ciudad:</span> {sucursal.ciudad}
+                <p className="text-foreground/80">
+                  <span className="text-muted-foreground">Ciudad:</span> {sucursal.ciudad}
                   {sucursal.zona && `, ${sucursal.zona}`}
                 </p>
                 {sucursal.telefono && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Teléfono:</span> {sucursal.telefono}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Teléfono:</span> {sucursal.telefono}
                   </p>
                 )}
                 {sucursal.email && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Email:</span> {sucursal.email}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Email:</span> {sucursal.email}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
@@ -223,12 +223,12 @@ export function BusinessLocations() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#020617] border-[#FF6B35]/20 text-white max-w-2xl">
+        <DialogContent className="bg-card border-primary/20 text-foreground max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-foreground">
               {editingLocation ? "Editar Sucursal" : "Nueva Sucursal"}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-muted-foreground">
               {editingLocation
                 ? "Modifica los datos de la sucursal"
                 : "Completa los datos para crear una nueva sucursal"}
@@ -236,20 +236,20 @@ export function BusinessLocations() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="text-white/80">Nombre de la Sucursal *</Label>
+              <Label className="text-foreground/80">Nombre de la Sucursal *</Label>
               <Input
                 required
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="Ej: Sucursal Centro"
                 value={formData.nombre}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
               />
             </div>
             <div>
-              <Label className="text-white/80">Dirección *</Label>
+              <Label className="text-foreground/80">Dirección *</Label>
               <Input
                 required
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="Dirección completa"
                 value={formData.direccion}
                 onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
@@ -257,18 +257,18 @@ export function BusinessLocations() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white/80">Ciudad</Label>
+                <Label className="text-foreground/80">Ciudad</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="La Paz"
                   value={formData.ciudad}
                   onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Zona</Label>
+                <Label className="text-foreground/80">Zona</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Ej: Sopocachi, Centro"
                   value={formData.zona}
                   onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
@@ -277,19 +277,19 @@ export function BusinessLocations() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white/80">Teléfono</Label>
+                <Label className="text-foreground/80">Teléfono</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="777-XXXXX"
                   value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Email</Label>
+                <Label className="text-foreground/80">Email</Label>
                 <Input
                   type="email"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="sucursal@restaurante.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -302,14 +302,14 @@ export function BusinessLocations() {
                   checked={formData.es_principal}
                   onCheckedChange={(checked: boolean) => setFormData({ ...formData, es_principal: checked })}
                 />
-                <Label className="text-white/80">Sucursal Principal</Label>
+                <Label className="text-foreground/80">Sucursal Principal</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.activa}
                   onCheckedChange={(checked: boolean) => setFormData({ ...formData, activa: checked })}
                 />
-                <Label className="text-white/80">Activa</Label>
+                <Label className="text-foreground/80">Activa</Label>
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4">
@@ -317,13 +317,13 @@ export function BusinessLocations() {
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
-                className="border-[#FF6B35]/20 text-white hover:bg-white/5"
+                className="border-primary/20 text-foreground hover:bg-muted/10"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {editingLocation ? "Actualizar" : "Crear"}
               </Button>

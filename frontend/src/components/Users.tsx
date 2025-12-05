@@ -167,7 +167,7 @@ export function Users() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -177,12 +177,12 @@ export function Users() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white mb-2">Gestión de Usuarios</h1>
-          <p className="text-white/60">Administra los usuarios del sistema</p>
+          <h1 className="text-foreground mb-2">Gestión de Usuarios</h1>
+          <p className="text-muted-foreground">Administra los usuarios del sistema</p>
         </div>
         <Button
           type="button"
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
@@ -193,27 +193,27 @@ export function Users() {
         </Button>
       </div>
 
-      <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
+      <Card className="bg-card border-primary/20 p-6">
 
         <Dialog open={isDialogOpen} onOpenChange={(open: boolean) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">
+              <DialogTitle className="text-foreground">
                 {editingUser ? "Editar Usuario" : "Crear Nuevo Usuario"}
               </DialogTitle>
-              <DialogDescription className="text-white/60">
+              <DialogDescription className="text-muted-foreground">
                 {editingUser ? "Modifica los datos del usuario" : "Completa los datos para crear un nuevo usuario"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label className="text-white/80">Email</Label>
+                <Label className="text-foreground/80">Email</Label>
                 <Input
                   type="email"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="usuario@ejemplo.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -221,9 +221,9 @@ export function Users() {
                 />
               </div>
               <div>
-                <Label className="text-white/80">Nombre de Usuario</Label>
+                <Label className="text-foreground/80">Nombre de Usuario</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="usuario123"
                   value={formData.nombre_usuario}
                   onChange={(e) => setFormData({ ...formData, nombre_usuario: e.target.value })}
@@ -231,30 +231,30 @@ export function Users() {
                 />
               </div>
               <div>
-                <Label className="text-white/80">Nombre Completo</Label>
+                <Label className="text-foreground/80">Nombre Completo</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Juan Pérez"
                   value={formData.nombre_completo}
                   onChange={(e) => setFormData({ ...formData, nombre_completo: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Teléfono</Label>
+                <Label className="text-foreground/80">Teléfono</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="+591 77788990"
                   value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">
+                <Label className="text-foreground/80">
                   Contraseña {editingUser && "(dejar vacío para no cambiar)"}
                 </Label>
                 <Input
                   type="password"
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="••••••••"
                   value={formData.contrasena}
                   onChange={(e) => setFormData({ ...formData, contrasena: e.target.value })}
@@ -263,20 +263,20 @@ export function Users() {
                 />
               </div>
               <div>
-                <Label className="text-white/80">Sucursal por Defecto</Label>
+                <Label className="text-foreground/80">Sucursal por Defecto</Label>
                 <Select
                   value={formData.sucursal_default_id}
                   onValueChange={(value: string) => setFormData({ ...formData, sucursal_default_id: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
                     <SelectValue placeholder="Selecciona una sucursal" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                  <SelectContent className="bg-card border-primary/20">
+                    <SelectItem value="none" className="text-muted-foreground focus:bg-primary/20">
                       (Ninguna)
                     </SelectItem>
                     {sucursales.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-foreground focus:bg-primary/20">
                         {loc.nombre}
                       </SelectItem>
                     ))}
@@ -289,23 +289,23 @@ export function Users() {
                   checked={formData.activo}
                   onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
                 />
-                <Label htmlFor="activo" className="text-white/80">Usuario Activo</Label>
+                <Label htmlFor="activo" className="text-foreground/80">Usuario Activo</Label>
               </div>
               <div>
-                <Label className="text-white/80">Rol de Usuario</Label>
+                <Label className="text-foreground/80">Rol de Usuario</Label>
                 <Select
                   value={formData.rol_id}
                   onValueChange={(value: string) => setFormData({ ...formData, rol_id: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
                     <SelectValue placeholder="Selecciona un rol" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                  <SelectContent className="bg-card border-primary/20">
+                    <SelectItem value="none" className="text-muted-foreground focus:bg-primary/20">
                       (Sin rol específico)
                     </SelectItem>
                     {roles.map((rol) => (
-                      <SelectItem key={rol.id} value={rol.id} className="text-white focus:bg-[#FF6B35]/20">
+                      <SelectItem key={rol.id} value={rol.id} className="text-foreground focus:bg-primary/20">
                         {rol.nombre}
                       </SelectItem>
                     ))}
@@ -318,9 +318,9 @@ export function Users() {
                   checked={formData.es_superusuario}
                   onCheckedChange={(checked: boolean) => setFormData({ ...formData, es_superusuario: checked })}
                 />
-                <Label htmlFor="es_superusuario" className="text-white/80">Es Superusuario (Admin Total)</Label>
+                <Label htmlFor="es_superusuario" className="text-foreground/80">Es Superusuario (Admin Total)</Label>
               </div>
-              <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 {editingUser ? "Actualizar Usuario" : "Crear Usuario"}
               </Button>
             </form>
@@ -328,9 +328,9 @@ export function Users() {
         </Dialog>
 
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
+            className="pl-10 bg-muted/50 border-primary/20 text-foreground"
             placeholder="Buscar usuarios por nombre, email o usuario..."
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
@@ -339,46 +339,46 @@ export function Users() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white/5 border-b border-[#FF6B35]/20">
+            <thead className="bg-muted/50 border-b border-primary/20">
               <tr>
-                <th className="px-6 py-4 text-left text-white/80">Usuario</th>
-                <th className="px-6 py-4 text-left text-white/80">Email</th>
-                <th className="px-6 py-4 text-left text-white/80">Nombre</th>
-                <th className="px-6 py-4 text-left text-white/80">Teléfono</th>
-                <th className="px-6 py-4 text-left text-white/80">Estado</th>
-                <th className="px-6 py-4 text-left text-white/80">Rol</th>
-                <th className="px-6 py-4 text-left text-white/80">Acciones</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Usuario</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Email</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Nombre</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Teléfono</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Estado</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Rol</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-white/60">
+                  <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">
                     No se encontraron usuarios.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
-                    <td className="px-6 py-4 text-white">{user.nombre_usuario}</td>
-                    <td className="px-6 py-4 text-white/80">{user.email}</td>
-                    <td className="px-6 py-4 text-white/80">{user.nombre_completo || "N/A"}</td>
-                    <td className="px-6 py-4 text-white/80">{user.telefono || "N/A"}</td>
-                    <td className="px-6 py-4 text-white/80">
+                  <tr key={user.id} className="border-b border-primary/10 last:border-b-0">
+                    <td className="px-6 py-4 text-foreground">{user.nombre_usuario}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.email}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.nombre_completo || "N/A"}</td>
+                    <td className="px-6 py-4 text-foreground/80">{user.telefono || "N/A"}</td>
+                    <td className="px-6 py-4 text-foreground/80">
                       {user.activo ? (
-                        <span className="text-[#FF6B35]">Activo</span>
+                        <span className="text-primary">Activo</span>
                       ) : (
-                        <span className="text-red-400">Inactivo</span>
+                        <span className="text-destructive">Inactivo</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-white/80">
+                    <td className="px-6 py-4 text-foreground/80">
                       {user.es_superusuario ? (
                         <span className="flex items-center text-yellow-400">
                           <ShieldCheck className="w-4 h-4 mr-1" />
                           Super Admin
                         </span>
                       ) : (
-                        <span className="flex items-center text-white/60">
+                        <span className="flex items-center text-muted-foreground">
                           <Shield className="w-4 h-4 mr-1" />
                           {roles.find(r => r.id === user.rol_id)?.nombre || "Usuario"}
                         </span>
@@ -397,7 +397,7 @@ export function Users() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(user.id)}
-                        className="text-red-400 hover:bg-red-500/10"
+                        className="text-destructive hover:bg-destructive/10"
                         disabled={user.es_superusuario}
                       >
                         <Trash2 className="w-4 h-4" />

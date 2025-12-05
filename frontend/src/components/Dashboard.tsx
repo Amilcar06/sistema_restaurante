@@ -40,8 +40,8 @@ export function Dashboard() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-white mb-2">Dashboard</h1>
-          <p className="text-red-400">{error || "No se pudieron cargar los datos"}</p>
+          <h1 className="text-foreground mb-2">Dashboard</h1>
+          <p className="text-destructive">{error || "No se pudieron cargar los datos"}</p>
         </div>
       </div>
     );
@@ -102,8 +102,8 @@ export function Dashboard() {
     <div className="space-y-8 w-full relative">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-white mb-3 text-3xl font-bold">Dashboard</h1>
-        <p className="text-white/70 text-base">Resumen general de tu negocio gastronómico</p>
+        <h1 className="text-foreground mb-3 text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground text-base">Resumen general de tu negocio gastronómico</p>
       </div>
 
       {/* Stats Grid */}
@@ -113,17 +113,17 @@ export function Dashboard() {
           return (
             <Card key={`stat-${index}`} className="p-6 cursor-default relative z-0">
               <div className="flex items-start justify-between mb-4">
-                <div className="bg-surface-orange-light p-3 rounded-lg hover:bg-surface-orange-medium transition-colors">
+                <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
                   <Icon className="w-6 h-6" style={{ color: stat.color }} />
                 </div>
-                <div className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-primary" : "text-red-400"
+                <div className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-primary" : "text-destructive"
                   }`}>
                   {stat.trend === "up" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                   <span>{stat.change}</span>
                 </div>
               </div>
-              <div className="text-white/70 mb-2 text-sm font-medium">{stat.title}</div>
-              <div className="text-white text-2xl font-bold">{stat.value}</div>
+              <div className="text-muted-foreground mb-2 text-sm font-medium">{stat.title}</div>
+              <div className="text-foreground text-2xl font-bold">{stat.value}</div>
             </Card>
           );
         })}
@@ -133,7 +133,7 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Sales Chart */}
         <Card className="p-6">
-          <h3 className="text-white mb-6 text-xl font-semibold">Ventas de la Semana</h3>
+          <h3 className="text-foreground mb-6 text-xl font-semibold">Ventas de la Semana</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 107, 53, 0.1)" />
@@ -150,7 +150,7 @@ export function Dashboard() {
 
         {/* Category Distribution */}
         <Card className="p-6">
-          <h3 className="text-white mb-6 text-xl font-semibold">Distribución por Categoría</h3>
+          <h3 className="text-foreground mb-6 text-xl font-semibold">Distribución por Categoría</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -179,17 +179,17 @@ export function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top Dishes */}
         <Card className="p-6">
-          <h3 className="text-white mb-6 text-xl font-semibold">Platos Más Vendidos</h3>
+          <h3 className="text-foreground mb-6 text-xl font-semibold">Platos Más Vendidos</h3>
           <div className="space-y-3">
             {topDishes.map((dish, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-surface-orange-subtle rounded-lg hover:bg-surface-orange-light transition-colors cursor-default">
+              <div key={index} className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-default">
                 <div className="flex items-center gap-3">
                   <div className="bg-primary/20 w-10 h-10 rounded-full flex items-center justify-center text-primary font-bold">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="text-white font-medium">{dish.name}</div>
-                    <div className="text-white/60 text-sm">{dish.ventas} unidades</div>
+                    <div className="text-foreground font-medium">{dish.name}</div>
+                    <div className="text-muted-foreground text-sm">{dish.ventas} unidades</div>
                   </div>
                 </div>
                 <div className="text-primary font-semibold">Bs. {dish.ingresos}</div>
@@ -200,7 +200,7 @@ export function Dashboard() {
 
         {/* Alerts */}
         <Card className="p-6">
-          <h3 className="text-white mb-6 text-xl font-semibold">Alertas Inteligentes</h3>
+          <h3 className="text-foreground mb-6 text-xl font-semibold">Alertas Inteligentes</h3>
           <div className="space-y-3">
             {alerts.map((alert, index) => (
               <div
@@ -212,7 +212,7 @@ export function Dashboard() {
               >
                 <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${alert.tipo === "warning" ? "text-yellow-400" : "text-blue-400"
                   }`} />
-                <p className="text-white/90 leading-relaxed">{alert.mensaje}</p>
+                <p className="text-foreground/90 leading-relaxed">{alert.mensaje}</p>
               </div>
             ))}
           </div>

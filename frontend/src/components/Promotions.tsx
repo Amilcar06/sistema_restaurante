@@ -165,7 +165,7 @@ export function Promotions() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -175,12 +175,12 @@ export function Promotions() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white mb-2">Gestión de Promociones</h1>
-          <p className="text-white/60">Administra las ofertas y descuentos</p>
+          <h1 className="text-foreground mb-2">Gestión de Promociones</h1>
+          <p className="text-muted-foreground">Administra las ofertas y descuentos</p>
         </div>
         <Button
           type="button"
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={() => {
             resetForm();
             setIsDialogOpen(true);
@@ -191,26 +191,26 @@ export function Promotions() {
         </Button>
       </div>
 
-      <Card className="bg-white/5 border-[#FF6B35]/20 p-6">
+      <Card className="bg-card border-primary/20 p-6">
 
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
         }}>
-          <DialogContent className="bg-[#020617] border-[#FF6B35]/20 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-primary/20 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-white">
+              <DialogTitle className="text-foreground">
                 {editingPromotion ? "Editar Promoción" : "Crear Nueva Promoción"}
               </DialogTitle>
-              <DialogDescription className="text-white/60">
+              <DialogDescription className="text-muted-foreground">
                 {editingPromotion ? "Modifica los datos de la promoción" : "Completa los datos para crear una nueva promoción"}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label className="text-white/80">Nombre</Label>
+                <Label className="text-foreground/80">Nombre</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Ej: Descuento de Verano"
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
@@ -218,9 +218,9 @@ export function Promotions() {
                 />
               </div>
               <div>
-                <Label className="text-white/80">Descripción</Label>
+                <Label className="text-foreground/80">Descripción</Label>
                 <Textarea
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Descripción de la promoción"
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
@@ -228,31 +228,31 @@ export function Promotions() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white/80">Tipo de Descuento</Label>
+                  <Label className="text-foreground/80">Tipo de Descuento</Label>
                   <Select
                     value={formData.tipo_descuento}
                     onValueChange={(value: 'PORCENTAJE' | 'MONTO_FIJO' | '2X1') => setFormData({ ...formData, tipo_descuento: value })}
                     required
                   >
-                    <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                    <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                      <SelectItem value="PORCENTAJE" className="text-white focus:bg-[#FF6B35]/20">Porcentaje</SelectItem>
-                      <SelectItem value="MONTO_FIJO" className="text-white focus:bg-[#FF6B35]/20">Monto Fijo</SelectItem>
-                      <SelectItem value="2X1" className="text-white focus:bg-[#FF6B35]/20">2x1</SelectItem>
+                    <SelectContent className="bg-card border-primary/20">
+                      <SelectItem value="PORCENTAJE" className="text-foreground focus:bg-primary/20">Porcentaje</SelectItem>
+                      <SelectItem value="MONTO_FIJO" className="text-foreground focus:bg-primary/20">Monto Fijo</SelectItem>
+                      <SelectItem value="2X1" className="text-foreground focus:bg-primary/20">2x1</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-white/80">
+                  <Label className="text-foreground/80">
                     Valor {formData.tipo_descuento === 'PORCENTAJE' ? '(%)' : '(Bs.)'}
                   </Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    className="bg-muted/50 border-primary/20 text-foreground"
                     placeholder="0"
                     value={formData.valor_descuento}
                     onChange={(e) => setFormData({ ...formData, valor_descuento: parseFloat(e.target.value) || 0 })}
@@ -262,24 +262,24 @@ export function Promotions() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white/80">Compra Mínima (Bs.)</Label>
+                  <Label className="text-foreground/80">Compra Mínima (Bs.)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    className="bg-muted/50 border-primary/20 text-foreground"
                     placeholder="0"
                     value={formData.compra_minima || ""}
                     onChange={(e) => setFormData({ ...formData, compra_minima: e.target.value ? parseFloat(e.target.value) : undefined })}
                   />
                 </div>
                 <div>
-                  <Label className="text-white/80">Descuento Máximo (Bs.)</Label>
+                  <Label className="text-foreground/80">Descuento Máximo (Bs.)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     min="0"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    className="bg-muted/50 border-primary/20 text-foreground"
                     placeholder="0"
                     value={formData.descuento_maximo || ""}
                     onChange={(e) => setFormData({ ...formData, descuento_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
@@ -288,20 +288,20 @@ export function Promotions() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-white/80">Fecha de Inicio</Label>
+                  <Label className="text-foreground/80">Fecha de Inicio</Label>
                   <Input
                     type="datetime-local"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    className="bg-muted/50 border-primary/20 text-foreground"
                     value={formData.fecha_inicio}
                     onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
                     required
                   />
                 </div>
                 <div>
-                  <Label className="text-white/80">Fecha de Fin</Label>
+                  <Label className="text-foreground/80">Fecha de Fin</Label>
                   <Input
                     type="datetime-local"
-                    className="bg-white/5 border-[#FF6B35]/20 text-white"
+                    className="bg-muted/50 border-primary/20 text-foreground"
                     value={formData.fecha_fin}
                     onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
                     required
@@ -309,37 +309,37 @@ export function Promotions() {
                 </div>
               </div>
               <div>
-                <Label className="text-white/80">Aplicable a</Label>
+                <Label className="text-foreground/80">Aplicable a</Label>
                 <Select
                   value={formData.aplicable_a}
                   onValueChange={(value: 'TODOS' | 'RECETAS' | 'CATEGORIAS' | 'ITEMS') => setFormData({ ...formData, aplicable_a: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    <SelectItem value="TODOS" className="text-white focus:bg-[#FF6B35]/20">Todos</SelectItem>
-                    <SelectItem value="RECETAS" className="text-white focus:bg-[#FF6B35]/20">Recetas Específicas</SelectItem>
-                    <SelectItem value="CATEGORIAS" className="text-white focus:bg-[#FF6B35]/20">Categorías</SelectItem>
-                    <SelectItem value="ITEMS" className="text-white focus:bg-[#FF6B35]/20">Items Específicos</SelectItem>
+                  <SelectContent className="bg-card border-primary/20">
+                    <SelectItem value="TODOS" className="text-foreground focus:bg-primary/20">Todos</SelectItem>
+                    <SelectItem value="RECETAS" className="text-foreground focus:bg-primary/20">Recetas Específicas</SelectItem>
+                    <SelectItem value="CATEGORIAS" className="text-foreground focus:bg-primary/20">Categorías</SelectItem>
+                    <SelectItem value="ITEMS" className="text-foreground focus:bg-primary/20">Items Específicos</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-white/80">Sucursal</Label>
+                <Label className="text-foreground/80">Sucursal</Label>
                 <Select
                   value={formData.sucursal_id}
                   onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
                 >
-                  <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
+                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
                     <SelectValue placeholder="Todas las sucursales" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#020617] border-[#FF6B35]/20">
-                    <SelectItem value="none" className="text-white/60 focus:bg-[#FF6B35]/20">
+                  <SelectContent className="bg-card border-primary/20">
+                    <SelectItem value="none" className="text-muted-foreground focus:bg-primary/20">
                       Todas las sucursales
                     </SelectItem>
                     {sucursales.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-white focus:bg-[#FF6B35]/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-foreground focus:bg-primary/20">
                         {loc.nombre}
                       </SelectItem>
                     ))}
@@ -352,9 +352,9 @@ export function Promotions() {
                   checked={formData.activa}
                   onCheckedChange={(checked: boolean) => setFormData({ ...formData, activa: checked })}
                 />
-                <Label htmlFor="activa" className="text-white/80">Activa</Label>
+                <Label htmlFor="activa" className="text-foreground/80">Activa</Label>
               </div>
-              <Button type="submit" className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white">
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                 {editingPromotion ? "Actualizar Promoción" : "Crear Promoción"}
               </Button>
             </form>
@@ -362,9 +362,9 @@ export function Promotions() {
         </Dialog>
 
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
-            className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
+            className="pl-10 bg-muted/50 border-primary/20 text-foreground"
             placeholder="Buscar promociones por nombre o descripción..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -373,20 +373,20 @@ export function Promotions() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-white/5 border-b border-[#FF6B35]/20">
+            <thead className="bg-muted/50 border-b border-primary/20">
               <tr>
-                <th className="px-6 py-4 text-left text-white/80">Nombre</th>
-                <th className="px-6 py-4 text-left text-white/80">Tipo</th>
-                <th className="px-6 py-4 text-left text-white/80">Descuento</th>
-                <th className="px-6 py-4 text-left text-white/80">Período</th>
-                <th className="px-6 py-4 text-left text-white/80">Estado</th>
-                <th className="px-6 py-4 text-left text-white/80">Acciones</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Nombre</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Tipo</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Descuento</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Período</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Estado</th>
+                <th className="px-6 py-4 text-left text-foreground/80">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredPromociones.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-white/60">
+                  <td colSpan={6} className="px-6 py-4 text-center text-muted-foreground">
                     No se encontraron promociones.
                   </td>
                 </tr>
@@ -394,22 +394,22 @@ export function Promotions() {
                 filteredPromociones.map((promo) => {
                   const active = isActive(promo);
                   return (
-                    <tr key={promo.id} className="border-b border-[#FF6B35]/10 last:border-b-0">
-                      <td className="px-6 py-4 text-white">{promo.nombre}</td>
-                      <td className="px-6 py-4 text-white/80">{getDiscountTypeLabel(promo.tipo_descuento)}</td>
-                      <td className="px-6 py-4 text-white/80">
+                    <tr key={promo.id} className="border-b border-primary/10 last:border-b-0">
+                      <td className="px-6 py-4 text-foreground">{promo.nombre}</td>
+                      <td className="px-6 py-4 text-foreground/80">{getDiscountTypeLabel(promo.tipo_descuento)}</td>
+                      <td className="px-6 py-4 text-foreground/80">
                         {promo.tipo_descuento === 'PORCENTAJE'
                           ? `${promo.valor_descuento}%`
                           : `Bs. ${promo.valor_descuento.toFixed(2)}`}
                       </td>
-                      <td className="px-6 py-4 text-white/60 text-sm">
+                      <td className="px-6 py-4 text-muted-foreground text-sm">
                         {new Date(promo.fecha_inicio).toLocaleDateString('es-BO')} - {new Date(promo.fecha_fin).toLocaleDateString('es-BO')}
                       </td>
                       <td className="px-6 py-4">
                         {active ? (
                           <span className="text-green-400">Activa</span>
                         ) : (
-                          <span className="text-white/60">Inactiva</span>
+                          <span className="text-muted-foreground">Inactiva</span>
                         )}
                       </td>
                       <td className="px-6 py-4 flex gap-2">
@@ -425,7 +425,7 @@ export function Promotions() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(promo.id)}
-                          className="text-red-400 hover:bg-red-500/10"
+                          className="text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

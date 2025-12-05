@@ -7,7 +7,7 @@ import {
   ShoppingCart,
   BarChart3,
   Settings as SettingsIcon,
-  Brain,
+
   Menu,
   X,
   LogOut,
@@ -20,6 +20,7 @@ import {
   ChevronRight,
   FileText
 } from "lucide-react";
+import logoWeb from "../assets/LogoWeb.png";
 import { useAuth } from "../contexts/AuthContext";
 import { Button } from "./ui/button";
 
@@ -123,7 +124,7 @@ export function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-[100] p-2 bg-background border border-border-orange rounded-lg text-white hover:bg-surface-orange-light transition-colors shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-[100] p-2 bg-background border border-border rounded-lg text-foreground hover:bg-accent transition-colors shadow-lg"
         aria-label="Toggle menu"
       >
         {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -138,16 +139,16 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 h-screen bg-background border-r border-border-orange flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
         style={{ zIndex: isMobileMenuOpen ? 50 : 30 }}
       >
         {/* Logo */}
-        <NavLink to="/dashboard" className="p-6 border-b border-border-orange hover:bg-surface-orange-subtle transition-colors">
-          <div className="flex items-center gap-2">
-            <Brain className="w-8 h-8 text-primary" />
+        <NavLink to="/dashboard" className="p-6 border-b border-sidebar-border hover:bg-sidebar-accent transition-colors">
+          <div className="flex items-center gap-3">
+            <img src={logoWeb} alt="GastroSmart Logo" className="w-12 h-12 object-contain" />
             <div>
-              <div className="text-white">
+              <div className="text-sidebar-foreground">
                 <span className="text-primary" style={{ fontFamily: 'cursive' }}>Gastro</span>
                 <span style={{ fontFamily: 'cursive' }}>smart</span>
               </div>
@@ -168,7 +169,7 @@ export function Sidebar() {
                 {hasTitle ? (
                   <button
                     onClick={() => toggleSection(sectionKey)}
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-white/40 hover:text-white/60 transition-colors text-xs font-semibold uppercase tracking-wider"
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-sidebar-foreground/40 hover:text-sidebar-foreground/60 transition-colors text-xs font-semibold uppercase tracking-wider"
                   >
                     <span>{section.title}</span>
                     {isExpanded ? (
@@ -191,8 +192,8 @@ export function Sidebar() {
                           to={item.path}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={({ isActive: navIsActive }) => `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300 ${navIsActive || active
-                            ? "bg-surface-orange-medium text-white border border-primary shadow-glow"
-                            : "text-white/60 hover:bg-surface-orange-light hover:text-white hover:translate-x-1"
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-primary shadow-sm"
+                            : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:translate-x-1"
                             }`}
                           aria-current={active ? "page" : undefined}
                           aria-label={`Ir a ${item.label}`}
@@ -210,10 +211,10 @@ export function Sidebar() {
         </nav>
 
         {/* User Info & Logout */}
-        <div className="p-4 border-t border-border-orange space-y-3">
+        <div className="p-4 border-t border-sidebar-border space-y-3">
           {usuario && (
-            <div className="px-4 py-2 bg-surface-orange-subtle rounded-lg">
-              <div className="text-white text-sm font-medium truncate">
+            <div className="px-4 py-2 bg-sidebar-accent/50 rounded-lg">
+              <div className="text-sidebar-foreground text-sm font-medium truncate">
                 {usuario.nombre_completo || usuario.nombre_usuario}
               </div>
             </div>
@@ -221,12 +222,12 @@ export function Sidebar() {
           <Button
             onClick={handleLogout}
             variant="ghost"
-            className="w-full justify-start text-white/60 hover:text-white hover:bg-surface-orange-light"
+            className="w-full justify-start text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Cerrar Sesión
           </Button>
-          <div className="text-white/40 text-center text-xs pt-2">
+          <div className="text-sidebar-foreground/40 text-center text-xs pt-2">
             <div>v1.0.0</div>
             <div>© 2025 GastroSmart</div>
           </div>

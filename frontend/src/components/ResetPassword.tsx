@@ -20,13 +20,13 @@ export function ResetPassword() {
 
     if (!token) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#020617] p-4">
-                <Card className="w-full max-w-md bg-[#0f172a]/90 border-red-500/20 p-8 backdrop-blur-sm text-center">
-                    <h1 className="text-2xl font-bold text-white mb-4">Enlace inválido</h1>
-                    <p className="text-white/60 mb-6">
+            <div className="min-h-screen flex items-center justify-center bg-background p-4">
+                <Card className="w-full max-w-md bg-card/90 border-destructive/20 p-8 backdrop-blur-sm text-center">
+                    <h1 className="text-2xl font-bold text-foreground mb-4">Enlace inválido</h1>
+                    <p className="text-muted-foreground mb-6">
                         El enlace de recuperación no es válido o ha expirado.
                     </p>
-                    <Button asChild className="bg-[#FF6B35] hover:bg-[#FF6B35]/90">
+                    <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
                         <Link to="/forgot-password">Solicitar nuevo enlace</Link>
                     </Button>
                 </Card>
@@ -63,13 +63,13 @@ export function ResetPassword() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#020617] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10" />
 
-            <Card className="w-full max-w-md bg-[#0f172a]/90 border-[#FF6B35]/20 p-8 backdrop-blur-sm relative z-10">
+            <Card className="w-full max-w-md bg-card/90 border-primary/20 p-8 backdrop-blur-sm relative z-10">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Nueva Contraseña</h1>
-                    <p className="text-white/60">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Nueva Contraseña</h1>
+                    <p className="text-muted-foreground">
                         Ingresa tu nueva contraseña para recuperar el acceso
                     </p>
                 </div>
@@ -78,14 +78,14 @@ export function ResetPassword() {
                     <div className="text-center space-y-6">
                         <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
                             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
-                            <p className="text-white font-medium">
+                            <p className="text-foreground font-medium">
                                 ¡Contraseña actualizada!
                             </p>
                         </div>
-                        <p className="text-sm text-white/60">
+                        <p className="text-sm text-muted-foreground">
                             Serás redirigido al inicio de sesión en unos segundos...
                         </p>
-                        <Button asChild className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90">
+                        <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                             <Link to="/login">Ir al inicio de sesión</Link>
                         </Button>
                     </div>
@@ -93,14 +93,14 @@ export function ResetPassword() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="password" className="text-white">Nueva Contraseña</Label>
+                                <Label htmlFor="password" className="text-foreground">Nueva Contraseña</Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <Input
                                         id="password"
                                         type="password"
                                         placeholder="••••••••"
-                                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#FF6B35]"
+                                        className="pl-10 bg-muted/50 border-primary/10 text-foreground focus:border-primary"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -109,14 +109,14 @@ export function ResetPassword() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword" className="text-white">Confirmar Contraseña</Label>
+                                <Label htmlFor="confirmPassword" className="text-foreground">Confirmar Contraseña</Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                     <Input
                                         id="confirmPassword"
                                         type="password"
                                         placeholder="••••••••"
-                                        className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#FF6B35]"
+                                        className="pl-10 bg-muted/50 border-primary/10 text-foreground focus:border-primary"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
@@ -127,7 +127,7 @@ export function ResetPassword() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white h-11"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11"
                             disabled={isLoading}
                         >
                             {isLoading ? (
@@ -143,7 +143,7 @@ export function ResetPassword() {
                         <div className="text-center">
                             <Link
                                 to="/login"
-                                className="inline-flex items-center text-sm text-white/60 hover:text-[#FF6B35] transition-colors"
+                                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Volver al inicio de sesión

@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Slot } from "@radix-ui/react-slot@1.1.2";
-import { cva, type VariantProps } from "class-variance-authority@0.7.1";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "./utils";
 
@@ -10,17 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-primary to-primary-dark text-primary-foreground border border-primary-light shadow-glow-sm hover:shadow-glow hover:from-primary-light hover:to-primary hover:-translate-y-0.5",
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:-translate-y-0.5",
         destructive:
-          "bg-gradient-to-br from-destructive to-destructive-dark text-destructive-foreground border border-destructive-light hover:from-destructive-light hover:to-destructive hover:-translate-y-0.5",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:-translate-y-0.5",
         outline:
-          "border border-border bg-background-light text-foreground hover:bg-background-lighter hover:border-primary hover:text-primary-foreground hover:shadow-glow-sm",
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-background-light text-foreground-secondary border border-border hover:bg-background-lighter hover:border-primary/50 hover:text-foreground",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost:
-          "hover:bg-surface-orange-light hover:text-primary border border-transparent hover:border-border-orange",
+          "hover:bg-accent hover:text-accent-foreground",
         link:
-          "text-primary underline-offset-4 hover:underline hover:text-primary-light",
+          "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

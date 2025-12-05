@@ -26,7 +26,7 @@ function AppContent() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen overflow-hidden bg-[#020617]">
+      <div className="flex h-screen overflow-hidden bg-background">
         <Sidebar />
 
         {/* Spacer for desktop sidebar */}

@@ -97,7 +97,7 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
       {!isOpen && (
         <button
           onClick={onToggle}
-          className="fixed bottom-6 right-6 bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
+          className="fixed bottom-6 right-6 bg-primary hover:bg-primary/90 text-primary-foreground w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110"
           style={{ zIndex: 1000 }}
         >
           <MessageSquare className="w-6 h-6" />
@@ -106,21 +106,21 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
 
       {/* Chatbot Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-[#020617] border border-[#FF6B35]/20 rounded-lg shadow-2xl flex flex-col" style={{ zIndex: 1000 }}>
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-card border border-primary/20 rounded-lg shadow-2xl flex flex-col" style={{ zIndex: 1000 }}>
           {/* Header */}
-          <div className="bg-[#FF6B35]/10 border-b border-[#FF6B35]/20 p-4 flex items-center justify-between">
+          <div className="bg-primary/10 border-b border-primary/20 p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-[#FF6B35] w-10 h-10 rounded-full flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
+              <div className="bg-primary w-10 h-10 rounded-full flex items-center justify-center">
+                <Bot className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <div className="text-white">Asistente IA</div>
-                <div className="text-[#FF6B35]">En línea</div>
+                <div className="text-foreground">Asistente IA</div>
+                <div className="text-primary">En línea</div>
               </div>
             </div>
             <button
               onClick={onToggle}
-              className="text-white/60 hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -135,8 +135,8 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
               >
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${message.sender === "user"
-                    ? "bg-[#FF6B35] text-white"
-                    : "bg-white/5 text-white border border-[#FF6B35]/20"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/50 text-foreground border border-primary/20"
                     }`}
                 >
                   <p className="whitespace-pre-line">{message.text}</p>
@@ -148,13 +148,13 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
           {/* Quick Questions */}
           {messages.length <= 1 && (
             <div className="px-4 pb-2">
-              <div className="text-white/60 mb-2">Preguntas frecuentes:</div>
+              <div className="text-muted-foreground mb-2">Preguntas frecuentes:</div>
               <div className="flex flex-wrap gap-2">
                 {quickQuestions.map((question, index) => (
                   <button
                     key={index}
                     onClick={() => handleQuickQuestion(question)}
-                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-[#FF6B35]/20 rounded-full text-white/80 transition-colors"
+                    className="px-3 py-1 bg-muted/50 hover:bg-muted border border-primary/20 rounded-full text-foreground/80 transition-colors"
                   >
                     {question}
                   </button>
@@ -164,19 +164,19 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
           )}
 
           {/* Input */}
-          <div className="p-4 border-t border-[#FF6B35]/20">
+          <div className="p-4 border-t border-primary/20">
             <div className="flex gap-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Escribe tu pregunta..."
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
               />
               <Button
                 onClick={handleSendMessage}
                 disabled={isLoading}
-                className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white disabled:opacity-50"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

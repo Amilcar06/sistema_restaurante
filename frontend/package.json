@@ -1,6 +1,7 @@
 {
-      "name": "GastroSmart AI Project Overview",
-      "version": "0.1.0",
+      "name": "gastrosmart-ai-project-overview",
+      "version": "0.0.0",
+      "type": "module",
       "private": true,
       "dependencies": {
             "@radix-ui/react-accordion": "^1.2.3",

@@ -30,43 +30,43 @@ export function ForgotPassword() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#020617] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10" />
 
-            <Card className="w-full max-w-md bg-[#0f172a]/90 border-[#FF6B35]/20 p-8 backdrop-blur-sm relative z-10">
+            <Card className="w-full max-w-md bg-card/90 border-primary/20 p-8 backdrop-blur-sm relative z-10">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Recuperar Contraseña</h1>
-                    <p className="text-white/60">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Recuperar Contraseña</h1>
+                    <p className="text-muted-foreground">
                         Ingresa tu correo electrónico y te enviaremos las instrucciones
                     </p>
                 </div>
 
                 {isSubmitted ? (
                     <div className="text-center space-y-6">
-                        <div className="bg-[#FF6B35]/10 p-4 rounded-lg border border-[#FF6B35]/20">
-                            <Mail className="w-12 h-12 text-[#FF6B35] mx-auto mb-2" />
-                            <p className="text-white">
+                        <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                            <Mail className="w-12 h-12 text-primary mx-auto mb-2" />
+                            <p className="text-foreground">
                                 Hemos enviado un enlace de recuperación a <strong>{email}</strong>
                             </p>
                         </div>
-                        <p className="text-sm text-white/60">
+                        <p className="text-sm text-muted-foreground">
                             Revisa tu bandeja de entrada y carpeta de spam. El enlace expirará en 30 minutos.
                         </p>
-                        <Button asChild variant="outline" className="w-full border-[#FF6B35]/20 text-[#FF6B35] hover:bg-[#FF6B35]/10">
+                        <Button asChild variant="outline" className="w-full border-primary/20 text-primary hover:bg-primary/10">
                             <Link to="/login">Volver al inicio de sesión</Link>
                         </Button>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="email" className="text-white">Correo Electrónico</Label>
+                            <Label htmlFor="email" className="text-foreground">Correo Electrónico</Label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <Input
                                     id="email"
                                     type="email"
                                     placeholder="admin@gastrosmart.ai"
-                                    className="pl-10 bg-white/5 border-white/10 text-white focus:border-[#FF6B35]"
+                                    className="pl-10 bg-muted/50 border-primary/10 text-foreground focus:border-primary"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -76,7 +76,7 @@ export function ForgotPassword() {
 
                         <Button
                             type="submit"
-                            className="w-full bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white h-11"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11"
                             disabled={isLoading}
                         >
                             {isLoading ? (
@@ -92,7 +92,7 @@ export function ForgotPassword() {
                         <div className="text-center">
                             <Link
                                 to="/login"
-                                className="inline-flex items-center text-sm text-white/60 hover:text-[#FF6B35] transition-colors"
+                                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
                             >
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Volver al inicio de sesión

@@ -132,12 +132,12 @@ export function Suppliers() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-3xl font-bold mb-2">Proveedores</h1>
-          <p className="text-white/60">Gestiona tus proveedores de insumos</p>
+          <h1 className="text-foreground text-3xl font-bold mb-2">Proveedores</h1>
+          <p className="text-muted-foreground">Gestiona tus proveedores de insumos</p>
         </div>
         <Button
           onClick={() => handleOpenDialog()}
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Proveedor
@@ -146,37 +146,37 @@ export function Suppliers() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Input
           placeholder="Buscar proveedores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
+          className="pl-10 bg-muted/50 border-primary/20 text-foreground"
         />
       </div>
 
       {/* Suppliers List */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-[#FF6B35] animate-spin" />
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : filteredProveedores.length === 0 ? (
-        <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
-          <Truck className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <p className="text-white/60">No hay proveedores registrados</p>
+        <Card className="bg-muted/50 border-primary/20 p-12 text-center">
+          <Truck className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
+          <p className="text-muted-foreground">No hay proveedores registrados</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProveedores.map((proveedor) => (
             <Card
               key={proveedor.id}
-              className="bg-white/5 border-[#FF6B35]/20 p-6 hover:border-[#FF6B35]/40 transition-all"
+              className="bg-card border-primary/20 p-6 hover:border-primary/40 transition-all"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-[#FF6B35]" />
+                  <Truck className="w-5 h-5 text-primary" />
                   <div>
-                    <h3 className="text-white font-semibold">{proveedor.nombre}</h3>
+                    <h3 className="text-foreground font-semibold">{proveedor.nombre}</h3>
                     {proveedor.calificacion && (
                       <div className="flex items-center gap-1 mt-1">
                         {[...Array(5)].map((_, i) => (
@@ -184,11 +184,11 @@ export function Suppliers() {
                             key={i}
                             className={`w-3 h-3 ${i < Math.round(proveedor.calificacion!)
                               ? "text-yellow-400 fill-yellow-400"
-                              : "text-white/20"
+                              : "text-muted-foreground/20"
                               }`}
                           />
                         ))}
-                        <span className="text-xs text-white/60 ml-1">
+                        <span className="text-xs text-muted-foreground ml-1">
                           {proveedor.calificacion.toFixed(1)}
                         </span>
                       </div>
@@ -200,7 +200,7 @@ export function Suppliers() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenDialog(proveedor)}
-                    className="text-[#FF6B35] hover:bg-[#FF6B35]/20"
+                    className="text-primary hover:bg-primary/20"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -216,29 +216,29 @@ export function Suppliers() {
               </div>
               <div className="space-y-2 text-sm">
                 {proveedor.nombre_contacto && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Contacto:</span> {proveedor.nombre_contacto}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Contacto:</span> {proveedor.nombre_contacto}
                   </p>
                 )}
                 {proveedor.telefono && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Teléfono:</span> {proveedor.telefono}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Teléfono:</span> {proveedor.telefono}
                   </p>
                 )}
                 {proveedor.email && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Email:</span> {proveedor.email}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Email:</span> {proveedor.email}
                   </p>
                 )}
                 {proveedor.ciudad && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Ubicación:</span> {proveedor.ciudad}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Ubicación:</span> {proveedor.ciudad}
                     {proveedor.zona && `, ${proveedor.zona}`}
                   </p>
                 )}
                 {proveedor.terminos_pago && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Términos:</span> {proveedor.terminos_pago}
+                  <p className="text-foreground/80">
+                    <span className="text-muted-foreground">Términos:</span> {proveedor.terminos_pago}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
@@ -257,12 +257,12 @@ export function Suppliers() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#020617] border-[#FF6B35]/20 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-card border-primary/20 text-foreground max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-foreground">
               {editingSupplier ? "Editar Proveedor" : "Nuevo Proveedor"}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-muted-foreground">
               {editingSupplier
                 ? "Modifica los datos del proveedor"
                 : "Completa los datos para crear un nuevo proveedor"}
@@ -270,10 +270,10 @@ export function Suppliers() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label className="text-white/80">Nombre del Proveedor *</Label>
+              <Label className="text-foreground/80">Nombre del Proveedor *</Label>
               <Input
                 required
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="Ej: Distribuidora ABC"
                 value={formData.nombre}
                 onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
@@ -281,18 +281,18 @@ export function Suppliers() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white/80">Contacto</Label>
+                <Label className="text-foreground/80">Contacto</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Nombre del contacto"
                   value={formData.nombre_contacto}
                   onChange={(e) => setFormData({ ...formData, nombre_contacto: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Teléfono</Label>
+                <Label className="text-foreground/80">Teléfono</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="777-XXXXX"
                   value={formData.telefono}
                   onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
@@ -300,19 +300,19 @@ export function Suppliers() {
               </div>
             </div>
             <div>
-              <Label className="text-white/80">Email</Label>
+              <Label className="text-foreground/80">Email</Label>
               <Input
                 type="email"
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="proveedor@email.com"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
             <div>
-              <Label className="text-white/80">Dirección</Label>
+              <Label className="text-foreground/80">Dirección</Label>
               <Input
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="Dirección completa"
                 value={formData.direccion}
                 onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
@@ -320,18 +320,18 @@ export function Suppliers() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white/80">Ciudad</Label>
+                <Label className="text-foreground/80">Ciudad</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="La Paz"
                   value={formData.ciudad}
                   onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Zona</Label>
+                <Label className="text-foreground/80">Zona</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Ej: Sopocachi"
                   value={formData.zona}
                   onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
@@ -340,18 +340,18 @@ export function Suppliers() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-white/80">NIT / RUC</Label>
+                <Label className="text-foreground/80">NIT / RUC</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Número de identificación tributaria"
                   value={formData.nit}
                   onChange={(e) => setFormData({ ...formData, nit: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-white/80">Términos de Pago</Label>
+                <Label className="text-foreground/80">Términos de Pago</Label>
                 <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
+                  className="bg-muted/50 border-primary/20 text-foreground"
                   placeholder="Ej: 30 días, Contado"
                   value={formData.terminos_pago}
                   onChange={(e) => setFormData({ ...formData, terminos_pago: e.target.value })}
@@ -359,22 +359,22 @@ export function Suppliers() {
               </div>
             </div>
             <div>
-              <Label className="text-white/80">Calificación (1-5)</Label>
+              <Label className="text-foreground/80">Calificación (1-5)</Label>
               <Input
                 type="number"
                 min="1"
                 max="5"
                 step="0.1"
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="0"
                 value={formData.calificacion || ""}
                 onChange={(e) => setFormData({ ...formData, calificacion: parseFloat(e.target.value) || 0 })}
               />
             </div>
             <div>
-              <Label className="text-white/80">Notas</Label>
+              <Label className="text-foreground/80">Notas</Label>
               <Textarea
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
+                className="bg-muted/50 border-primary/20 text-foreground"
                 placeholder="Información adicional sobre el proveedor"
                 rows={3}
                 value={formData.notas}
@@ -386,20 +386,20 @@ export function Suppliers() {
                 checked={formData.activo}
                 onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
               />
-              <Label className="text-white/80">Proveedor Activo</Label>
+              <Label className="text-foreground/80">Proveedor Activo</Label>
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseDialog}
-                className="border-[#FF6B35]/20 text-white hover:bg-white/5"
+                className="border-primary/20 text-foreground hover:bg-muted/10"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {editingSupplier ? "Actualizar" : "Crear"}
               </Button>

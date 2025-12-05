@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     SMTP_SSL: bool = False
     
     # CORS - Accepts comma-separated string from .env or list
-    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:5173"
+    CORS_ORIGINS: Union[str, List[str]] = "http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175"
     
     # Environment
     ENVIRONMENT: str = "development"
