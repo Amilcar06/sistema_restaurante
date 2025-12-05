@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, TrendingDown, Package, ChefHat, ShoppingCart, BarChart3, AlertTriangle, Settings, Users, Building2, Tag, DollarSign } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, AlertTriangle, DollarSign } from "lucide-react";
 import { Card } from "./ui/card";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { dashboardApi } from "../services/api";
@@ -52,7 +52,7 @@ export function Dashboard() {
       title: "Ventas del Día",
       value: `Bs. ${dashboardData.estadisticas.ventas_totales_hoy.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: `${dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_ventas_porcentaje.toFixed(1)}%`,
-      trend: (dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? "up" : "down") as const,
+      trend: (dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: DollarSign,
       color: "#FF6B35"
     },
@@ -68,7 +68,7 @@ export function Dashboard() {
       title: "Platos Vendidos",
       value: dashboardData.estadisticas.platos_vendidos_hoy.toString(),
       change: `${dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_platos_porcentaje.toFixed(1)}%`,
-      trend: (dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? "up" : "down") as const,
+      trend: (dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: Package,
       color: "#FF6B35"
     },
@@ -76,7 +76,7 @@ export function Dashboard() {
       title: "Margen Promedio",
       value: `${dashboardData.estadisticas.margen_promedio.toFixed(1)}%`,
       change: `${dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_margen_porcentaje.toFixed(1)}%`,
-      trend: (dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? "up" : "down") as const,
+      trend: (dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: TrendingUp,
       color: "#FF6B35"
     },
@@ -163,7 +163,7 @@ export function Dashboard() {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {categoryDistribution.map((entry, index) => (
+                {categoryDistribution.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

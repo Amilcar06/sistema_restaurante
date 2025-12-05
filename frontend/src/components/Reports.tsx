@@ -205,7 +205,7 @@ export function Reports() {
                   dataKey="total"
                   nameKey="metodo"
                 >
-                  {metodosPago.map((entry, index) => (
+                  {metodosPago.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

@@ -135,8 +135,8 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
               >
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${message.sender === "user"
-                      ? "bg-[#FF6B35] text-white"
-                      : "bg-white/5 text-white border border-[#FF6B35]/20"
+                    ? "bg-[#FF6B35] text-white"
+                    : "bg-white/5 text-white border border-[#FF6B35]/20"
                     }`}
                 >
                   <p className="whitespace-pre-line">{message.text}</p>

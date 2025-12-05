@@ -266,7 +266,7 @@ export function Users() {
                 <Label className="text-white/80">Sucursal por Defecto</Label>
                 <Select
                   value={formData.sucursal_default_id}
-                  onValueChange={(value) => setFormData({ ...formData, sucursal_default_id: value })}
+                  onValueChange={(value: string) => setFormData({ ...formData, sucursal_default_id: value })}
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Selecciona una sucursal" />

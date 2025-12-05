@@ -209,8 +209,8 @@ export function BusinessLocations() {
                 )}
                 <div className="flex items-center gap-2 pt-2">
                   <span className={`text-xs px-2 py-1 rounded ${sucursal.activa
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-red-500/20 text-red-400"
                     }`}>
                     {sucursal.activa ? "Activa" : "Inactiva"}
                   </span>
@@ -300,14 +300,14 @@ export function BusinessLocations() {
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.es_principal}
-                  onCheckedChange={(checked) => setFormData({ ...formData, es_principal: checked })}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, es_principal: checked })}
                 />
                 <Label className="text-white/80">Sucursal Principal</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.activa}
-                  onCheckedChange={(checked) => setFormData({ ...formData, activa: checked })}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, activa: checked })}
                 />
                 <Label className="text-white/80">Activa</Label>
               </div>

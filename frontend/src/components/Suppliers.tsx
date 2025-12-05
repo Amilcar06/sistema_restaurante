@@ -183,8 +183,8 @@ export function Suppliers() {
                           <Star
                             key={i}
                             className={`w-3 h-3 ${i < Math.round(proveedor.calificacion!)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-white/20"
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-white/20"
                               }`}
                           />
                         ))}
@@ -243,8 +243,8 @@ export function Suppliers() {
                 )}
                 <div className="flex items-center gap-2 pt-2">
                   <span className={`text-xs px-2 py-1 rounded ${proveedor.activo
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
+                    ? "bg-green-500/20 text-green-400"
+                    : "bg-red-500/20 text-red-400"
                     }`}>
                     {proveedor.activo ? "Activo" : "Inactivo"}
                   </span>
@@ -384,7 +384,7 @@ export function Suppliers() {
             <div className="flex items-center gap-2 pt-2">
               <Switch
                 checked={formData.activo}
-                onCheckedChange={(checked) => setFormData({ ...formData, activo: checked })}
+                onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
               />
               <Label className="text-white/80">Proveedor Activo</Label>
             </div>

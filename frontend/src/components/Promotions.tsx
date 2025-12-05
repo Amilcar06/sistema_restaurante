@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Tag, Edit, Trash2, Loader2, Calendar, Percent } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -329,7 +329,7 @@ export function Promotions() {
                 <Label className="text-white/80">Sucursal</Label>
                 <Select
                   value={formData.sucursal_id}
-                  onValueChange={(value) => setFormData({ ...formData, sucursal_id: value })}
+                  onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
                 >
                   <SelectTrigger className="bg-white/5 border-[#FF6B35]/20 text-white">
                     <SelectValue placeholder="Todas las sucursales" />
@@ -350,7 +350,7 @@ export function Promotions() {
                 <Switch
                   id="activa"
                   checked={formData.activa}
-                  onCheckedChange={(checked) => setFormData({ ...formData, activa: checked })}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, activa: checked })}
                 />
                 <Label htmlFor="activa" className="text-white/80">Activa</Label>
               </div>
