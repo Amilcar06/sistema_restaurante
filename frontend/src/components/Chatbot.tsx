@@ -54,7 +54,7 @@ export function Chatbot({ isOpen, onToggle }: ChatbotProps) {
 
     try {
       const apiMessage: MensajeChat = {
-        mensaje: currentInput,
+        message: currentInput,
         conversation_id: conversationId
       };
 

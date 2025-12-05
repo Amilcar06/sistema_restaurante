@@ -319,7 +319,7 @@ export interface MetodoPagoReporte {
 }
 
 export interface MensajeChat {
-    mensaje: string;
+    message: string;
     conversation_id?: string;
 }
 

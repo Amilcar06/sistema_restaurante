@@ -8,9 +8,12 @@ GastroSmart AI es una plataforma tecnológica que combina Inteligencia Artificia
 
 ## 🚀 Características Principales
 
-- **Dashboard Inteligente**: Estadísticas en tiempo real y métricas clave.
-- **Gestión de Inventario**: Control de insumos, alertas de stock bajo y movimientos manuales.
-- **Recetas y Costos**: Creación de recetas detalladas con cálculo automático de costos y márgenes.
+- **Dashboard Interactivo**: Métricas clave en tiempo real (Ventas, Inventario, Costos).
+- **Chatbot IA Inteligente**: Asistente "ChefBot" integrado (Python/FastAPI) que responde sobre tu negocio usando datos reales (Ventas del día, Alertas de Stock, Rentabilidad).
+- **Gestión de Inventario**: Control de stock e insumos.
+- **Ventas y Pedidos**: Registro de ordenes y métodos de pago.
+- **Recetas y Costos**: Cálculo de márgenes y gestión de menú.
+- **Modo Demo**: Script de seeding con datos realistas para "Parrillada El Buen Gusto".
 - **Punto de Venta (POS)**: Registro ágil de ventas y control de caja.
 - **Roles y Permisos**: Sistema robusto de autenticación y autorización con roles personalizables.
 - **Chatbot con IA**: Asistente virtual para consultas sobre el negocio en lenguaje natural.

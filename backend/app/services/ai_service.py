@@ -2,11 +2,17 @@
 AI Service for Chatbot - Integrates with OpenAI or other AI providers
 """
 from app.core.config import settings
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import LLMChain
-import json
+from sqlalchemy.orm import Session
+from sqlalchemy import func, desc
+from datetime import datetime, timedelta
+
+from app.models.venta import Venta
+from app.models.item_inventario import ItemInventario
+from app.models.receta import Receta
 
 class AIService:
     def __init__(self):
@@ -16,13 +22,68 @@ class AIService:
         
         if self.api_key:
             self.llm = ChatOpenAI(
-                model=self.model,
+                model_name=self.model,
                 temperature=self.temperature,
                 openai_api_key=self.api_key
             )
         else:
             self.llm = None
     
+    def get_business_context(self, db: Session) -> Dict[str, Any]:
+        """
+        Extract real-time business context from the database
+        """
+        context = {}
+        
+        # 1. Ventas de Hoy
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        ventas_hoy = db.query(func.sum(Venta.total)).filter(
+            Venta.fecha_creacion >= today_start,
+            Venta.estado == "COMPLETADA"
+        ).scalar() or 0.0
+        
+        count_hoy = db.query(func.count(Venta.id)).filter(
+            Venta.fecha_creacion >= today_start,
+            Venta.estado == "COMPLETADA"
+        ).scalar() or 0
+        
+        context["sales"] = {
+            "today": round(ventas_hoy, 2),
+            "count_today": count_hoy
+        }
+        
+        # 2. Inventario Crítico
+        critical_items = db.query(ItemInventario).filter(
+            ItemInventario.cantidad <= ItemInventario.stock_minimo
+        ).limit(5).all()
+        
+        context["inventory"] = {
+            "critical_items": [
+                {
+                    "name": item.nombre,
+                    "quantity": item.cantidad,
+                    "unit": item.unidad,
+                    "min_stock": item.stock_minimo
+                } for item in critical_items
+            ]
+        }
+        
+        # 3. Receta más rentable (Top 3)
+        top_recipes = db.query(Receta).order_by(desc(Receta.margen)).limit(3).all()
+        
+        context["recipes"] = {
+            "most_profitable": [
+                {
+                    "name": r.nombre,
+                    "margin": round(r.margen, 2),
+                    "cost": round(r.costo, 2),
+                    "price": round(r.precio, 2)
+                } for r in top_recipes
+            ]
+        }
+        
+        return context
+
     async def get_chat_response(
         self,
         message: str,
@@ -30,10 +91,8 @@ class AIService:
     ) -> str:
         """
         Get AI response for chatbot message
-        context should contain business data: sales, inventory, recipes, etc.
         """
         if not self.llm:
-            # Fallback to rule-based responses if no API key
             return self._get_fallback_response(message, context)
         
         # Build prompt with context
@@ -43,12 +102,12 @@ class AIService:
         ])
         
         # Format context for the prompt
-        context_str = self._format_context(context) if context else "No hay datos disponibles."
+        context_str = self._format_context(context) if context else "No hay datos disponibles en este momento."
         
         try:
             chain = LLMChain(llm=self.llm, prompt=prompt_template)
             response = await chain.arun(
-                user_message=f"Contexto del negocio:\n{context_str}\n\nPregunta del usuario: {message}"
+                user_message=f"DATOS DEL NEGOCIO (Contexto Real):\n{context_str}\n\nPREGUNTA DEL USUARIO: {message}"
             )
             return response
         except Exception as e:
@@ -56,74 +115,73 @@ class AIService:
             return self._get_fallback_response(message, context)
     
     def _get_system_prompt(self) -> str:
-        return """Eres un asistente inteligente de GastroSmart AI, un sistema de control gastronómico.
-Tu función es ayudar a los propietarios de restaurantes a entender su negocio respondiendo preguntas sobre:
-- Ventas y ganancias
-- Inventario y stock
-- Recetas y costos
-- Rentabilidad y márgenes
-- Recomendaciones para mejorar el negocio
+        return """Eres 'ChefBot', el asistente inteligente de GastroSmart AI.
+Tu misión es ayudar al dueño del restaurante con información estratégica basada en los datos reales que se te proporcionan.
 
-Responde siempre en español, de forma clara y concisa. Si no tienes información suficiente, indícalo.
-Usa emojis cuando sea apropiado para hacer la respuesta más amigable."""
+Reglas:
+1. Responde SIEMPRE basándote en el 'Contexto Real' proporcionado. No inventes números.
+2. Si el contexto indica stocks bajos, sugiérele reabastecer esos productos específicos con urgencia.
+3. Sé profesional pero amable, usa emojis culinarios (🥩, 🥗, 💰) ocasionalmente.
+4. Si te preguntan algo que no está en los datos, di amablemente que no tienes esa información por ahora.
+5. Responde siempre en español.
+"""
     
     def _format_context(self, context: Dict[str, Any]) -> str:
         """Format business context for the AI prompt"""
-        context_parts = []
+        lines = []
         
+        # Sales
         if "sales" in context:
-            sales = context["sales"]
-            context_parts.append(f"Ventas de hoy: Bs. {sales.get('today', 0)}")
-            context_parts.append(f"Ventas de la semana: Bs. {sales.get('week', 0)}")
+            s = context["sales"]
+            lines.append(f"--- VENTAS DE HOY ({datetime.now().strftime('%d/%m/%Y')}) ---")
+            lines.append(f"Total Vendido: Bs. {s.get('today', 0)}")
+            lines.append(f"Cantidad de Pedidos: {s.get('count_today', 0)}")
         
-        if "inventory" in context:
-            inventory = context["inventory"]
-            critical = inventory.get("critical_items", [])
-            if critical:
-                context_parts.append(f"Insumos críticos: {', '.join([item['name'] for item in critical])}")
+        # Inventory
+        if "inventory" in context and context["inventory"].get("critical_items"):
+            lines.append("\n--- ALERTAS DE INVENTARIO (Bajo Stock) ---")
+            for item in context["inventory"]["critical_items"]:
+                lines.append(f"⚠️ {item['name']}: Quedan {item['quantity']} {item['unit']} (Mínimo requerido: {item['min_stock']})")
         
-        if "recipes" in context:
-            recipes = context["recipes"]
-            top_recipe = recipes.get("most_profitable")
-            if top_recipe:
-                context_parts.append(f"Plato más rentable: {top_recipe['name']} con margen del {top_recipe['margin']}%")
-        
-        return "\n".join(context_parts) if context_parts else "No hay datos disponibles."
+        # Recipes
+        if "recipes" in context and context["recipes"].get("most_profitable"):
+            lines.append("\n--- PLATOS MÁS RENTABLES ---")
+            for r in context["recipes"]["most_profitable"]:
+                lines.append(f"🏆 {r['name']}: Margen {r['margin']}% (Costo: {r['cost']} -> Precio: {r['price']})")
+                
+        return "\n".join(lines)
     
     def _get_fallback_response(self, message: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """Fallback rule-based responses when AI is not available"""
-        message_lower = message.lower()
+        """Simple rules engine when OpenAI is not configured"""
+        msg = message.lower()
         
-        if any(word in message_lower for word in ["gan", "ganancia", "gané"]) and "semana" in message_lower:
+        # Logic for sales
+        if "venta" in msg or "gan" in msg: # ganancia, gané
             if context and "sales" in context:
-                week_sales = context["sales"].get("week", 0)
-                return f"Esta semana has generado Bs. {week_sales:,.2f} en ventas. 📈"
-            return "Esta semana has generado Bs. 24,150 en ventas totales, con una ganancia neta de Bs. 15,890 después de costos. 📈"
-        
-        if any(word in message_lower for word in ["insumo", "stock"]) and any(word in message_lower for word in ["acab", "crítico", "bajo"]):
+                s = context["sales"]
+                return f"Hoy llevamos {s['count_today']} ventas por un total de Bs. {s['today']}. 💰"
+            return "No tengo datos de ventas en este momento."
+            
+        # Logic for inventory
+        if "stock" in msg or "falta" in msg or "comprar" in msg:
             if context and "inventory" in context:
-                critical = context["inventory"].get("critical_items", [])
-                if critical:
-                    items_str = "\n".join([f"• {item['name']}: {item['quantity']}{item.get('unit', '')} (mínimo {item.get('min_stock', 0)}{item.get('unit', '')})" for item in critical])
-                    return f"Actualmente tienes {len(critical)} insumos en estado crítico:\n\n{items_str}\n\nTe recomiendo reabastecer estos productos pronto. 🚨"
-            return "Actualmente tienes 3 insumos en estado crítico:\n\n• Papa: 2kg (mínimo 5kg)\n• Tomate: 3kg (mínimo 5kg)\n• Cebolla: 4kg (mínimo 5kg)\n\nTe recomiendo reabastecer estos productos pronto. 🚨"
+                crit = context["inventory"].get("critical_items", [])
+                if crit:
+                    items = ", ".join([f"{i['name']} ({i['quantity']}{i['unit']})" for i in crit])
+                    return f"⚠️ Atención: Tienes {len(crit)} productos con stock bajo: {items}."
+                return "✅ Todo el inventario parece estar en orden por encima del stock mínimo."
         
-        if any(word in message_lower for word in ["plato", "receta"]) and any(word in message_lower for word in ["rentable", "ganancia"]):
+        # Logic for recipes
+        if "plato" in msg or "rentable" in msg or "mejor" in msg:
             if context and "recipes" in context:
-                top = context["recipes"].get("most_profitable")
+                top = context["recipes"].get("most_profitable", [])
                 if top:
-                    return f"Tu plato más rentable es {top['name']} con un margen del {top['margin']}%. El costo de producción es Bs. {top['cost']:.2f} y lo vendes a Bs. {top['price']:.2f}, generando una ganancia de Bs. {top['price'] - top['cost']:.2f} por plato. 🏆"
-            return "Tu plato más rentable es la Sajta de Pollo con un margen del 77.9%. El costo de producción es Bs. 5.52 y lo vendes a Bs. 25, generando una ganancia de Bs. 19.48 por plato. 🏆"
+                    r = top[0]
+                    return f"Tu plato estrella por margen es: {r['name']} ({r['margin']}% de rentabilidad). 🏆"
         
-        if any(word in message_lower for word in ["ventas", "vendí"]) and "hoy" in message_lower:
-            if context and "sales" in context:
-                today_sales = context["sales"].get("today", 0)
-                count = context["sales"].get("count_today", 0)
-                return f"Hoy has registrado {count} ventas totales, con un ingreso de Bs. {today_sales:,.2f}. 💰"
-            return "Hoy has registrado 87 ventas totales, con un ingreso de Bs. 3,450. El ticket promedio es de Bs. 39.65. 💰"
-        
-        return "Entiendo tu pregunta. Puedo ayudarte con información sobre ventas, inventario, recetas, costos y rentabilidad. ¿Podrías ser más específico con lo que necesitas saber? 🤖"
+        return "Soy ChefBot. Configura tu API Key de OpenAI para que pueda responderte cualquier pregunta. Por ahora solo puedo darte datos básicos de ventas e inventario si me preguntas directamente. 🤖"
 
-# Singleton instance
+# Singleton
 ai_service = AIService()
+
 
