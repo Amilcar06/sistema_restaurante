@@ -70,20 +70,35 @@ SMTP_PASSWORD=tu_app_password
 EMAILS_FROM_EMAIL=info@gastrosmart.ai
 ```
 
-### 5. Inicializar la Base de Datos
-Ejecuta los scripts para crear las tablas y poblar datos iniciales (roles, permisos, usuario admin):
+### 5. Inicializar la Base de Datos y Datos Demo
+
+El proyecto incluye dos opciones de inicialización: una básica y una completa para demostración ("Parrillada El Buen Gusto").
+
+#### Opción A: Modo Demo (Recomendado para primera vez)
+Esta opción carga un restaurante completo con menú, inventario, 5 empleados y **200 ventas históricas** para ver el dashboard lleno.
 
 ```bash
-# 1. Reiniciar/Crear tablas (¡Cuidado! Borra datos existentes)
+# Ejecutar script de demo (Recrea tablas y datos)
+python scripts/seed_parrillada.py
+```
+
+> **🔑 Credenciales Demo (Parrillada):**
+> - **Admin (Dueño)**: `admin@parrillada.bo` / `admin123`
+> - **Mesero**: `mesero1@parrillada.bo` / `mesero123`
+> - **Gerente**: `gerente@parrillada.bo` / `gerente123`
+
+#### Opción B: Instalación Limpia (Solo Admin)
+Usa esta opción si quieres empezar tu propio restaurante desde cero.
+
+```bash
+# 1. Reiniciar tablas
 python scripts/reset_db_spanish.py
 
-# 2. Cargar datos semilla (Roles, Permisos, Admin)
+# 2. Cargar datos base (Roles y Admin)
 python scripts/seed_spanish.py
 ```
 
-> **Credenciales por defecto creadas:**
-> - **Email**: `admin@gastrosmart.ai`
-> - **Password**: `admin123`
+> **Credenciales Base:** `admin@gastrosmart.ai` / `admin123`
 
 ### 6. Ejecutar el servidor
 ```bash
@@ -127,9 +142,10 @@ El frontend estará disponible en `http://localhost:5173`.
 ## ✅ Verificación
 
 1.  Abre tu navegador en `http://localhost:5173`.
-2.  Inicia sesión con las credenciales por defecto (`admin@gastrosmart.ai` / `admin123`).
-3.  Deberías ver el Dashboard principal.
-4.  Prueba navegar a "Recetas" o "Inventario" para verificar la conexión con la base de datos.
+2.  Inicia sesión con las credenciales de la demo (`admin@parrillada.bo` / `admin123`).
+3.  **Dashboard**: Deberías ver gráficos de ventas y alertas de stock (no vacío).
+4.  **Chatbot**: Abre el chat (esquina inferior derecha) y pregunta "¿Cuánto vendí hoy?".
+5.  **Recetas/Inventario**: Navega para ver los datos precargados de carnes y bebidas.
 
 ## 🛠️ Solución de Problemas Comunes
 

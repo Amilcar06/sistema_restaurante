@@ -39,6 +39,36 @@ El proyecto utiliza una arquitectura moderna y escalable:
 - **Gráficos**: Recharts
 - **Estado**: Context API + Hooks personalizados
 
+## ⚡ Quick Start (Instalación Rápida)
+
+Si ya tienes Python, Node.js y PostgreSQL instalados:
+
+1.  **Backend**:
+    ```bash
+    cd backend
+    # Crear entorno y activar
+    python -m venv venv
+    source venv/bin/activate  # O venv\Scripts\activate en Windows
+    pip install -r requirements.txt
+    
+    # Crear datos de demo (Parrillada)
+    python scripts/seed_parrillada.py
+    
+    # Correr servidor
+    python run.py
+    ```
+
+2.  **Frontend**:
+    ```bash
+    cd frontend
+    npm install
+    npm run dev
+    ```
+
+3.  **Login**: Ve a `http://localhost:5175` y usa `admin@parrillada.bo` / `admin123`.
+
+Consulta la [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para detalles completos.
+
 ## 📚 Documentación
 
 - **Guía de Instalación Detallada**: Ver [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para instrucciones paso a paso de despliegue.
