@@ -21,10 +21,19 @@ import {
   MensajeChat,
   RespuestaChat,
   Rol,
-  Configuracion
+  Configuracion,
+  RecipeCreate,
+  RecipeUpdate,
+  CajaSesionCreate,
+  CajaSesionCerrar,
+  CajaSesion
 } from '../types';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+// Use env var but ensure we fall back to full local URL if needed.
+// Given local config issues, explicit path is safer for dev.
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL === 'http://localhost:8000'
+  ? 'http://localhost:8000/api/v1' // Append /api/v1 if env is just root
+  : ((import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1');
 
 class ApiClient {
   private baseURL: string;
@@ -71,8 +80,13 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    let url = endpoint;
+    if (params) {
+      const query = new URLSearchParams(params).toString();
+      url = `${url}?${query}`;
+    }
+    return this.request<T>(url, { method: 'GET' });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
@@ -107,11 +121,23 @@ export const inventarioApi = {
 };
 
 export const recetasApi = {
-  obtenerTodos: () => apiClient.get<Receta[]>('/recetas/'),
+  obtenerTodos: () => apiClient.get<Receta[]>("/recetas/"),
   obtenerPorId: (id: string) => apiClient.get<Receta>(`/recetas/${id}`),
-  crear: (receta: Partial<Receta>) => apiClient.post<Receta>('/recetas/', receta),
-  actualizar: (id: string, receta: Partial<Receta>) => apiClient.put<Receta>(`/recetas/${id}`, receta),
+  crear: (data: RecipeCreate) => apiClient.post<Receta>("/recetas/", data),
+  actualizar: (id: string, data: RecipeUpdate) => apiClient.put<Receta>(`/recetas/${id}`, data),
   eliminar: (id: string) => apiClient.delete(`/recetas/${id}`),
+};
+
+export const cajaApi = {
+  obtenerEstado: (sucursalId: string, usuarioId: string) => {
+    return apiClient.get<CajaSesion | null>("/caja/estado", { sucursal_id: sucursalId, usuario_id: usuarioId });
+  },
+  abrir: (data: CajaSesionCreate) => {
+    return apiClient.post<CajaSesion>("/caja/abrir", data);
+  },
+  cerrar: (id: string, data: CajaSesionCerrar) => {
+    return apiClient.post<CajaSesion>(`/caja/cerrar/${id}`, data);
+  }
 };
 
 export const ventasApi = {

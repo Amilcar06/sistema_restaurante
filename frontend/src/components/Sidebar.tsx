@@ -17,7 +17,8 @@ import {
   Tag,
   ChevronDown,
   FileText,
-  UserCircle
+  UserCircle,
+  DollarSign
 } from "lucide-react";
 import logoWeb from "../assets/LogoWeb.png";
 import { useAuth } from "../contexts/AuthContext";
@@ -29,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { CashRegisterModal } from "./CashRegisterModal";
 
 interface MenuSection {
   title?: string;
@@ -43,6 +45,7 @@ interface MenuItem {
 
 export function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCashModalOpen, setIsCashModalOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['operaciones', 'administracion']));
   const location = useLocation();
   const navigate = useNavigate();
@@ -262,6 +265,15 @@ export function Sidebar() {
           </TooltipProvider>
 
           <Button
+            onClick={() => setIsCashModalOpen(true)}
+            variant="ghost"
+            className="w-full justify-start text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors group mb-2"
+          >
+            <DollarSign className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+            <span className="font-bold">Gestionar Caja</span>
+          </Button>
+
+          <Button
             onClick={handleLogout}
             variant="ghost"
             className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors group"
@@ -275,6 +287,14 @@ export function Sidebar() {
           </div>
         </div>
       </motion.aside>
+
+      {/* Cash Register Modal */}
+      <CashRegisterModal
+        isOpen={isCashModalOpen}
+        onClose={() => setIsCashModalOpen(false)}
+        user={usuario}
+        sucursalId={(usuario as any)?.sucursal_default_id || "suc-001"} // Fallback temporal para la demo
+      />
     </>
   );
 }

@@ -110,7 +110,7 @@ def seed_data():
         print("3️⃣  Inaugurando 'Beef & Beer'...")
         
         admin_user = Usuario(
-            id=str(uuid.uuid4()),
+            id="usr-admin-001", # Fixed ID
             email="admin@beefandbeer.bo",
             nombre_usuario="admin",
             contrasena_hash=get_password_hash("admin123"),
@@ -122,7 +122,7 @@ def seed_data():
         db.commit()
 
         restaurante = Restaurante(
-            id=str(uuid.uuid4()),
+            id="rest-001", # Fixed ID
             nombre="Beef & Beer",
             propietario_id=admin_user.id,
             moneda="BOB"
@@ -131,7 +131,7 @@ def seed_data():
         db.commit()
 
         sucursal = Sucursal(
-            id=str(uuid.uuid4()),
+            id="suc-001", # Fixed ID MATCHING FRONTEND FALLBACK
             nombre="Beef & Beer - Zona Sur",
             direccion="Av. Ballivián esq. Calle 21, Calacoto",
             ciudad="La Paz",

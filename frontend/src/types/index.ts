@@ -149,6 +149,24 @@ export interface Receta {
     ingredientes: IngredienteReceta[];
 }
 
+export interface RecipeCreate {
+    nombre: string;
+    descripcion?: string;
+    categoria: string;
+    subcategoria?: string;
+    precio: number;
+    costo: number;
+    margen: number;
+    tiempo_preparacion?: number;
+    porciones: number;
+    instrucciones?: string;
+    sucursal_id?: string;
+    disponible: boolean;
+    ingredientes: IngredienteReceta[];
+}
+
+export interface RecipeUpdate extends Partial<RecipeCreate> { }
+
 export interface ItemVenta {
     id: string;
     venta_id: string;
@@ -243,6 +261,8 @@ export interface OrdenCompra {
 }
 
 // Tipos auxiliares para reportes y dashboard (adaptados a español)
+export * from './caja';
+
 export interface ResumenReporte {
     ventas_totales: number;
     costo_total: number;

@@ -22,6 +22,7 @@ from app.api.v1 import (
     configuracion,
     auth,
     password_recovery,
+    caja
     # alerts 
 )
 
@@ -31,6 +32,7 @@ api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(enums.router, prefix="/enums", tags=["enums"])
 
 # Nuevos routers en español
+api_router.include_router(caja.router, prefix="/caja", tags=["caja"])
 api_router.include_router(onboarding.router, prefix="/onboarding", tags=["onboarding"])
 api_router.include_router(usuarios.router, prefix="/usuarios", tags=["usuarios"])
 api_router.include_router(sucursales.router, prefix="/sucursales", tags=["sucursales"])

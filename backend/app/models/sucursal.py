@@ -38,3 +38,4 @@ class Sucursal(Base):
     ordenes_compra = relationship("OrdenCompra", back_populates="sucursal")
     movimientos_inventario = relationship("MovimientoInventario", back_populates="sucursal")
     usuarios_rol = relationship("UsuarioRol", back_populates="sucursal")
+    sesiones_caja = relationship("CajaSesion", back_populates="sucursal")
