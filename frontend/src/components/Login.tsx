@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Brain, Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card } from './ui/card';
+import LogoWeb from '../assets/LogoWeb.png';
 
 export function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -34,18 +36,15 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md p-8 space-y-6">
+      <Card className="w-full max-w-md p-8 space-y-6 border-border shadow-xl">
         {/* Logo y Título */}
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="bg-primary/10 p-4 rounded-full">
-              <Brain className="w-12 h-12 text-primary" />
-            </div>
+            <img src={LogoWeb} alt="GastroSmart Logo" className="h-32 w-auto object-contain" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              <span className="text-primary">Gastro</span>
-              <span className="text-foreground">Smart</span>
+              Gastro<span className="text-primary">Smart</span>
             </h1>
             <p className="text-muted-foreground mt-2">Sistema de Control Gastronómico</p>
           </div>
@@ -64,7 +63,7 @@ export function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={isSubmitting}
-              className="bg-background text-foreground placeholder:text-muted-foreground"
+              className="bg-background text-foreground placeholder:text-muted-foreground border-input focus-visible:ring-primary selection:bg-[#F26522] selection:text-[#1B1B1B]"
               autoComplete="username"
             />
           </div>
@@ -73,21 +72,31 @@ export function Login() {
             <Label htmlFor="password" className="text-foreground">
               Contraseña
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Ingresa tu contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isSubmitting}
-              className="bg-background text-foreground placeholder:text-muted-foreground"
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Ingresa tu contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
+                className="bg-background text-foreground placeholder:text-muted-foreground border-input focus-visible:ring-primary pr-10 selection:bg-[#F26522] selection:text-[#1B1B1B]"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] font-bold"
             disabled={isSubmitting || !username || !password}
           >
             {isSubmitting ? (

@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Sidebar } from "./components/Sidebar";
 import { Login } from "./components/Login";
+import { LandingPage } from "./components/LandingPage";
 import { ForgotPassword } from "./components/ForgotPassword";
 import { ResetPassword } from "./components/ResetPassword";
 import { Dashboard } from "./components/Dashboard";
@@ -32,12 +33,9 @@ function AppContent() {
         {/* Spacer for desktop sidebar */}
         <div className="hidden lg:block w-64 shrink-0" />
 
-        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-8 relative">
+        <main className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-8 relative bg-[#F4F5F7]">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<ProtectedRoute permission="gestionar_inventario"><Inventory /></ProtectedRoute>} />
             <Route path="/recipes" element={<ProtectedRoute permission="gestionar_inventario"><Recipes /></ProtectedRoute>} />
@@ -66,7 +64,10 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </AuthProvider>

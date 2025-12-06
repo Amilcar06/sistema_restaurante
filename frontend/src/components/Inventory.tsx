@@ -81,16 +81,24 @@ export function Inventory() {
       setLoadingMovements(true);
       // Nota: La API de movimientos aún no soporta filtrado complejo en el frontend refactorizado
       // por lo que cargamos todos y filtramos en cliente por ahora, o usamos el endpoint si soporta query params
+      console.log("Loading movements. Sucursal ID:", selectedSucursalId);
       const data = await movimientosApi.obtenerTodos();
+      console.log("Raw Movements Data:", data);
 
       let filtered = data;
       if (itemId) {
         filtered = filtered.filter(m => m.item_inventario_id === itemId);
       }
       if (selectedSucursalId) {
-        filtered = filtered.filter(m => m.sucursal_id === selectedSucursalId);
+        // Debug filtering
+        const exactMatch = filtered.filter(m => m.sucursal_id === selectedSucursalId);
+        const looseMatch = filtered.filter(m => String(m.sucursal_id) === String(selectedSucursalId));
+        console.log("Filtering by Sucursal:", { selectedSucursalId, exactMatchCount: exactMatch.length, looseMatchCount: looseMatch.length });
+
+        filtered = looseMatch; // Use loose match to be safe
       }
 
+      console.log("Final Filtered Movements:", filtered);
       setMovimientos(filtered);
     } catch (error) {
       console.error("Error loading movements:", error);
@@ -135,12 +143,26 @@ export function Inventory() {
         enumsApi.getInventoryCategories(),
         enumsApi.getInventoryUnits()
       ]);
-      setEnums({
-        categories: categoriesRes.categories,
-        units: unitsRes.units
-      });
+      console.log("Enums Response - Categories:", categoriesRes);
+      console.log("Enums Response - Units:", unitsRes);
+
+      const categories = categoriesRes?.categories?.length > 0
+        ? categoriesRes.categories
+        : ["Carnes", "Verduras", "Granos", "Lácteos", "Bebidas", "Condimentos", "Otros"]; // Fallback
+
+      const units = unitsRes?.units?.length > 0
+        ? unitsRes.units
+        : ["kg", "g", "L", "mL", "unid", "pza", "oz", "lb"]; // Fallback
+
+      setEnums({ categories, units });
+
     } catch (error) {
       console.error("Error loading enums:", error);
+      // Fallback on error
+      setEnums({
+        categories: ["Carnes", "Verduras", "Granos", "Lácteos", "Bebidas", "Condimentos", "Otros"],
+        units: ["kg", "g", "L", "mL", "unid", "pza", "oz", "lb"]
+      });
     }
   };
 
@@ -373,9 +395,9 @@ export function Inventory() {
 
   const getStockStatus = (item: ItemInventario) => {
     const percentage = (item.cantidad / item.stock_minimo) * 100;
-    if (percentage <= 100) return { status: "critical", color: "text-destructive", bg: "bg-destructive/10", border: "border-destructive/20" };
-    if (percentage <= 150) return { status: "low", color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" };
-    return { status: "good", color: "text-primary", bg: "bg-primary/10", border: "border-primary/20" };
+    if (percentage <= 100) return { status: "critical", color: "text-[#EA5455]", bg: "bg-[#EA5455]/10", border: "border-[#EA5455]/20" };
+    if (percentage <= 150) return { status: "low", color: "text-[#FF9F43]", bg: "bg-[#FF9F43]/10", border: "border-[#FF9F43]/20" };
+    return { status: "good", color: "text-[#28C76F]", bg: "bg-[#28C76F]/10", border: "border-[#28C76F]/20" };
   };
 
   const criticalItems = items.filter(item => item.cantidad <= item.stock_minimo).length;
@@ -420,7 +442,7 @@ export function Inventory() {
           </Button>
           <Button
             type="button"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300"
+            className="bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] shadow-lg hover:shadow-[#F26522]/50 transition-all duration-300"
             onClick={() => {
               resetForm();
               setIsDialogOpen(true);
@@ -438,9 +460,9 @@ export function Inventory() {
         setIsDialogOpen(open);
         if (!open) resetForm();
       }}>
-        <DialogContent className="bg-card border-primary/20">
+        <DialogContent className="bg-white border-[#F26522]/20 shadow-xl sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-[#1B1B1B] font-bold text-lg uppercase tracking-wide">
               {editingItem ? "Editar Insumo" : "Agregar Nuevo Insumo"}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -450,9 +472,9 @@ export function Inventory() {
           <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label className="text-foreground/80">Nombre del Insumo</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Nombre del Insumo</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                   placeholder="Ej: Tomate"
                   value={formData.nombre}
                   onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
@@ -460,18 +482,18 @@ export function Inventory() {
                 />
               </div>
               <div>
-                <Label className="text-foreground/80">Categoría</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Categoría</Label>
                 <Select
                   value={formData.categoria}
                   onValueChange={(value: string) => setFormData({ ...formData, categoria: value })}
                   required
                 >
-                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-primary/20">
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                     {enums.categories.map((cat) => (
-                      <SelectItem key={cat} value={cat} className="text-foreground focus:bg-primary/20">
+                      <SelectItem key={cat} value={cat} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                         {cat}
                       </SelectItem>
                     ))}
@@ -480,11 +502,11 @@ export function Inventory() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-foreground/80">Cantidad</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Cantidad</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    className="bg-muted/50 border-primary/20 text-foreground"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     placeholder="0"
                     value={formData.cantidad}
                     onChange={(e) => setFormData({ ...formData, cantidad: parseFloat(e.target.value) || 0 })}
@@ -492,18 +514,18 @@ export function Inventory() {
                   />
                 </div>
                 <div>
-                  <Label className="text-foreground/80">Unidad</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Unidad</Label>
                   <Select
                     value={formData.unidad}
                     onValueChange={(value: string) => setFormData({ ...formData, unidad: value })}
                     required
                   >
-                    <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                    <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                       <SelectValue placeholder="Selecciona una unidad" />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-primary/20">
+                    <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                       {enums.units.map((unit) => (
-                        <SelectItem key={unit} value={unit} className="text-foreground focus:bg-primary/20">
+                        <SelectItem key={unit} value={unit} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                           {unit}
                         </SelectItem>
                       ))}
@@ -513,11 +535,11 @@ export function Inventory() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-foreground/80">Stock Mínimo</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Stock Mínimo</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    className="bg-muted/50 border-primary/20 text-foreground"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     placeholder="0"
                     value={formData.stock_minimo}
                     onChange={(e) => setFormData({ ...formData, stock_minimo: parseFloat(e.target.value) || 0 })}
@@ -525,11 +547,11 @@ export function Inventory() {
                   />
                 </div>
                 <div>
-                  <Label className="text-foreground/80">Costo por Unidad (Bs.)</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Costo por Unidad (Bs.)</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    className="bg-muted/50 border-primary/20 text-foreground"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     placeholder="0.00"
                     value={formData.costo_unitario}
                     onChange={(e) => setFormData({ ...formData, costo_unitario: parseFloat(e.target.value) || 0 })}
@@ -538,18 +560,18 @@ export function Inventory() {
                 </div>
               </div>
               <div>
-                <Label className="text-foreground/80">Sucursal *</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Sucursal *</Label>
                 <Select
                   value={formData.sucursal_id || selectedSucursalId}
                   onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
                   required
                 >
-                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                     <SelectValue placeholder="Selecciona una sucursal" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-primary/20">
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                     {sucursales.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-foreground focus:bg-primary/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                         {loc.nombre}
                       </SelectItem>
                     ))}
@@ -557,20 +579,20 @@ export function Inventory() {
                 </Select>
               </div>
               <div>
-                <Label className="text-foreground/80">Proveedor</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Proveedor</Label>
                 <Select
                   value={formData.proveedor_id || "none"}
                   onValueChange={(value: string) => setFormData({ ...formData, proveedor_id: value === "none" ? undefined : value })}
                 >
-                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                     <SelectValue placeholder="Selecciona un proveedor" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-primary/20">
-                    <SelectItem value="none" className="text-muted-foreground focus:bg-primary/20">
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
+                    <SelectItem value="none" className="text-muted-foreground focus:bg-[#F26522]/10">
                       (Ninguno)
                     </SelectItem>
                     {proveedores.map((sup) => (
-                      <SelectItem key={sup.id} value={sup.id} className="text-foreground focus:bg-primary/20">
+                      <SelectItem key={sup.id} value={sup.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                         {sup.nombre}
                       </SelectItem>
                     ))}
@@ -579,36 +601,36 @@ export function Inventory() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-foreground/80">Stock Máximo</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Stock Máximo</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    className="bg-muted/50 border-primary/20 text-foreground"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     placeholder="Opcional"
                     value={formData.stock_maximo || ""}
                     onChange={(e) => setFormData({ ...formData, stock_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
                   />
                 </div>
                 <div>
-                  <Label className="text-foreground/80">Fecha de Caducidad</Label>
+                  <Label className="text-[#1B1B1B]/80 font-semibold">Fecha de Caducidad</Label>
                   <Input
                     type="date"
-                    className="bg-muted/50 border-primary/20 text-foreground"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     value={formData.fecha_vencimiento || ""}
                     onChange={(e) => setFormData({ ...formData, fecha_vencimiento: e.target.value || undefined })}
                   />
                 </div>
               </div>
               <div>
-                <Label className="text-foreground/80">Código de Barras</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Código de Barras</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                   placeholder="Código de barras (opcional)"
                   value={formData.codigo_barras}
                   onChange={(e) => setFormData({ ...formData, codigo_barras: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Button type="submit" className="w-full bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] font-bold shadow-md">
                 {editingItem ? "Actualizar Insumo" : "Guardar Insumo"}
               </Button>
             </form>
@@ -618,29 +640,29 @@ export function Inventory() {
 
       {/* Cost History Dialog */}
       <Dialog open={isCostHistoryDialogOpen} onOpenChange={setIsCostHistoryDialogOpen}>
-        <DialogContent className="bg-card border-primary/20">
+        <DialogContent className="bg-white border-[#F26522]/20 shadow-xl sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Historial de Costos</DialogTitle>
+            <DialogTitle className="text-[#1B1B1B] font-bold text-lg uppercase tracking-wide">Historial de Costos</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Evolución del costo unitario para: <span className="text-foreground font-medium">{editingItem?.nombre}</span>
+              Evolución del costo unitario para: <span className="text-[#F26522] font-semibold">{editingItem?.nombre}</span>
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            <div className="relative overflow-x-auto">
+            <div className="relative overflow-x-auto rounded-lg border border-[#F26522]/20">
               <table className="w-full text-sm text-left text-muted-foreground">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/50">
+                <thead className="text-xs text-[#1B1B1B] uppercase bg-[#F26522]/10 font-bold">
                   <tr>
-                    <th className="px-4 py-2">Fecha</th>
-                    <th className="px-4 py-2">Tipo</th>
-                    <th className="px-4 py-2 text-right">Costo Unit.</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Tipo</th>
+                    <th className="px-4 py-3 text-right">Costo Unit.</th>
                   </tr>
                 </thead>
                 <tbody>
                   {costHistory.map((record, index) => (
-                    <tr key={index} className="border-b border-primary/10">
+                    <tr key={index} className="border-b border-[#F26522]/10 hover:bg-[#F26522]/5">
                       <td className="px-4 py-2">{new Date(record.fecha).toLocaleDateString()}</td>
                       <td className="px-4 py-2">{record.tipo}</td>
-                      <td className="px-4 py-2 text-right font-medium text-foreground">Bs. {record.costo.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right font-medium text-[#1B1B1B]">Bs. {record.costo.toFixed(2)}</td>
                     </tr>
                   ))}
                   {costHistory.length === 0 && (
@@ -657,16 +679,16 @@ export function Inventory() {
 
       {/* Movement Dialog */}
       <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
-        <DialogContent className="bg-card border-primary/20">
+        <DialogContent className="bg-white border-[#F26522]/20 shadow-xl sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Registrar Movimiento Manual</DialogTitle>
+            <DialogTitle className="text-[#1B1B1B] font-bold text-lg uppercase tracking-wide">Registrar Movimiento</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Registra entradas, salidas, mermas o ajustes de inventario.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleMovementSubmit} className="space-y-4">
             <div>
-              <Label className="text-foreground/80">Insumo</Label>
+              <Label className="text-[#1B1B1B]/80 font-semibold">Insumo</Label>
               <Select
                 value={movementFormData.item_inventario_id}
                 onValueChange={(value: string) => {
@@ -679,12 +701,12 @@ export function Inventory() {
                 }}
                 required
               >
-                <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                   <SelectValue placeholder="Selecciona un insumo" />
                 </SelectTrigger>
-                <SelectContent className="bg-card border-primary/20">
+                <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                   {items.map((item) => (
-                    <SelectItem key={item.id} value={item.id} className="text-foreground focus:bg-primary/20">
+                    <SelectItem key={item.id} value={item.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                       {item.nombre} ({item.cantidad} {item.unidad})
                     </SelectItem>
                   ))}
@@ -692,31 +714,31 @@ export function Inventory() {
               </Select>
             </div>
             <div>
-              <Label className="text-foreground/80">Tipo de Movimiento</Label>
+              <Label className="text-[#1B1B1B]/80 font-semibold">Tipo de Movimiento</Label>
               <Select
                 value={movementFormData.tipo_movimiento}
                 onValueChange={(value: string) => setMovementFormData({ ...movementFormData, tipo_movimiento: value })}
                 required
               >
-                <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                   <SelectValue placeholder="Selecciona el tipo" />
                 </SelectTrigger>
-                <SelectContent className="bg-card border-primary/20">
-                  <SelectItem value="ENTRADA" className="text-foreground focus:bg-primary/20">ENTRADA (Compra/Reposición)</SelectItem>
-                  <SelectItem value="SALIDA" className="text-foreground focus:bg-primary/20">SALIDA (Uso interno)</SelectItem>
-                  <SelectItem value="MERMA" className="text-foreground focus:bg-primary/20">MERMA (Desperdicio/Daño)</SelectItem>
-                  <SelectItem value="AJUSTE" className="text-foreground focus:bg-primary/20">AJUSTE (Corrección de stock)</SelectItem>
-                  <SelectItem value="TRANSFERENCIA" className="text-foreground focus:bg-primary/20">TRANSFERENCIA (Entre sucursales)</SelectItem>
+                <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
+                  <SelectItem value="ENTRADA" className="text-[#1B1B1B] focus:bg-[#28C76F]/10 focus:text-[#1B1B1B]">ENTRADA (Compra/Reposición)</SelectItem>
+                  <SelectItem value="SALIDA" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">SALIDA (Uso interno)</SelectItem>
+                  <SelectItem value="MERMA" className="text-[#1B1B1B] focus:bg-[#EA5455]/10 focus:text-[#1B1B1B]">MERMA (Desperdicio/Daño)</SelectItem>
+                  <SelectItem value="AJUSTE" className="text-[#1B1B1B] focus:bg-[#FF9F43]/10 focus:text-[#1B1B1B]">AJUSTE (Corrección de stock)</SelectItem>
+                  <SelectItem value="TRANSFERENCIA" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">TRANSFERENCIA (Entre sucursales)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-foreground/80">Cantidad</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Cantidad</Label>
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-muted/50 border-primary/20 text-foreground"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                   placeholder="0"
                   value={movementFormData.cantidad}
                   onChange={(e) => setMovementFormData({ ...movementFormData, cantidad: parseFloat(e.target.value) || 0 })}
@@ -724,9 +746,9 @@ export function Inventory() {
                 />
               </div>
               <div>
-                <Label className="text-foreground/80">Unidad</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Unidad</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
+                  className="bg-gray-100 border-[#F26522]/10 text-[#1B1B1B]/70"
                   value={movementFormData.unidad}
                   readOnly
                 />
@@ -734,11 +756,11 @@ export function Inventory() {
             </div>
             {movementFormData.tipo_movimiento === "ENTRADA" && (
               <div>
-                <Label className="text-foreground/80">Costo Unitario (Bs.)</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Costo Unitario (Bs.)</Label>
                 <Input
                   type="number"
                   step="0.01"
-                  className="bg-muted/50 border-primary/20 text-foreground"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                   placeholder="Opcional"
                   value={movementFormData.costo_unitario}
                   onChange={(e) => setMovementFormData({ ...movementFormData, costo_unitario: parseFloat(e.target.value) || 0 })}
@@ -747,18 +769,18 @@ export function Inventory() {
             )}
             {movementFormData.tipo_movimiento === "TRANSFERENCIA" && (
               <div>
-                <Label className="text-foreground/80">Sucursal Destino</Label>
+                <Label className="text-[#1B1B1B]/80 font-semibold">Sucursal Destino</Label>
                 <Select
                   value={movementFormData.sucursal_destino_id}
                   onValueChange={(value: string) => setMovementFormData({ ...movementFormData, sucursal_destino_id: value })}
                   required
                 >
-                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                     <SelectValue placeholder="Selecciona sucursal destino" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-primary/20">
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                     {sucursales.filter(s => s.id !== selectedSucursalId).map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id} className="text-foreground focus:bg-primary/20">
+                      <SelectItem key={loc.id} value={loc.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                         {loc.nombre}
                       </SelectItem>
                     ))}
@@ -767,15 +789,15 @@ export function Inventory() {
               </div>
             )}
             <div>
-              <Label className="text-foreground/80">Notas / Motivo</Label>
+              <Label className="text-[#1B1B1B]/80 font-semibold">Notas / Motivo</Label>
               <Input
-                className="bg-muted/50 border-primary/20 text-foreground"
+                className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                 placeholder="Explica el motivo del movimiento"
                 value={movementFormData.notas}
                 onChange={(e) => setMovementFormData({ ...movementFormData, notas: e.target.value })}
               />
             </div>
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button type="submit" className="w-full bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] font-bold shadow-md">
               Registrar Movimiento
             </Button>
           </form>
@@ -784,17 +806,17 @@ export function Inventory() {
 
       {/* Tabs for Inventory and History */}
       <Tabs defaultValue="inventory" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-muted/50 border-primary/20 p-1 h-auto mb-6">
+        <TabsList className="grid w-full grid-cols-2 bg-background border border-[#F26522]/20 p-1 h-auto mb-8 shadow-sm rounded-lg">
           <TabsTrigger
             value="inventory"
-            className="text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-primary/10 py-2"
+            className="text-muted-foreground data-[state=active]:text-[#F26522] data-[state=active]:bg-[#F26522]/10 data-[state=active]:font-bold py-2 transition-all duration-300"
           >
             <Package className="w-4 h-4 mr-2" />
             Inventario
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-primary/10 py-2"
+            className="text-muted-foreground data-[state=active]:text-[#F26522] data-[state=active]:bg-[#F26522]/10 data-[state=active]:font-bold py-2 transition-all duration-300"
           >
             <History className="w-4 h-4 mr-2" />
             Historial de Movimientos
@@ -803,48 +825,52 @@ export function Inventory() {
 
         <TabsContent value="inventory" className="space-y-8">
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <Card className="bg-[#F26522]/10 border-[#F26522]/20 p-6 hover:bg-[#F26522]/20 transition-all duration-300 shadow-sm transform hover:-translate-y-1 hover:shadow-md">
               <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                  <Package className="w-6 h-6 text-primary" />
+                <div className="bg-white/80 p-3 rounded-lg shadow-sm">
+                  <Package className="w-6 h-6 text-[#F26522]" />
                 </div>
                 <div>
-                  <div className="text-muted-foreground mb-1 text-sm font-medium">Total de Insumos</div>
-                  <div className="text-foreground text-2xl font-bold">{items.length} productos</div>
+                  <div className="text-foreground/80 mb-1 text-sm font-bold uppercase tracking-wide">Total de Insumos</div>
+                  <div className="text-foreground text-3xl font-bold tabular-nums tracking-tight">{items.length}</div>
+                  <div className="text-xs text-foreground/60 font-medium">productos registrados</div>
                 </div>
               </div>
             </Card>
-            <Card className="bg-card border-destructive/20 p-6 hover:bg-muted/50 hover:border-destructive/40 transition-all duration-300">
+            <Card className="bg-[#EA5455]/10 border-[#EA5455]/20 p-6 hover:bg-[#EA5455]/20 transition-all duration-300 shadow-sm transform hover:-translate-y-1 hover:shadow-md">
               <div className="flex items-center gap-4">
-                <div className="bg-destructive/10 p-3 rounded-lg hover:bg-destructive/20 transition-colors">
-                  <AlertTriangle className="w-6 h-6 text-destructive" />
+                <div className="bg-white/80 p-3 rounded-lg shadow-sm">
+                  <AlertTriangle className="w-6 h-6 text-[#EA5455]" />
                 </div>
                 <div>
-                  <div className="text-muted-foreground mb-1 text-sm font-medium">Stock Crítico</div>
-                  <div className="text-foreground text-2xl font-bold">{criticalItems} items</div>
+                  <div className="text-foreground/80 mb-1 text-sm font-bold uppercase tracking-wide">Stock Crítico</div>
+                  <div className="text-foreground text-3xl font-bold tabular-nums tracking-tight">{criticalItems}</div>
+                  <div className="text-xs text-foreground/60 font-medium">requieren atención</div>
                 </div>
               </div>
             </Card>
-            <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
+            <Card className="bg-[#28C76F]/10 border-[#28C76F]/20 p-6 hover:bg-[#28C76F]/20 transition-all duration-300 shadow-sm transform hover:-translate-y-1 hover:shadow-md">
               <div className="flex items-center gap-4">
-                <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                  <CheckCircle2 className="w-6 h-6 text-primary" />
+                <div className="bg-white/80 p-3 rounded-lg shadow-sm">
+                  <CheckCircle2 className="w-6 h-6 text-[#28C76F]" />
                 </div>
                 <div>
-                  <div className="text-muted-foreground mb-1 text-sm font-medium">Valor Total</div>
-                  <div className="text-foreground text-2xl font-bold">Bs. {totalValue.toFixed(2)}</div>
+                  <div className="text-foreground/80 mb-1 text-sm font-bold uppercase tracking-wide">Valor Total</div>
+                  <div className="text-foreground text-3xl font-bold tabular-nums tracking-tight">Bs. {totalValue.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                  <div className="text-xs text-foreground/60 font-medium">en inventario</div>
                 </div>
               </div>
             </Card>
           </div>
 
           {/* Search */}
-          <Card className="bg-card border-primary/20 p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Card className="bg-background border-[#F26522]/20 p-4 shadow-sm">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-[#F26522] transition-colors" />
               <Input
-                className="pl-10 bg-muted/50 border-primary/20 text-foreground"
+                className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all"
                 placeholder="Buscar insumos por nombre o categoría..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -853,22 +879,22 @@ export function Inventory() {
           </Card>
 
           {/* Inventory Table - Desktop */}
-          <Card className="bg-card border-primary/20 overflow-hidden hidden md:block">
+          <Card className="bg-white border-[#F26522]/20 overflow-hidden hidden md:block shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-muted/50 border-b border-primary/20">
+                <thead className="bg-[#F26522]/10 border-b border-[#F26522]/20">
                   <tr>
-                    <th className="px-6 py-4 text-left text-foreground/80">Insumo</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Categoría</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Cantidad</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Stock Mínimo</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Costo/Unidad</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Proveedor</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Estado</th>
-                    <th className="px-6 py-4 text-left text-foreground/80">Acciones</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Insumo</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Categoría</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Cantidad</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Stock Mínimo</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Costo/Unidad</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Proveedor</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Estado</th>
+                    <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-primary/10">
+                <tbody className="divide-y divide-[#F26522]/10">
                   {filteredItems.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-12 text-center">
@@ -879,7 +905,7 @@ export function Inventory() {
                           </p>
                           {!searchTerm && (
                             <Button
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground mt-2"
+                              className="bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] mt-2 shadow-sm"
                               onClick={() => {
                                 resetForm();
                                 setIsDialogOpen(true);
@@ -897,27 +923,27 @@ export function Inventory() {
                       const status = getStockStatus(item);
                       const proveedor = proveedores.find(p => p.id === item.proveedor_id);
                       return (
-                        <tr key={item.id} className="hover:bg-muted/50 transition-colors border-b border-primary/10">
+                        <tr key={item.id} className="hover:bg-[#F26522]/5 transition-colors border-b border-[#F26522]/10">
                           <td className="px-6 py-4">
-                            <div className="text-foreground font-medium">{item.nombre}</div>
+                            <div className="text-[#1B1B1B] font-bold">{item.nombre}</div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="px-3 py-1 bg-muted rounded-full text-muted-foreground text-sm font-medium">{item.categoria}</span>
+                            <span className="px-3 py-1 bg-[#F4F5F7] rounded-full text-[#1B1B1B]/70 text-sm font-medium border border-[#F26522]/10">{item.categoria}</span>
                           </td>
-                          <td className="px-6 py-4 text-foreground font-medium">
+                          <td className="px-6 py-4 text-[#1B1B1B] font-medium tabular-nums">
                             {item.cantidad} {item.unidad}
                           </td>
-                          <td className="px-6 py-4 text-muted-foreground">
+                          <td className="px-6 py-4 text-[#1B1B1B]/60 tabular-nums">
                             {item.stock_minimo} {item.unidad}
                           </td>
-                          <td className="px-6 py-4 text-foreground font-semibold">
+                          <td className="px-6 py-4 text-[#1B1B1B] font-semibold tabular-nums">
                             Bs. {item.costo_unitario.toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 text-muted-foreground">
+                          <td className="px-6 py-4 text-[#1B1B1B]/60">
                             {proveedor?.nombre || "-"}
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${status.bg} ${status.border} border ${status.color}`}>
+                            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold ${status.bg} ${status.border} border ${status.color}`}>
                               {status.status === "critical" && <AlertTriangle className="w-4 h-4" />}
                               {status.status === "low" && <AlertTriangle className="w-4 h-4" />}
                               {status.status === "good" && <CheckCircle2 className="w-4 h-4" />}
@@ -933,7 +959,7 @@ export function Inventory() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleViewCostHistory(item)}
-                                className="text-foreground hover:bg-blue-500/20 hover:text-blue-400 transition-all"
+                                className="text-[#1B1B1B]/60 hover:bg-[#F26522]/10 hover:text-[#F26522]"
                                 title="Ver Historial de Costos"
                               >
                                 <History className="w-4 h-4" />
@@ -943,7 +969,7 @@ export function Inventory() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEdit(item)}
-                                className="text-foreground hover:bg-primary/20 hover:text-primary transition-all"
+                                className="text-[#1B1B1B]/60 hover:bg-[#F26522]/10 hover:text-[#F26522]"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -952,7 +978,7 @@ export function Inventory() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(item.id)}
-                                className="text-foreground hover:bg-destructive/20 hover:text-destructive transition-all"
+                                className="text-[#1B1B1B]/60 hover:bg-[#EA5455]/10 hover:text-[#EA5455]"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -1017,9 +1043,9 @@ export function Inventory() {
         </TabsContent>
 
         <TabsContent value="history" className="space-y-6">
-          <Card className="bg-card border-primary/20 p-6">
+          <Card className="bg-white border-[#F26522]/20 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-foreground text-lg font-semibold">Historial de Movimientos</h3>
+              <h3 className="text-[#1B1B1B] text-lg font-bold uppercase tracking-wide">Historial de Movimientos</h3>
               <div className="flex gap-2">
                 <Select
                   value={selectedItemForHistory || "all"}
@@ -1028,15 +1054,15 @@ export function Inventory() {
                     loadMovements(value === "all" ? null : value);
                   }}
                 >
-                  <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground w-64">
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] w-64 focus:border-[#F26522] focus:ring-[#F26522]/20">
                     <SelectValue placeholder="Filtrar por item" />
                   </SelectTrigger>
-                  <SelectContent className="bg-card border-primary/20">
-                    <SelectItem value="all" className="text-foreground focus:bg-primary/20">
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
+                    <SelectItem value="all" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                       Todos los items
                     </SelectItem>
                     {items.map((item) => (
-                      <SelectItem key={item.id} value={item.id} className="text-foreground focus:bg-primary/20">
+                      <SelectItem key={item.id} value={item.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                         {item.nombre}
                       </SelectItem>
                     ))}
@@ -1047,64 +1073,67 @@ export function Inventory() {
 
             {loadingMovements ? (
               <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#F26522]" />
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-muted/50 border-b border-primary/20">
+                  <thead className="bg-[#F26522]/10 border-b border-[#F26522]/20">
                     <tr>
-                      <th className="px-6 py-4 text-left text-foreground/80">Fecha</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Item</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Tipo</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Cantidad</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Costo Unit.</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Referencia</th>
-                      <th className="px-6 py-4 text-left text-foreground/80">Notas</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Fecha</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Item</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Tipo</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Cantidad</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Costo Unit.</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Referencia</th>
+                      <th className="px-6 py-4 text-left text-[#1B1B1B] font-bold text-xs uppercase tracking-wider">Notas</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#F26522]/10">
                     {movimientos.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">
-                          No se encontraron movimientos.
+                        <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                          <div className="flex flex-col items-center gap-2">
+                            <History className="w-12 h-12 text-muted-foreground/30" />
+                            <p className="font-medium">No se encontraron movimientos.</p>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       movimientos.map((movement) => {
                         const item = items.find(i => i.id === movement.item_inventario_id);
                         const movementTypeColors: Record<string, string> = {
-                          ENTRADA: "text-green-400",
-                          SALIDA: "text-red-400",
-                          AJUSTE: "text-yellow-400",
-                          MERMA: "text-orange-400",
-                          CADUCIDAD: "text-red-500",
-                          ROBO: "text-red-600",
-                          TRANSFERENCIA: "text-blue-400"
+                          ENTRADA: "text-[#28C76F]",
+                          SALIDA: "text-[#EA5455]",
+                          AJUSTE: "text-[#FF9F43]",
+                          MERMA: "text-[#EA5455]",
+                          CADUCIDAD: "text-[#EA5455]",
+                          ROBO: "text-[#EA5455]",
+                          TRANSFERENCIA: "text-[#7367F0]"
                         };
                         return (
-                          <tr key={movement.id} className="hover:bg-muted/50 transition-colors border-b border-primary/10">
-                            <td className="px-6 py-4 text-muted-foreground">
+                          <tr key={movement.id} className="hover:bg-[#F26522]/5 transition-colors border-b border-[#F26522]/10">
+                            <td className="px-6 py-4 text-[#1B1B1B]/80 tabular-nums">
                               {new Date(movement.fecha_creacion).toLocaleDateString()}
                             </td>
-                            <td className="px-6 py-4 text-foreground font-medium">
+                            <td className="px-6 py-4 text-[#1B1B1B] font-medium">
                               {item?.nombre || "Item desconocido"}
                             </td>
                             <td className="px-6 py-4">
-                              <span className={`font-medium ${movementTypeColors[movement.tipo_movimiento] || "text-foreground"}`}>
+                              <span className={`font-bold text-xs uppercase tracking-wide ${movementTypeColors[movement.tipo_movimiento] || "text-[#1B1B1B]"}`}>
                                 {movement.tipo_movimiento}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-foreground">
+                            <td className="px-6 py-4 text-[#1B1B1B] font-medium tabular-nums">
                               {movement.cantidad} {movement.unidad}
                             </td>
-                            <td className="px-6 py-4 text-muted-foreground">
+                            <td className="px-6 py-4 text-[#1B1B1B]/60 tabular-nums">
                               {movement.costo_unitario ? `Bs. ${movement.costo_unitario.toFixed(2)}` : "-"}
                             </td>
-                            <td className="px-6 py-4 text-muted-foreground">
+                            <td className="px-6 py-4 text-[#1B1B1B]/60 text-xs">
                               {movement.referencia_id ? `${movement.tipo_referencia} #${movement.referencia_id.slice(0, 8)}` : "-"}
                             </td>
-                            <td className="px-6 py-4 text-muted-foreground text-sm">
+                            <td className="px-6 py-4 text-[#1B1B1B]/60 text-sm max-w-[200px] truncate" title={movement.notas}>
                               {movement.notas || "-"}
                             </td>
                           </tr>

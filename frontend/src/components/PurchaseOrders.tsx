@@ -171,11 +171,11 @@ export function PurchaseOrders() {
             )}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-foreground mb-3 text-3xl font-bold">Órdenes de Compra</h1>
+                    <h1 className="text-[#1B1B1B] mb-3 text-3xl font-bold">Órdenes de Compra</h1>
                     <p className="text-muted-foreground text-base">Gestiona tus pedidos a proveedores</p>
                 </div>
                 <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                    className="bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] shadow-lg hover:shadow-[#F26522]/50 transition-all duration-300 font-bold"
                     onClick={() => setIsDialogOpen(true)}
                 >
                     <Plus className="w-4 h-4 mr-2" />
@@ -183,11 +183,11 @@ export function PurchaseOrders() {
                 </Button>
             </div>
 
-            <Card className="bg-card border-primary/20 p-4">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Card className="bg-white border-[#F26522]/20 p-4 shadow-sm">
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-[#F26522] transition-colors" />
                     <Input
-                        className="pl-10 bg-muted/50 border-primary/20 text-foreground"
+                        className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all"
                         placeholder="Buscar por número de orden o proveedor..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -199,20 +199,20 @@ export function PurchaseOrders() {
                 {filteredOrders.map((order) => {
                     const supplier = suppliers.find(s => s.id === order.proveedor_id);
                     return (
-                        <Card key={order.id} className="bg-card border-primary/20 p-6 hover:bg-muted/50 transition-all">
+                        <Card key={order.id} className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-foreground font-bold text-lg">{order.numero_orden}</h3>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium 
-                      ${order.estado === 'PENDIENTE' ? 'bg-yellow-500/20 text-yellow-500' :
-                                                order.estado === 'RECIBIDA' ? 'bg-green-500/20 text-green-500' :
-                                                    'bg-destructive/20 text-destructive'}`}>
+                                        <h3 className="text-[#1B1B1B] font-bold text-lg tabular-nums tracking-wide">{order.numero_orden}</h3>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wide
+                      ${order.estado === 'PENDIENTE' ? 'bg-[#FF9F43]/10 text-[#FF9F43] border border-[#FF9F43]/20' :
+                                                order.estado === 'RECIBIDA' ? 'bg-[#28C76F]/10 text-[#28C76F] border border-[#28C76F]/20' :
+                                                    'bg-[#EA5455]/10 text-[#EA5455] border border-[#EA5455]/20'}`}>
                                             {order.estado}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                                        <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-4 text-[#1B1B1B]/60 text-sm font-medium">
+                                        <div className="flex items-center gap-1 group-hover:text-[#F26522] transition-colors">
                                             <Truck className="w-4 h-4" />
                                             {supplier?.nombre || "Proveedor desconocido"}
                                         </div>
@@ -223,8 +223,8 @@ export function PurchaseOrders() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-foreground font-bold text-xl mb-1">Bs. {order.monto_total.toFixed(2)}</div>
-                                    <div className="text-muted-foreground text-sm">{order.items.length} items</div>
+                                    <div className="text-[#F26522] font-bold text-xl mb-1 tabular-nums tracking-tight">Bs. {order.monto_total.toFixed(2)}</div>
+                                    <div className="text-[#1B1B1B]/60 text-sm font-medium">{order.items.length} items</div>
                                 </div>
                             </div>
                         </Card>
@@ -238,27 +238,27 @@ export function PurchaseOrders() {
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="bg-card border-primary/20 max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-foreground">Nueva Orden de Compra</DialogTitle>
-                        <DialogDescription className="text-muted-foreground">Crea un nuevo pedido a proveedor</DialogDescription>
+                <DialogContent className="bg-white border-[#F26522]/20 max-w-3xl flex flex-col p-0 overflow-hidden">
+                    <DialogHeader className="px-6 py-4 border-b border-[#F26522]/10 bg-[#F26522]/5">
+                        <DialogTitle className="text-[#1B1B1B] text-xl font-bold uppercase tracking-wide">Nueva Orden de Compra</DialogTitle>
+                        <DialogDescription className="text-[#1B1B1B]/60">Crea un nuevo pedido a proveedor</DialogDescription>
                     </DialogHeader>
-                    <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
+                    <div className="flex-1 overflow-y-auto px-6 py-4">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label className="text-foreground/80">Proveedor</Label>
+                                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Proveedor</Label>
                                     <Select
                                         value={formData.proveedor_id}
                                         onValueChange={(value: string) => setFormData({ ...formData, proveedor_id: value })}
                                         required
                                     >
-                                        <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                                        <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                                             <SelectValue placeholder="Selecciona proveedor" />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-card border-primary/20">
+                                        <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                                             {suppliers.map((s) => (
-                                                <SelectItem key={s.id} value={s.id} className="text-foreground focus:bg-primary/20">
+                                                <SelectItem key={s.id} value={s.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                                                     {s.nombre}
                                                 </SelectItem>
                                             ))}
@@ -266,7 +266,7 @@ export function PurchaseOrders() {
                                     </Select>
                                 </div>
                                 <div>
-                                    <Label className="text-foreground/80">Sucursal</Label>
+                                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Sucursal</Label>
                                     <Select
                                         value={formData.sucursal_id}
                                         onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}

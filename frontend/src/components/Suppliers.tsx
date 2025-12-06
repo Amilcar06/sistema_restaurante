@@ -132,12 +132,12 @@ export function Suppliers() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground text-3xl font-bold mb-2">Proveedores</h1>
-          <p className="text-muted-foreground">Gestiona tus proveedores de insumos</p>
+          <h1 className="text-[#1B1B1B] text-3xl font-bold mb-2 uppercase tracking-tight">Proveedores</h1>
+          <p className="text-[#1B1B1B]/60 font-medium">Gestiona tus proveedores de insumos</p>
         </div>
         <Button
           onClick={() => handleOpenDialog()}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-lg transition-all"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Proveedor
@@ -146,105 +146,107 @@ export function Suppliers() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1B1B1B]/40 w-5 h-5" />
         <Input
           placeholder="Buscar proveedores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-muted/50 border-primary/20 text-foreground"
+          className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
         />
       </div>
 
       {/* Suppliers List */}
       {loading ? (
         <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <Loader2 className="w-8 h-8 text-[#F26522] animate-spin" />
         </div>
       ) : filteredProveedores.length === 0 ? (
-        <Card className="bg-muted/50 border-primary/20 p-12 text-center">
-          <Truck className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-          <p className="text-muted-foreground">No hay proveedores registrados</p>
+        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
+          <Truck className="w-16 h-16 text-[#1B1B1B]/20 mx-auto mb-4" />
+          <p className="text-[#1B1B1B]/60 font-medium">No hay proveedores registrados</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProveedores.map((proveedor) => (
             <Card
               key={proveedor.id}
-              className="bg-card border-primary/20 p-6 hover:border-primary/40 transition-all"
+              className="bg-white border-[#F26522]/20 p-6 hover:shadow-lg transition-all duration-300 group hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-primary" />
+                  <div className="p-2 bg-[#F26522]/10 rounded-lg group-hover:bg-[#F26522] transition-colors duration-300">
+                    <Truck className="w-5 h-5 text-[#F26522] group-hover:text-white transition-colors duration-300" />
+                  </div>
                   <div>
-                    <h3 className="text-foreground font-semibold">{proveedor.nombre}</h3>
+                    <h3 className="text-[#1B1B1B] font-bold uppercase tracking-wide">{proveedor.nombre}</h3>
                     {proveedor.calificacion && (
                       <div className="flex items-center gap-1 mt-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             className={`w-3 h-3 ${i < Math.round(proveedor.calificacion!)
-                              ? "text-yellow-400 fill-yellow-400"
-                              : "text-muted-foreground/20"
+                              ? "text-yellow-500 fill-yellow-500"
+                              : "text-[#1B1B1B]/10"
                               }`}
                           />
                         ))}
-                        <span className="text-xs text-muted-foreground ml-1">
+                        <span className="text-xs text-[#1B1B1B]/60 ml-1 font-mono">
                           {proveedor.calificacion.toFixed(1)}
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => handleOpenDialog(proveedor)}
-                    className="text-primary hover:bg-primary/20"
+                    className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10 h-8 w-8"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => handleDelete(proveedor.id)}
-                    className="text-red-400 hover:bg-red-500/20"
+                    className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10 h-8 w-8"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm border-t border-[#F26522]/10 pt-3">
                 {proveedor.nombre_contacto && (
-                  <p className="text-foreground/80">
-                    <span className="text-muted-foreground">Contacto:</span> {proveedor.nombre_contacto}
+                  <p className="text-[#1B1B1B]/80">
+                    <span className="text-[#1B1B1B]/50 font-medium">Contacto:</span> {proveedor.nombre_contacto}
                   </p>
                 )}
                 {proveedor.telefono && (
-                  <p className="text-foreground/80">
-                    <span className="text-muted-foreground">Teléfono:</span> {proveedor.telefono}
+                  <p className="text-[#1B1B1B]/80 tabular-nums">
+                    <span className="text-[#1B1B1B]/50 font-medium">Teléfono:</span> {proveedor.telefono}
                   </p>
                 )}
                 {proveedor.email && (
-                  <p className="text-foreground/80">
-                    <span className="text-muted-foreground">Email:</span> {proveedor.email}
+                  <p className="text-[#1B1B1B]/80 truncate">
+                    <span className="text-[#1B1B1B]/50 font-medium">Email:</span> {proveedor.email}
                   </p>
                 )}
                 {proveedor.ciudad && (
-                  <p className="text-foreground/80">
-                    <span className="text-muted-foreground">Ubicación:</span> {proveedor.ciudad}
+                  <p className="text-[#1B1B1B]/80">
+                    <span className="text-[#1B1B1B]/50 font-medium">Ubicación:</span> {proveedor.ciudad}
                     {proveedor.zona && `, ${proveedor.zona}`}
                   </p>
                 )}
                 {proveedor.terminos_pago && (
-                  <p className="text-foreground/80">
-                    <span className="text-muted-foreground">Términos:</span> {proveedor.terminos_pago}
+                  <p className="text-[#1B1B1B]/80">
+                    <span className="text-[#1B1B1B]/50 font-medium">Términos:</span> {proveedor.terminos_pago}
                   </p>
                 )}
                 <div className="flex items-center gap-2 pt-2">
-                  <span className={`text-xs px-2 py-1 rounded ${proveedor.activo
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-red-500/20 text-red-400"
+                  <span className={`text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${proveedor.activo
+                    ? "bg-[#28C76F]/10 text-[#28C76F] border border-[#28C76F]/20"
+                    : "bg-[#EA5455]/10 text-[#EA5455] border border-[#EA5455]/20"
                     }`}>
                     {proveedor.activo ? "Activo" : "Inactivo"}
                   </span>
@@ -257,154 +259,157 @@ export function Suppliers() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-card border-primary/20 text-foreground max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">
+        <DialogContent className="bg-white border-[#F26522]/20 text-[#1B1B1B] max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="px-6 py-4 border-b border-[#F26522]/10 bg-[#F26522]/5">
+            <DialogTitle className="text-[#1B1B1B] text-xl font-bold uppercase tracking-wide">
               {editingSupplier ? "Editar Proveedor" : "Nuevo Proveedor"}
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
+            <DialogDescription className="text-[#1B1B1B]/60">
               {editingSupplier
                 ? "Modifica los datos del proveedor"
                 : "Completa los datos para crear un nuevo proveedor"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label className="text-foreground/80">Nombre del Proveedor *</Label>
-              <Input
-                required
-                className="bg-muted/50 border-primary/20 text-foreground"
-                placeholder="Ej: Distribuidora ABC"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label className="text-foreground/80">Contacto</Label>
+                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Nombre del Proveedor *</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="Nombre del contacto"
-                  value={formData.nombre_contacto}
-                  onChange={(e) => setFormData({ ...formData, nombre_contacto: e.target.value })}
+                  required
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                  placeholder="Ej: Distribuidora ABC"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Contacto</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                    placeholder="Nombre del contacto"
+                    value={formData.nombre_contacto}
+                    onChange={(e) => setFormData({ ...formData, nombre_contacto: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Teléfono</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
+                    placeholder="777-XXXXX"
+                    value={formData.telefono}
+                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Email</Label>
+                <Input
+                  type="email"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                  placeholder="proveedor@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
               <div>
-                <Label className="text-foreground/80">Teléfono</Label>
+                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Dirección</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="777-XXXXX"
-                  value={formData.telefono}
-                  onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                  placeholder="Dirección completa"
+                  value={formData.direccion}
+                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
                 />
               </div>
-            </div>
-            <div>
-              <Label className="text-foreground/80">Email</Label>
-              <Input
-                type="email"
-                className="bg-muted/50 border-primary/20 text-foreground"
-                placeholder="proveedor@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-foreground/80">Dirección</Label>
-              <Input
-                className="bg-muted/50 border-primary/20 text-foreground"
-                placeholder="Dirección completa"
-                value={formData.direccion}
-                onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-foreground/80">Ciudad</Label>
-                <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="La Paz"
-                  value={formData.ciudad}
-                  onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Ciudad</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                    placeholder="La Paz"
+                    value={formData.ciudad}
+                    onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Zona</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                    placeholder="Ej: Sopocachi"
+                    value={formData.zona}
+                    onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-foreground/80">Zona</Label>
-                <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="Ej: Sopocachi"
-                  value={formData.zona}
-                  onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-foreground/80">NIT / RUC</Label>
-                <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="Número de identificación tributaria"
-                  value={formData.nit}
-                  onChange={(e) => setFormData({ ...formData, nit: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">NIT / RUC</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
+                    placeholder="Número de identificación tributaria"
+                    value={formData.nit}
+                    onChange={(e) => setFormData({ ...formData, nit: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Términos de Pago</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                    placeholder="Ej: 30 días, Contado"
+                    value={formData.terminos_pago}
+                    onChange={(e) => setFormData({ ...formData, terminos_pago: e.target.value })}
+                  />
+                </div>
               </div>
               <div>
-                <Label className="text-foreground/80">Términos de Pago</Label>
+                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Calificación (1-5)</Label>
                 <Input
-                  className="bg-muted/50 border-primary/20 text-foreground"
-                  placeholder="Ej: 30 días, Contado"
-                  value={formData.terminos_pago}
-                  onChange={(e) => setFormData({ ...formData, terminos_pago: e.target.value })}
+                  type="number"
+                  min="1"
+                  max="5"
+                  step="0.1"
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
+                  placeholder="0"
+                  value={formData.calificacion || ""}
+                  onChange={(e) => setFormData({ ...formData, calificacion: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-            </div>
-            <div>
-              <Label className="text-foreground/80">Calificación (1-5)</Label>
-              <Input
-                type="number"
-                min="1"
-                max="5"
-                step="0.1"
-                className="bg-muted/50 border-primary/20 text-foreground"
-                placeholder="0"
-                value={formData.calificacion || ""}
-                onChange={(e) => setFormData({ ...formData, calificacion: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <Label className="text-foreground/80">Notas</Label>
-              <Textarea
-                className="bg-muted/50 border-primary/20 text-foreground"
-                placeholder="Información adicional sobre el proveedor"
-                rows={3}
-                value={formData.notas}
-                onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-              />
-            </div>
-            <div className="flex items-center gap-2 pt-2">
-              <Switch
-                checked={formData.activo}
-                onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
-              />
-              <Label className="text-foreground/80">Proveedor Activo</Label>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-                className="border-primary/20 text-foreground hover:bg-muted/10"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                {editingSupplier ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-          </form>
+              <div>
+                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Notas</Label>
+                <Textarea
+                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                  placeholder="Información adicional sobre el proveedor"
+                  rows={3}
+                  value={formData.notas}
+                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <Switch
+                  checked={formData.activo}
+                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
+                  className="data-[state=checked]:bg-[#28C76F]"
+                />
+                <Label className="text-[#1B1B1B] font-medium">Proveedor Activo</Label>
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#F26522]/10 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloseDialog}
+                  className="border-[#1B1B1B]/10 text-[#1B1B1B] hover:bg-[#F26522]/5 hover:text-[#F26522] hover:border-[#F26522]/30"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-md"
+                >
+                  {editingSupplier ? "Actualizar" : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

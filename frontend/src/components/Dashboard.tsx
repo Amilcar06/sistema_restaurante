@@ -54,7 +54,7 @@ export function Dashboard() {
       change: `${dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_ventas_porcentaje.toFixed(1)}%`,
       trend: (dashboardData.estadisticas.cambio_ventas_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: DollarSign,
-      color: "#FF6B35"
+      color: "#F26522" // Brand Orange
     },
     {
       title: "Insumos Críticos",
@@ -62,7 +62,7 @@ export function Dashboard() {
       change: "Requieren atención",
       trend: "down" as const,
       icon: AlertTriangle,
-      color: "#EF4444"
+      color: "#EA5455" // Error Red
     },
     {
       title: "Platos Vendidos",
@@ -70,7 +70,7 @@ export function Dashboard() {
       change: `${dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_platos_porcentaje.toFixed(1)}%`,
       trend: (dashboardData.estadisticas.cambio_platos_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: Package,
-      color: "#FF6B35"
+      color: "#F26522" // Brand Orange
     },
     {
       title: "Margen Promedio",
@@ -78,7 +78,7 @@ export function Dashboard() {
       change: `${dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? '+' : ''}${dashboardData.estadisticas.cambio_margen_porcentaje.toFixed(1)}%`,
       trend: (dashboardData.estadisticas.cambio_margen_porcentaje >= 0 ? "up" : "down") as "up" | "down",
       icon: TrendingUp,
-      color: "#FF6B35"
+      color: "#28C76F" // Success Green
     },
   ];
 
@@ -94,7 +94,7 @@ export function Dashboard() {
     value: cat.valor
   }));
 
-  const COLORS = ["#FF6B35", "#10B981", "#06B6D4", "#8B5CF6"];
+  const COLORS = ["#F26522", "#2C3E50", "#28C76F", "#FF9F43", "#EA5455"]; // Palette: Orange, Navy, Green, Yellow, Red
 
   const alerts = dashboardData.alertas;
 

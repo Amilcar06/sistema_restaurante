@@ -57,7 +57,7 @@ export function Reports() {
     }
   };
 
-  const COLORS = ["#FF6B35", "#10B981", "#06B6D4", "#8B5CF6"];
+  const COLORS = ["#F26522", "#1B1B1B", "#28C76F", "#FF9F43", "#EA5455", "#7367F0", "#00CFE8"];
 
   if (loading) {
     return (
@@ -72,12 +72,12 @@ export function Reports() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground mb-2">Reportes y Análisis</h1>
-          <p className="text-muted-foreground">Visualiza el rendimiento de tu negocio</p>
+          <h1 className="text-[#1B1B1B] mb-2 text-3xl font-bold">Reportes y Análisis</h1>
+          <p className="text-muted-foreground">Visualiza el rendimiento y métricas clave de tu negocio</p>
         </div>
         <div className="flex gap-2">
           <Button
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-lg"
             onClick={() => handleExport('csv')}
             disabled={exporting}
           >
@@ -86,7 +86,7 @@ export function Reports() {
           </Button>
           <Button
             variant="outline"
-            className="border-primary/20 text-foreground hover:bg-muted/10"
+            className="border-[#1B1B1B]/20 text-[#1B1B1B] hover:bg-[#1B1B1B]/5 font-medium"
             onClick={() => handleExport('json')}
             disabled={exporting}
           >
@@ -98,50 +98,49 @@ export function Reports() {
       {/* Summary Cards */}
       {resumen && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                <DollarSign className="w-6 h-6 text-primary" />
+          <Card className="p-6 bg-white border-[#F26522]/20 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-[#F26522]/10 p-2 rounded-lg">
+                <DollarSign className="w-6 h-6 text-[#F26522]" />
               </div>
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">Ventas del Período</div>
-                <div className="text-foreground text-2xl font-bold">Bs. {resumen.ventas_totales.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <span className="text-xs font-bold text-[#F26522] bg-[#F26522]/10 px-2 py-1 rounded-full border border-[#F26522]/20">
+                +12% vs mes anterior
+              </span>
+            </div>
+            <div className="text-[#1B1B1B]/60 text-sm font-bold uppercase tracking-wide mb-1">Ventas Totales (Mes)</div>
+            <div className="text-[#1B1B1B] text-3xl font-bold tabular-nums tracking-tight">Bs. {resumen.ventas_totales.toFixed(2)}</div>
+          </Card>
+
+          <Card className="p-6 bg-white border-[#F26522]/20 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-[#28C76F]/10 p-2 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-[#28C76F]" />
+              </div>
+              <span className="text-xs font-bold text-[#28C76F] bg-[#28C76F]/10 px-2 py-1 rounded-full border border-[#28C76F]/20">Rentable</span>
+            </div>
+            <div className="text-[#1B1B1B]/60 text-sm font-bold uppercase tracking-wide mb-1">Ganancia Neta</div>
+            <div className="text-[#1B1B1B] text-3xl font-bold tabular-nums tracking-tight">Bs. {resumen.ganancia_neta.toFixed(2)}</div>
+          </Card>
+
+          <Card className="p-6 bg-white border-[#F26522]/20 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-[#7367F0]/10 p-2 rounded-lg">
+                <Calendar className="w-6 h-6 text-[#7367F0]" />
               </div>
             </div>
+            <div className="text-[#1B1B1B]/60 text-sm font-bold uppercase tracking-wide mb-1">Margen Promedio</div>
+            <div className="text-[#1B1B1B] text-3xl font-bold tabular-nums tracking-tight">{resumen.margen_promedio.toFixed(1)}%</div>
           </Card>
-          <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                <TrendingUp className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">Ganancia Neta</div>
-                <div className="text-foreground text-2xl font-bold">Bs. {resumen.ganancia_neta.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+
+          <Card className="p-6 bg-[#F4F5F7] border-[#1B1B1B]/10 hover:bg-[#1B1B1B]/5 transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white p-2 rounded-lg shadow-sm">
+                <Award className="w-6 h-6 text-[#1B1B1B]" />
               </div>
             </div>
-          </Card>
-          <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                <Award className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">Margen Promedio</div>
-                <div className="text-foreground text-2xl font-bold">{resumen.margen_promedio.toFixed(1)}%</div>
-              </div>
-            </div>
-          </Card>
-          <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">Crecimiento</div>
-                <div className={`text-2xl font-bold ${resumen.crecimiento >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                  {resumen.crecimiento >= 0 ? '+' : ''}{resumen.crecimiento.toFixed(1)}%
-                </div>
-              </div>
+            <div className="text-[#1B1B1B]/60 text-sm font-bold uppercase tracking-wide mb-1">Crecimiento</div>
+            <div className={`text-3xl font-bold tabular-nums tracking-tight ${resumen.crecimiento >= 0 ? 'text-[#28C76F]' : 'text-[#EA5455]'}`}>
+              {resumen.crecimiento >= 0 ? '+' : ''}{resumen.crecimiento.toFixed(1)}%
             </div>
           </Card>
         </div>
@@ -149,21 +148,21 @@ export function Reports() {
 
       {/* Monthly Trend */}
       {reporteMensual.length > 0 && (
-        <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 transition-all duration-300">
-          <h3 className="text-foreground mb-6 text-xl font-semibold">Tendencia Mensual</h3>
+        <Card className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 shadow-sm">
+          <h3 className="text-[#1B1B1B] mb-6 text-xl font-bold uppercase tracking-wide">Tendencia MENSUAL</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={reporteMensual}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--primary))" opacity={0.2} />
-              <XAxis dataKey="mes" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#F26522" opacity={0.1} />
+              <XAxis dataKey="mes" stroke="#1B1B1B" opacity={0.6} tick={{ fill: '#1B1B1B', fontSize: 12 }} />
+              <YAxis stroke="#1B1B1B" opacity={0.6} tick={{ fill: '#1B1B1B', fontSize: 12 }} />
               <Tooltip
-                contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--primary))", opacity: 0.9 }}
-                labelStyle={{ color: "hsl(var(--foreground))" }}
+                contentStyle={{ backgroundColor: "#FFFFFF", borderColor: "rgba(242, 101, 34, 0.2)", borderRadius: "8px", color: "#1B1B1B" }}
+                labelStyle={{ color: "#1B1B1B", fontWeight: "bold" }}
               />
-              <Legend />
-              <Line type="monotone" dataKey="ventas" stroke="hsl(var(--primary))" strokeWidth={2} name="Ventas" />
-              <Line type="monotone" dataKey="costos" stroke="hsl(var(--destructive))" strokeWidth={2} name="Costos" />
-              <Line type="monotone" dataKey="ganancia" stroke="#10B981" strokeWidth={2} name="Ganancia" />
+              <Legend wrapperStyle={{ paddingTop: "20px" }} />
+              <Line type="monotone" dataKey="ventas" stroke="#F26522" strokeWidth={3} name="Ventas" activeDot={{ r: 8 }} />
+              <Line type="monotone" dataKey="costos" stroke="#EA5455" strokeWidth={2} name="Costos" />
+              <Line type="monotone" dataKey="ganancia" stroke="#28C76F" strokeWidth={3} name="Ganancia" />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -172,26 +171,27 @@ export function Reports() {
       {/* Category Performance and Payment Methods */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {rendimientoCategorias.length > 0 && (
-          <Card className="bg-card border-primary/20 p-6">
-            <h3 className="text-foreground mb-4">Rendimiento por Categoría</h3>
+          <Card className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 shadow-sm">
+            <h3 className="text-[#1B1B1B] mb-6 text-xl font-bold uppercase tracking-wide">Rendimiento por Categoría</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={rendimientoCategorias}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--primary))" opacity={0.2} />
-                <XAxis dataKey="categoria" stroke="hsl(var(--muted-foreground))" angle={-15} textAnchor="end" height={80} />
-                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#F26522" opacity={0.1} />
+                <XAxis dataKey="categoria" stroke="#1B1B1B" opacity={0.6} angle={-15} textAnchor="end" height={80} tick={{ fill: '#1B1B1B', fontSize: 11 }} />
+                <YAxis stroke="#1B1B1B" opacity={0.6} tick={{ fill: '#1B1B1B', fontSize: 12 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--primary))", opacity: 0.9 }}
-                  labelStyle={{ color: "hsl(var(--foreground))" }}
+                  contentStyle={{ backgroundColor: "#FFFFFF", borderColor: "rgba(242, 101, 34, 0.2)", borderRadius: "8px", color: "#1B1B1B" }}
+                  labelStyle={{ color: "#1B1B1B", fontWeight: "bold" }}
+                  cursor={{ fill: 'rgba(242, 101, 34, 0.1)' }}
                 />
-                <Bar dataKey="ingresos" fill="hsl(var(--primary))" name="Ingresos (Bs.)" />
+                <Bar dataKey="ingresos" fill="#F26522" name="Ingresos (Bs.)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Card>
         )}
 
         {metodosPago.length > 0 && (
-          <Card className="bg-card border-primary/20 p-6">
-            <h3 className="text-foreground mb-4">Métodos de Pago</h3>
+          <Card className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 shadow-sm">
+            <h3 className="text-[#1B1B1B] mb-6 text-xl font-bold uppercase tracking-wide">Métodos de Pago</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -206,11 +206,12 @@ export function Reports() {
                   nameKey="metodo"
                 >
                   {metodosPago.map((_entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="white" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--primary))", opacity: 0.9 }}
+                  contentStyle={{ backgroundColor: "#FFFFFF", borderColor: "rgba(242, 101, 34, 0.2)", borderRadius: "8px", color: "#1B1B1B" }}
+                  itemStyle={{ color: "#1B1B1B" }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -220,18 +221,18 @@ export function Reports() {
 
       {/* Profit Margins */}
       {margenesGanancia.length > 0 && (
-        <Card className="bg-card border-primary/20 p-6">
-          <h3 className="text-foreground mb-4">Márgenes de Ganancia por Plato</h3>
+        <Card className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 shadow-sm">
+          <h3 className="text-[#1B1B1B] mb-6 text-xl font-bold uppercase tracking-wide">Márgenes de Ganancia por Plato</h3>
           <div className="space-y-4">
             {margenesGanancia.map((item, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-foreground">{item.nombre}</span>
-                  <span className="text-primary">{item.margen}%</span>
+                  <span className="text-[#1B1B1B] font-medium">{item.nombre}</span>
+                  <span className="text-[#F26522] font-bold tabular-nums">{item.margen.toFixed(1)}%</span>
                 </div>
-                <div className="w-full bg-muted/20 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-[#1B1B1B]/10 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-primary h-full rounded-full transition-all"
+                    className="bg-[#F26522] h-full rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${item.margen}%` }}
                   />
                 </div>
@@ -242,8 +243,8 @@ export function Reports() {
       )}
 
       {reporteMensual.length === 0 && rendimientoCategorias.length === 0 && margenesGanancia.length === 0 && (
-        <Card className="bg-card border-primary/20 p-8 text-center">
-          <p className="text-muted-foreground">No hay datos disponibles para mostrar en los reportes</p>
+        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
+          <p className="text-muted-foreground text-lg">No hay datos disponibles para mostrar en los reportes</p>
         </Card>
       )}
     </div>

@@ -148,9 +148,9 @@ export function Sidebar() {
           <div className="flex items-center gap-3">
             <img src={logoWeb} alt="GastroSmart Logo" className="w-12 h-12 object-contain" />
             <div>
-              <div className="text-sidebar-foreground">
-                <span className="text-primary" style={{ fontFamily: 'cursive' }}>Gastro</span>
-                <span style={{ fontFamily: 'cursive' }}>smart</span>
+              <div className="text-sidebar-foreground font-bold text-xl tracking-tight">
+                <span className="text-primary">Gastro</span>
+                <span>Smart</span>
               </div>
               <div className="text-primary/60">Sistema de Control</div>
             </div>

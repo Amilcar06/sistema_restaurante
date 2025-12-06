@@ -64,6 +64,18 @@ export function Recipes() {
     ingredientUnits: []
   });
 
+  // Nested Dialog State for Ingredients
+  const [isIngredientDialogOpen, setIsIngredientDialogOpen] = useState(false);
+  const [currentIngredientIndex, setCurrentIngredientIndex] = useState<number | null>(null);
+  const [tempIngredient, setTempIngredient] = useState<IngredienteForm>({
+    id: "",
+    item_inventario_id: null,
+    nombre_ingrediente: "",
+    cantidad: 0,
+    unidad: "",
+    costo: 0
+  });
+
   useEffect(() => {
     loadRecipes();
     loadEnums();
@@ -267,50 +279,71 @@ export function Recipes() {
     setEditingRecipe(null);
   };
 
-  const addIngredient = () => {
-    const newIngredient: IngredienteForm = {
-      id: `ingredient-${Date.now()}-${Math.random()}`,
-      item_inventario_id: null,
-      nombre_ingrediente: "",
-      cantidad: 0,
-      unidad: "kg",
-      costo: 0
-    };
-    setIngredientes(prev => [...prev, newIngredient]);
+  const openIngredientDialog = (index: number | null = null) => {
+    if (index !== null && ingredientes[index]) {
+      setTempIngredient({ ...ingredientes[index] });
+      setCurrentIngredientIndex(index);
+    } else {
+      setTempIngredient({
+        id: Date.now().toString(),
+        item_inventario_id: null,
+        nombre_ingrediente: "",
+        cantidad: 0,
+        unidad: "",
+        costo: 0
+      });
+      setCurrentIngredientIndex(null);
+    }
+    setIsIngredientDialogOpen(true);
   };
 
-  const removeIngredient = (index: number) => {
-    setIngredientes(ingredientes.filter((_, i) => i !== index));
-  };
+  const saveIngredient = () => {
+    if (tempIngredient.cantidad <= 0) {
+      toast.error("La cantidad debe ser mayor a 0");
+      return;
+    }
+    if (!tempIngredient.item_inventario_id && !tempIngredient.nombre_ingrediente) {
+      toast.error("Debe seleccionar un insumo o ingresar un nombre");
+      return;
+    }
 
-  const updateIngredient = (index: number, field: keyof IngredienteForm, value: any) => {
     const updated = [...ingredientes];
-    const ingredient = { ...updated[index] };
+    if (currentIngredientIndex !== null) {
+      updated[currentIngredientIndex] = tempIngredient;
+    } else {
+      updated.push(tempIngredient);
+    }
+    setIngredientes(updated);
+    setIsIngredientDialogOpen(false);
+  };
 
+  const updateTempIngredient = (field: keyof IngredienteForm, value: any) => {
+    const updated = { ...tempIngredient };
     if (field === "item_inventario_id") {
+      updated.item_inventario_id = value;
       const selectedItem = inventoryItems.find(item => item.id === value);
       if (selectedItem) {
-        ingredient.item_inventario_id = value;
-        ingredient.nombre_ingrediente = selectedItem.nombre;
-        ingredient.unidad = selectedItem.unidad;
-        const quantity = ingredient.cantidad || 0;
-        ingredient.costo = quantity * selectedItem.costo_unitario;
-      } else {
-        ingredient.item_inventario_id = null;
+        updated.nombre_ingrediente = selectedItem.nombre;
+        updated.unidad = selectedItem.unidad;
+        updated.costo = updated.cantidad * selectedItem.costo_unitario;
       }
     } else if (field === "cantidad") {
-      ingredient.cantidad = parseFloat(value) || 0;
-      if (ingredient.item_inventario_id) {
-        const selectedItem = inventoryItems.find(item => item.id === ingredient.item_inventario_id);
+      updated.cantidad = parseFloat(value) || 0;
+      if (updated.item_inventario_id) {
+        const selectedItem = inventoryItems.find(item => item.id === updated.item_inventario_id);
         if (selectedItem) {
-          ingredient.costo = ingredient.cantidad * selectedItem.costo_unitario;
+          updated.costo = updated.cantidad * selectedItem.costo_unitario;
         }
       }
     } else {
-      (ingredient as any)[field] = value;
+      (updated as any)[field] = value;
     }
+    setTempIngredient(updated);
+  };
 
-    updated[index] = ingredient;
+  const removeIngredient = (index: number) => {
+    const updated = [...ingredientes];
+    updated.splice(index, 1);
     setIngredientes(updated);
   };
 
@@ -366,27 +399,27 @@ export function Recipes() {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button className="bg-[#F26522] hover:bg-[#F26522]/90 text-[#1B1B1B] shadow-lg hover:shadow-[#F26522]/50 transition-all duration-300 font-bold">
               <Plus className="w-4 h-4 mr-2" />
               Nueva Receta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-primary/20 max-w-4xl">
-            <DialogHeader className="px-1">
-              <DialogTitle className="text-foreground">
+          <DialogContent className="bg-white border-[#F26522]/20 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+            <DialogHeader className="px-6 py-4 border-b border-[#F26522]/10 bg-[#F26522]/5">
+              <DialogTitle className="text-[#1B1B1B] text-xl font-bold uppercase tracking-wide">
                 {editingRecipe ? "Editar Receta" : "Crear Nueva Receta"}
               </DialogTitle>
-              <DialogDescription className="text-muted-foreground">
+              <DialogDescription className="text-[#1B1B1B]/60">
                 {editingRecipe ? "Modifica los datos de la receta" : "Completa los datos para crear una nueva receta"}
               </DialogDescription>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <Label className="text-foreground/80">Nombre del Plato</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Nombre del Plato</Label>
                     <Input
-                      className="bg-muted/50 border-primary/20 text-foreground"
+                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all font-medium"
                       placeholder="Ej: Pique Macho"
                       value={formData.nombre}
                       onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
@@ -394,18 +427,18 @@ export function Recipes() {
                     />
                   </div>
                   <div>
-                    <Label className="text-foreground/80">Categoría</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Categoría</Label>
                     <Select
                       value={formData.categoria}
                       onValueChange={(value: string) => setFormData({ ...formData, categoria: value })}
                       required
                     >
-                      <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                      <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
-                      <SelectContent className="bg-card border-primary/20">
+                      <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                         {enums.recipeCategories.map((cat) => (
-                          <SelectItem key={cat} value={cat} className="text-foreground focus:bg-primary/20">
+                          <SelectItem key={cat} value={cat} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                             {cat}
                           </SelectItem>
                         ))}
@@ -414,28 +447,28 @@ export function Recipes() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <Label className="text-foreground/80">Subcategoría</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Subcategoría</Label>
                     <Input
-                      className="bg-muted/50 border-primary/20 text-foreground"
+                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all"
                       placeholder="Ej: Carnes Rojas, Carnes Blancas"
                       value={formData.subcategoria}
                       onChange={(e) => setFormData({ ...formData, subcategoria: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label className="text-foreground/80">Sucursal</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Sucursal</Label>
                     <Select
                       value={formData.sucursal_id}
                       onValueChange={(value: string) => setFormData({ ...formData, sucursal_id: value })}
                     >
-                      <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground">
+                      <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
                         <SelectValue placeholder="Selecciona una sucursal" />
                       </SelectTrigger>
-                      <SelectContent className="bg-card border-primary/20">
+                      <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
                         {sucursales.map((loc) => (
-                          <SelectItem key={loc.id} value={loc.id} className="text-foreground focus:bg-primary/20">
+                          <SelectItem key={loc.id} value={loc.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#1B1B1B]">
                             {loc.nombre}
                           </SelectItem>
                         ))}
@@ -444,21 +477,22 @@ export function Recipes() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 p-4 bg-[#F4F5F7] rounded-lg border border-[#F26522]/10">
                   <Switch
                     checked={formData.disponible}
                     onCheckedChange={(checked: boolean) => setFormData({ ...formData, disponible: checked })}
+                    className="data-[state=checked]:bg-[#28C76F]"
                   />
-                  <Label className="text-foreground/80">Disponible para venta</Label>
+                  <Label className="text-[#1B1B1B] font-medium">Disponible para venta</Label>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-6">
                   <div>
-                    <Label className="text-foreground/80">Precio de Venta (Bs.)</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Precio de Venta (Bs.)</Label>
                     <Input
                       type="number"
                       step="0.01"
-                      className="bg-muted/50 border-primary/20 text-foreground"
+                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all tabular-nums font-bold"
                       placeholder="0.00"
                       value={formData.precio}
                       onChange={(e) => setFormData({ ...formData, precio: parseFloat(e.target.value) || 0 })}
@@ -466,10 +500,10 @@ export function Recipes() {
                     />
                   </div>
                   <div>
-                    <Label className="text-foreground/80">Porciones</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Porciones</Label>
                     <Input
                       type="number"
-                      className="bg-muted/50 border-primary/20 text-foreground"
+                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all tabular-nums"
                       placeholder="1"
                       value={formData.porciones}
                       onChange={(e) => setFormData({ ...formData, porciones: parseInt(e.target.value) || 1 })}
@@ -478,10 +512,10 @@ export function Recipes() {
                     />
                   </div>
                   <div>
-                    <Label className="text-foreground/80">Tiempo Preparación (min)</Label>
+                    <Label className="text-[#1B1B1B] font-medium mb-2 block">Tiempo Prep. (min)</Label>
                     <Input
                       type="number"
-                      className="bg-muted/50 border-primary/20 text-foreground"
+                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all tabular-nums"
                       placeholder="0"
                       value={formData.tiempo_preparacion}
                       onChange={(e) => setFormData({ ...formData, tiempo_preparacion: parseInt(e.target.value) || 0 })}
@@ -490,19 +524,18 @@ export function Recipes() {
                   </div>
                 </div>
 
-                {/* Ingredients Section */}
-                <div className="space-y-3">
+                {/* Ingredients Section - Simplified View */}
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label className="text-foreground/80">Ingredientes</Label>
+                    <Label className="text-[#1B1B1B] font-bold uppercase tracking-wide text-sm">Ingredientes</Label>
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={(e: React.MouseEvent) => {
+                      onClick={(e) => {
                         e.preventDefault();
-                        e.stopPropagation();
-                        addIngredient();
+                        openIngredientDialog();
                       }}
-                      className="border-primary/40 text-primary hover:bg-primary/20 hover:text-primary-foreground hover:border-primary bg-transparent"
+                      className="border-[#F26522] text-[#F26522] hover:bg-[#F26522] hover:text-white transition-all font-semibold"
                       size="sm"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -510,224 +543,266 @@ export function Recipes() {
                     </Button>
                   </div>
 
-                  {ingredientes.length === 0 && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
-                      No hay ingredientes. Agrega al menos uno.
+                  {ingredientes.length === 0 ? (
+                    <div className="text-center py-8 text-[#1B1B1B]/40 text-sm border-2 border-dashed border-[#F26522]/20 rounded-lg bg-[#F26522]/5">
+                      No hay ingredientes. Agrega componentes para calcular el costo.
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-[#F26522]/20 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[#F26522]/10 text-[#1B1B1B] font-bold uppercase text-xs">
+                          <tr>
+                            <th className="px-4 py-2 text-left">Ingrediente</th>
+                            <th className="px-4 py-2 text-right">Cant.</th>
+                            <th className="px-4 py-2 text-left">Unidad</th>
+                            <th className="px-4 py-2 text-right">Costo</th>
+                            <th className="px-4 py-2 text-center">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#F26522]/10 bg-white">
+                          {ingredientes.map((ing, i) => (
+                            <tr key={ing.id} className="hover:bg-[#F26522]/5 transition-colors">
+                              <td className="px-4 py-2 font-medium text-[#1B1B1B]">{ing.nombre_ingrediente || "Sin nombre"}</td>
+                              <td className="px-4 py-2 text-right tabular-nums">{ing.cantidad}</td>
+                              <td className="px-4 py-2 text-muted-foreground">{ing.unidad}</td>
+                              <td className="px-4 py-2 text-right tabular-nums font-semibold">Bs. {ing.costo.toFixed(2)}</td>
+                              <td className="px-4 py-2 text-center flex justify-center gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openIngredientDialog(i)}
+                                  className="h-8 w-8 p-0 text-[#1B1B1B]/60 hover:text-[#F26522] hover:bg-[#F26522]/10"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeIngredient(i)}
+                                  className="h-8 w-8 p-0 text-[#1B1B1B]/60 hover:text-[#EA5455] hover:bg-[#EA5455]/10"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   )}
-
-                  <div className="space-y-3">
-                    {ingredientes.map((ingredient, index) => (
-                      <Card key={ingredient.id} className="bg-muted/50 border-primary/20 p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-1 grid grid-cols-12 gap-2">
-                            <div className="col-span-12 md:col-span-4">
-                              <Label className="text-muted-foreground text-xs mb-1 block">Ingrediente</Label>
-                              <Select
-                                value={ingredient.item_inventario_id || "manual"}
-                                onValueChange={(value: string) => {
-                                  if (value === "manual") {
-                                    updateIngredient(index, "item_inventario_id", null);
-                                  } else {
-                                    updateIngredient(index, "item_inventario_id", value);
-                                  }
-                                }}
-                                disabled={loadingInventory}
-                              >
-                                <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground h-9">
-                                  <SelectValue placeholder="Seleccionar del inventario" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-card border-primary/20 max-h-60">
-                                  <SelectItem value="manual" className="text-muted-foreground focus:bg-primary/20">
-                                    Ingrediente manual
-                                  </SelectItem>
-                                  {inventoryItems.map((item) => (
-                                    <SelectItem
-                                      key={item.id}
-                                      value={item.id}
-                                      className="text-foreground focus:bg-primary/20"
-                                    >
-                                      {item.nombre} ({item.categoria}) - Bs. {item.costo_unitario.toFixed(2)}/{item.unidad}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {!ingredient.item_inventario_id && (
-                              <div className="col-span-12 md:col-span-4">
-                                <Label className="text-muted-foreground text-xs mb-1 block">Nombre Manual</Label>
-                                <Input
-                                  className="bg-muted/50 border-primary/20 text-foreground h-9"
-                                  placeholder="Nombre del ingrediente"
-                                  value={ingredient.nombre_ingrediente}
-                                  onChange={(e) => updateIngredient(index, "nombre_ingrediente", e.target.value)}
-                                  required={!ingredient.item_inventario_id}
-                                />
-                              </div>
-                            )}
-
-                            <div className="col-span-6 md:col-span-2">
-                              <Label className="text-muted-foreground text-xs mb-1 block">Cantidad</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                className="bg-muted/50 border-primary/20 text-foreground h-9"
-                                placeholder="0"
-                                value={ingredient.cantidad || ""}
-                                onChange={(e) => updateIngredient(index, "cantidad", e.target.value)}
-                                required
-                                min="0"
-                              />
-                            </div>
-
-                            <div className="col-span-6 md:col-span-2">
-                              <Label className="text-muted-foreground text-xs mb-1 block">Unidad</Label>
-                              <Select
-                                value={ingredient.unidad}
-                                onValueChange={(value: string) => updateIngredient(index, "unidad", value)}
-                                required
-                                disabled={!!ingredient.item_inventario_id}
-                              >
-                                <SelectTrigger className="bg-muted/50 border-primary/20 text-foreground h-9">
-                                  <SelectValue placeholder="Selecciona unidad" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-card border-primary/20">
-                                  {enums.ingredientUnits.map((unit) => (
-                                    <SelectItem key={unit} value={unit} className="text-foreground focus:bg-primary/20">
-                                      {unit}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="col-span-12 md:col-span-2">
-                              <Label className="text-muted-foreground text-xs mb-1 block">Costo (Bs.)</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                className="bg-muted/50 border-primary/20 text-foreground h-9"
-                                placeholder="0.00"
-                                value={ingredient.costo.toFixed(2)}
-                                onChange={(e) => updateIngredient(index, "costo", parseFloat(e.target.value) || 0)}
-                                required
-                                disabled={!!ingredient.item_inventario_id}
-                              />
-                              {ingredient.item_inventario_id && (
-                                <p className="text-xs text-muted-foreground mt-1">Calculado automáticamente</p>
-                              )}
-                            </div>
-
-                            <div className="col-span-12 md:col-span-2 flex items-end">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeIngredient(index)}
-                                className="text-destructive hover:bg-destructive/10 h-9"
-                              >
-                                <X className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
                 </div>
 
-                {/* Cost Summary */}
-                {ingredientes.length > 0 && (
-                  <Card className="bg-primary/10 border-primary/30 p-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-foreground/80">Costo Total de Ingredientes:</span>
-                        <span className="text-foreground font-semibold">Bs. {calculateTotalCost().toFixed(2)}</span>
-                      </div>
-                      {formData.precio > 0 && (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <span className="text-foreground/80">Precio de Venta:</span>
-                            <span className="text-primary font-semibold">Bs. {formData.precio.toFixed(2)}</span>
-                          </div>
-                          <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-                            <span className="text-foreground/80">Ganancia:</span>
-                            <span className="text-primary font-semibold">
-                              Bs. {(formData.precio - calculateTotalCost()).toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-foreground/80">Margen:</span>
-                            <span className={`font-semibold ${calculateMargin() >= 70 ? "text-primary" :
-                              calculateMargin() >= 50 ? "text-yellow-400" :
-                                "text-destructive"
-                              }`}>
-                              {calculateMargin().toFixed(1)}%
-                            </span>
-                          </div>
-                        </>
-                      )}
+                {/* Cost Summary - Fixed at Bottom */}
+                <Card className="bg-white border-[#F26522]/20 text-[#1B1B1B] p-6 rounded-lg shadow-lg mt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[#1B1B1B]/80">
+                      <span className="text-sm font-medium uppercase tracking-wide">Costo Ingredientes</span>
+                      <span className="font-bold tabular-nums">Bs. {calculateTotalCost().toFixed(2)}</span>
                     </div>
-                  </Card>
-                )}
+                    {formData.precio > 0 && (
+                      <>
+                        <div className="w-full h-px bg-[#F26522]/10 my-2"></div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium uppercase tracking-wide text-[#1B1B1B]/80">Precio Venta</span>
+                          <span className="text-[#F26522] font-bold text-xl tabular-nums">Bs. {formData.precio.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium uppercase tracking-wide text-[#1B1B1B]/80">Ganancia Neta</span>
+                          <span className="text-[#28C76F] font-bold tabular-nums">
+                            Bs. {(formData.precio - calculateTotalCost()).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between bg-[#F4F5F7] p-2 rounded mt-2 border border-[#F26522]/10">
+                          <span className="text-sm font-bold uppercase tracking-wide text-[#1B1B1B]">Margen</span>
+                          <span className={`font-bold tabular-nums text-lg ${calculateMargin() > 0 ? "text-[#28C76F]" : "text-[#EA5455]"}`}>
+                            {calculateMargin().toFixed(1)}%
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </Card>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-4 pt-4 border-t border-[#F26522]/10">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
-                    className="flex-1 border-primary/40 text-primary hover:bg-primary/20 hover:text-primary-foreground hover:border-primary bg-transparent"
+                    className="flex-1 border-[#1B1B1B]/20 text-[#1B1B1B] hover:bg-[#1B1B1B]/5"
                   >
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                    disabled={ingredientes.length === 0}
+                    className="flex-1 bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-md hover:shadow-lg transition-all"
                   >
-                    {editingRecipe ? "Actualizar Receta" : "Guardar Receta"}
+                    {editingRecipe ? "Guardar Cambios" : "Crear Receta"}
                   </Button>
                 </div>
               </form>
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Nested Dialog for Ingredient Management */}
+        <Dialog open={isIngredientDialogOpen} onOpenChange={setIsIngredientDialogOpen}>
+          <DialogContent className="bg-white border-[#F26522]/20 shadow-xl z-[99999] sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="text-[#1B1B1B] text-lg font-bold uppercase tracking-wide">
+                {currentIngredientIndex !== null ? "Editar Ingrediente" : "Agregar Ingrediente"}
+              </DialogTitle>
+              <DialogDescription className="text-[#1B1B1B]/60">
+                Detalla el ingrediente y su costo.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label className="text-[#1B1B1B]/80 font-semibold mb-1 block">Insumo del Inventario</Label>
+                <Select
+                  value={tempIngredient.item_inventario_id || "manual"}
+                  onValueChange={(value: string) => {
+                    if (value === "manual") {
+                      updateTempIngredient("item_inventario_id", null);
+                    } else {
+                      updateTempIngredient("item_inventario_id", value);
+                    }
+                  }}
+                  disabled={loadingInventory}
+                >
+                  <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-[#F26522]/20 z-[99999]">
+                    <SelectItem value="manual" className="text-[#1B1B1B] focus:bg-[#F26522]/10">
+                      Ingrediente Manual / Otro
+                    </SelectItem>
+                    {inventoryItems.map((item) => (
+                      <SelectItem key={item.id} value={item.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10">
+                        {item.nombre} ({item.unidad}) - Bs. {item.costo_unitario}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {!tempIngredient.item_inventario_id && (
+                <div>
+                  <Label className="text-[#1B1B1B]/80 font-semibold mb-1 block">Nombre Manual</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
+                    placeholder="Ej: Sal, Pimienta..."
+                    value={tempIngredient.nombre_ingrediente}
+                    onChange={(e) => updateTempIngredient("nombre_ingrediente", e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[#1B1B1B]/80 font-semibold mb-1 block">Cantidad</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
+                    placeholder="0"
+                    value={tempIngredient.cantidad || ""}
+                    onChange={(e) => updateTempIngredient("cantidad", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[#1B1B1B]/80 font-semibold mb-1 block">Unidad</Label>
+                  <Select
+                    value={tempIngredient.unidad}
+                    onValueChange={(value: string) => updateTempIngredient("unidad", value)}
+                    disabled={!!tempIngredient.item_inventario_id}
+                  >
+                    <SelectTrigger className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20">
+                      <SelectValue placeholder="Unidad" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-[#F26522]/20 z-[99999]">
+                      {enums.ingredientUnits.map((u) => (
+                        <SelectItem key={u} value={u} className="text-[#1B1B1B] focus:bg-[#F26522]/10">
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-[#1B1B1B]/80 font-semibold mb-1 block">Costo Total (Bs.)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  className="bg-[#F4F5F7] border-[#F26522]/10 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums font-bold"
+                  placeholder="0.00"
+                  value={tempIngredient.costo}
+                  onChange={(e) => updateTempIngredient("costo", parseFloat(e.target.value) || 0)}
+                  disabled={!!tempIngredient.item_inventario_id}
+                />
+              </div>
+
+              <div className="pt-2 flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsIngredientDialogOpen(false)}
+                  className="flex-1 border-[#1B1B1B]/20 text-[#1B1B1B]"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={saveIngredient}
+                  className="flex-1 bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-md"
+                >
+                  Guardar Ingrediente
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <Card className="bg-[#F26522]/10 border-[#F26522]/20 p-6 hover:bg-[#F26522]/20 transition-all duration-300 shadow-sm transform hover:-translate-y-1 hover:shadow-md">
           <div className="flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-              <ChefHat className="w-6 h-6 text-primary" />
+            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
+              <ChefHat className="w-6 h-6 text-[#F26522]" />
             </div>
             <div>
-              <div className="text-muted-foreground mb-1 text-sm font-medium">Total de Recetas</div>
-              <div className="text-foreground text-2xl font-bold">{totalRecipes} platos</div>
+              <div className="text-foreground/80 mb-1 text-sm font-bold uppercase tracking-wide">Total de Recetas</div>
+              <div className="text-foreground text-3xl font-bold tabular-nums tracking-tight">{totalRecipes}</div>
+              <div className="text-xs text-foreground/60 font-medium">platos registrados</div>
             </div>
           </div>
         </Card>
-        <Card className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
+        <Card className="bg-[#28C76F]/10 border-[#28C76F]/20 p-6 hover:bg-[#28C76F]/20 transition-all duration-300 shadow-sm transform hover:-translate-y-1 hover:shadow-md">
           <div className="flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-lg hover:bg-primary/20 transition-colors">
-              <DollarSign className="w-6 h-6 text-primary" />
+            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
+              <DollarSign className="w-6 h-6 text-[#28C76F]" />
             </div>
             <div>
-              <div className="text-muted-foreground mb-1 text-sm font-medium">Margen Promedio</div>
-              <div className="text-foreground text-2xl font-bold">{avgMargin.toFixed(1)}%</div>
+              <div className="text-foreground/80 mb-1 text-sm font-bold uppercase tracking-wide">Margen Promedio</div>
+              <div className="text-foreground text-3xl font-bold tabular-nums tracking-tight">{avgMargin.toFixed(1)}%</div>
+              <div className="text-xs text-foreground/60 font-medium">rentabilidad global</div>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Search */}
-      <Card className="bg-card border-primary/20 p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+      <Card className="bg-background border-[#F26522]/20 p-4 shadow-sm">
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-hover:text-[#F26522] transition-colors" />
           <Input
-            className="pl-10 bg-muted/50 border-primary/20 text-foreground"
-            placeholder="Buscar recetas..."
+            className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all"
+            placeholder="Buscar recetas por nombre o categoría..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -735,8 +810,9 @@ export function Recipes() {
       </Card>
 
       {/* Recipes Grid */}
+      {/* Recipes Grid */}
       {filteredRecipes.length === 0 ? (
-        <Card className="bg-card border-primary/20 p-12 text-center">
+        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
           <p className="text-muted-foreground text-lg">
             {searchTerm ? "No se encontraron recetas" : "No hay recetas. Crea tu primera receta."}
           </p>
@@ -744,16 +820,15 @@ export function Recipes() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {paginatedRecipes.map((recipe) => (
-            <Card key={recipe.id} className="bg-card border-primary/20 p-6 hover:bg-muted/50 hover:border-primary/40 transition-all duration-300">
+            <Card key={recipe.id} className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h3 className="text-foreground mb-2 text-lg font-semibold">{recipe.nombre}</h3>
-                  <span className="px-3 py-1 bg-muted rounded-full text-muted-foreground text-sm font-medium">{recipe.categoria}</span>
+                  <h3 className="text-[#1B1B1B] mb-2 text-lg font-bold uppercase tracking-wide">{recipe.nombre}</h3>
+                  <span className="px-3 py-1 bg-[#F4F5F7] rounded-full text-[#1B1B1B]/70 text-sm font-medium border border-[#F26522]/10">{recipe.categoria}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className={`px-3 py-1 rounded-full ${recipe.margen >= 70 ? "bg-primary/20 text-primary" :
-                    recipe.margen >= 50 ? "bg-yellow-500/20 text-yellow-400" :
-                      "bg-destructive/20 text-destructive"
+                  <div className={`px-3 py-1 rounded-full font-bold text-xs tracking-wide ${recipe.margen > 0 ? "bg-[#28C76F]/10 text-[#28C76F] border border-[#28C76F]/20" :
+                    "bg-[#EA5455]/10 text-[#EA5455] border border-[#EA5455]/20"
                     }`}>
                     {recipe.margen.toFixed(1)}% margen
                   </div>
@@ -761,7 +836,7 @@ export function Recipes() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleEdit(recipe)}
-                    className="text-primary hover:bg-primary/10"
+                    className="text-[#1B1B1B]/60 hover:text-[#F26522] hover:bg-[#F26522]/10 transition-colors"
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
@@ -769,7 +844,7 @@ export function Recipes() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(recipe.id)}
-                    className="text-destructive hover:bg-destructive/10"
+                    className="text-[#1B1B1B]/60 hover:text-[#EA5455] hover:bg-[#EA5455]/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -778,25 +853,25 @@ export function Recipes() {
 
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <div className="text-muted-foreground text-sm mb-1">Costo</div>
-                  <div className="text-foreground font-semibold">Bs. {recipe.costo.toFixed(2)}</div>
+                  <div className="text-[#1B1B1B]/60 text-xs font-bold uppercase tracking-wide mb-1">Costo</div>
+                  <div className="text-[#1B1B1B] font-bold text-xl tabular-nums tracking-tight">Bs. {recipe.costo.toFixed(2)}</div>
                 </div>
                 <div>
-                  <div className="text-muted-foreground text-sm mb-1">Precio Venta</div>
-                  <div className="text-primary font-semibold">Bs. {recipe.precio.toFixed(2)}</div>
+                  <div className="text-[#1B1B1B]/60 text-xs font-bold uppercase tracking-wide mb-1">Precio Venta</div>
+                  <div className="text-[#F26522] font-bold text-xl tabular-nums tracking-tight">Bs. {recipe.precio.toFixed(2)}</div>
                 </div>
               </div>
 
-              <div className="border-t border-primary/10 pt-4">
-                <div className="text-muted-foreground text-sm mb-2">Ingredientes principales:</div>
+              <div className="border-t border-[#F26522]/10 pt-4">
+                <div className="text-[#1B1B1B]/60 text-xs font-bold uppercase tracking-wide mb-2">Ingredientes principales:</div>
                 <div className="flex flex-wrap gap-2">
                   {recipe.ingredientes.slice(0, 3).map((ing, i) => (
-                    <span key={i} className="text-foreground/80 text-sm bg-muted/50 px-2 py-1 rounded">
+                    <span key={i} className="text-[#1B1B1B]/80 text-xs bg-[#F4F5F7] px-2 py-1 rounded border border-gray-200">
                       {ing.nombre_ingrediente}
                     </span>
                   ))}
                   {recipe.ingredientes.length > 3 && (
-                    <span className="text-muted-foreground text-sm px-2 py-1">
+                    <span className="text-[#1B1B1B]/60 text-xs px-2 py-1 font-medium">
                       +{recipe.ingredientes.length - 3} más
                     </span>
                   )}

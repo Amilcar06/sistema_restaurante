@@ -133,11 +133,11 @@ export function Roles() {
         <div className="space-y-8 w-full relative">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-foreground mb-3 text-3xl font-bold">Roles y Permisos</h1>
-                    <p className="text-muted-foreground text-base">Gestiona los roles y niveles de acceso</p>
+                    <h1 className="text-[#1B1B1B] mb-3 text-3xl font-bold uppercase tracking-tight">Roles y Permisos</h1>
+                    <p className="text-[#1B1B1B]/60 text-base font-medium">Gestiona los roles y niveles de acceso</p>
                 </div>
                 <Button
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                    className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-lg transition-all duration-300"
                     onClick={() => {
                         resetForm();
                         setIsDialogOpen(true);
@@ -148,11 +148,11 @@ export function Roles() {
                 </Button>
             </div>
 
-            <Card className="bg-card border-primary/20 p-4">
+            <Card className="bg-white border-[#F26522]/20 p-4 shadow-sm">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#1B1B1B]/40" />
                     <Input
-                        className="pl-10 bg-muted/50 border-primary/20 text-foreground"
+                        className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                         placeholder="Buscar roles..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -162,28 +162,28 @@ export function Roles() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredRoles.map((rol) => (
-                    <Card key={rol.id} className="bg-card border-primary/20 p-6 hover:bg-muted/50 transition-all">
+                    <Card key={rol.id} className="bg-white border-[#F26522]/20 p-6 hover:bg-white hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 shadow-sm group">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary/20 rounded-lg">
-                                    <Shield className="w-6 h-6 text-primary" />
+                                <div className="p-2 bg-[#F26522]/10 rounded-lg group-hover:bg-[#F26522] transition-colors duration-300">
+                                    <Shield className="w-6 h-6 text-[#F26522] group-hover:text-white transition-colors duration-300" />
                                 </div>
                                 <div>
-                                    <h3 className="text-foreground font-bold text-lg">{rol.nombre}</h3>
+                                    <h3 className="text-[#1B1B1B] font-bold text-lg uppercase tracking-wide">{rol.nombre}</h3>
                                     {rol.es_sistema && (
-                                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+                                        <span className="text-xs font-bold uppercase tracking-wide text-[#00CFE8] bg-[#00CFE8]/10 px-2 py-0.5 rounded border border-[#00CFE8]/20">
                                             Sistema
                                         </span>
                                     )}
                                 </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1">
                                 {!rol.es_sistema && (
                                     <>
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-muted-foreground hover:text-foreground"
+                                            className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10"
                                             onClick={() => handleEdit(rol)}
                                         >
                                             <Edit className="w-4 h-4" />
@@ -191,7 +191,7 @@ export function Roles() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-muted-foreground hover:text-destructive"
+                                            className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10"
                                             onClick={() => handleDelete(rol.id)}
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -200,63 +200,63 @@ export function Roles() {
                                 )}
                             </div>
                         </div>
-                        <p className="text-muted-foreground text-sm mb-4">
+                        <p className="text-[#1B1B1B]/70 text-sm mb-4 font-medium border-t border-[#F26522]/10 pt-3">
                             {rol.descripcion || "Sin descripción"}
                         </p>
-                        <div className="text-xs text-muted-foreground">
-                            Creado: {new Date(rol.fecha_creacion).toLocaleDateString()}
+                        <div className="text-xs text-[#1B1B1B]/40 font-mono text-right">
+                            Creado: {new Date(rol.fecha_creacion).toLocaleDateString('es-BO')}
                         </div>
                     </Card>
                 ))}
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="bg-card border-primary/20 max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle className="text-foreground">
+                <DialogContent className="bg-white border-[#F26522]/20 text-[#1B1B1B] max-w-3xl p-0 overflow-hidden">
+                    <DialogHeader className="px-6 py-4 border-b border-[#F26522]/10 bg-[#F26522]/5">
+                        <DialogTitle className="text-[#1B1B1B] text-xl font-bold uppercase tracking-wide">
                             {editingRole ? "Editar Rol" : "Nuevo Rol"}
                         </DialogTitle>
-                        <DialogDescription className="text-muted-foreground">
+                        <DialogDescription className="text-[#1B1B1B]/60">
                             {editingRole ? "Modifica los permisos del rol" : "Crea un nuevo rol y asigna permisos"}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex-1 overflow-y-auto px-1 pr-2 pb-6">
+                    <div className="flex-1 overflow-y-auto px-6 py-6 pb-6 max-h-[70vh]">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <Label className="text-foreground/80">Nombre del Rol</Label>
+                                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Nombre del Rol</Label>
                                 <Input
-                                    className="bg-muted/50 border-primary/20 text-foreground"
+                                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                                     value={formData.nombre}
                                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                                     required
                                 />
                             </div>
                             <div>
-                                <Label className="text-foreground/80">Descripción</Label>
+                                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Descripción</Label>
                                 <Input
-                                    className="bg-muted/50 border-primary/20 text-foreground"
+                                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                                     value={formData.descripcion}
                                     onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <Label className="text-foreground/80 mb-2 block">Permisos</Label>
-                                <div className="bg-muted/50 border border-primary/20 rounded-lg p-4 max-h-60 overflow-y-auto">
+                                <Label className="text-[#1B1B1B] font-medium mb-2 block uppercase text-xs tracking-wider text-[#F26522]">Permisos</Label>
+                                <div className="bg-white border border-[#F26522]/20 rounded-lg p-4 max-h-60 overflow-y-auto shadow-inner">
                                     {Object.entries(permisosPorRecurso).map(([recurso, perms]) => (
                                         <div key={recurso} className="mb-4 last:mb-0">
-                                            <h4 className="text-primary font-semibold text-sm mb-2 capitalize">{recurso}</h4>
-                                            <div className="grid grid-cols-1 gap-2">
+                                            <h4 className="text-[#1B1B1B] font-bold text-sm mb-2 capitalize border-b border-[#F26522]/10 pb-1">{recurso}</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                 {perms.map(permiso => (
-                                                    <div key={permiso.id} className="flex items-center space-x-2">
+                                                    <div key={permiso.id} className="flex items-center space-x-2 bg-[#F26522]/5 p-2 rounded border border-transparent hover:border-[#F26522]/20 transition-colors">
                                                         <Checkbox
                                                             id={permiso.id}
                                                             checked={formData.permisos.includes(permiso.id)}
                                                             onCheckedChange={() => handlePermissionToggle(permiso.id)}
-                                                            className="border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                            className="border-[#F26522]/40 data-[state=checked]:bg-[#F26522] data-[state=checked]:border-[#F26522]"
                                                         />
                                                         <label
                                                             htmlFor={permiso.id}
-                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground/80"
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[#1B1B1B]/80 cursor-pointer w-full"
                                                         >
                                                             {permiso.descripcion || permiso.nombre}
                                                         </label>
@@ -267,9 +267,11 @@ export function Roles() {
                                     ))}
                                 </div>
                             </div>
-                            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                                {editingRole ? "Guardar Cambios" : "Crear Rol"}
-                            </Button>
+                            <div className="pt-4 border-t border-[#F26522]/10 flex justify-end">
+                                <Button type="submit" className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold w-full md:w-auto">
+                                    {editingRole ? "Guardar Cambios" : "Crear Rol"}
+                                </Button>
+                            </div>
                         </form>
                     </div>
                 </DialogContent>
