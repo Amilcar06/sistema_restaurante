@@ -17,15 +17,22 @@ from app.models.receta import Receta
 class AIService:
     def __init__(self):
         self.api_key = settings.OPENAI_API_KEY
+        self.api_base = settings.OPENAI_API_BASE
         self.model = settings.AI_MODEL
         self.temperature = settings.AI_TEMPERATURE
         
         if self.api_key:
-            self.llm = ChatOpenAI(
-                model_name=self.model,
-                temperature=self.temperature,
-                openai_api_key=self.api_key
-            )
+            # Configuración flexible para soportar OpenAI oficial o alternativas (Groq, LocalAI)
+            chat_kwargs = {
+                "model_name": self.model,
+                "temperature": self.temperature,
+                "openai_api_key": self.api_key
+            }
+            
+            if self.api_base:
+                chat_kwargs["openai_api_base"] = self.api_base
+            
+            self.llm = ChatOpenAI(**chat_kwargs)
         else:
             self.llm = None
     
@@ -51,6 +58,32 @@ class AIService:
             "today": round(ventas_hoy, 2),
             "count_today": count_hoy
         }
+        
+        # 1.1. Ventas Históricas (Últimos 30 días)
+        month_start = datetime.utcnow() - timedelta(days=30)
+        ventas_mes = db.query(func.sum(Venta.total)).filter(
+            Venta.fecha_creacion >= month_start,
+            Venta.estado == "COMPLETADA"
+        ).scalar() or 0.0
+        
+        context["sales"]["last_30_days"] = round(ventas_mes, 2)
+        
+        # 1.2. Día con más ventas (Top Histórico)
+        # Agrupa por fecha (cast a DATE) y suma totales
+        top_day = db.query(
+            func.date(Venta.fecha_creacion).label('fecha'), 
+            func.sum(Venta.total).label('total')
+        ).filter(
+            Venta.estado == "COMPLETADA"
+        ).group_by(
+            func.date(Venta.fecha_creacion)
+        ).order_by(desc('total')).first()
+        
+        if top_day:
+            context["sales"]["best_day"] = {
+                "date": top_day.fecha.strftime("%d/%m/%Y"),
+                "total": round(top_day.total, 2)
+            }
         
         # 2. Inventario Crítico
         critical_items = db.query(ItemInventario).filter(
@@ -136,6 +169,13 @@ Reglas:
             lines.append(f"--- VENTAS DE HOY ({datetime.now().strftime('%d/%m/%Y')}) ---")
             lines.append(f"Total Vendido: Bs. {s.get('today', 0)}")
             lines.append(f"Cantidad de Pedidos: {s.get('count_today', 0)}")
+            
+            if "last_30_days" in s:
+                lines.append(f"Ventas últimos 30 días: Bs. {s['last_30_days']}")
+                
+            if "best_day" in s:
+                bd = s["best_day"]
+                lines.append(f"🌟 Día Récord: {bd['date']} con Bs. {bd['total']}")
         
         # Inventory
         if "inventory" in context and context["inventory"].get("critical_items"):

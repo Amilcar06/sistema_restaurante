@@ -74,18 +74,19 @@ EMAILS_FROM_EMAIL=info@gastrosmart.ai
 
 El proyecto incluye dos opciones de inicialización: una básica y una completa para demostración ("Parrillada El Buen Gusto").
 
-#### Opción A: Modo Demo (Recomendado para primera vez)
-Esta opción carga un restaurante completo con menú, inventario, 5 empleados y **200 ventas históricas** para ver el dashboard lleno.
+#### Opción A: Modo Demo "Beef & Beer" (Recomendado)
+Esta opción carga un restaurante completo con menú de parrillada y cerveza, inventario detallado y **300 ventas históricas**.
 
 ```bash
 # Ejecutar script de demo (Recrea tablas y datos)
-python scripts/seed_parrillada.py
+python scripts/seed_beef_and_beer.py
 ```
 
-> **🔑 Credenciales Demo (Parrillada):**
-> - **Admin (Dueño)**: `admin@parrillada.bo` / `admin123`
-> - **Mesero**: `mesero1@parrillada.bo` / `mesero123`
-> - **Gerente**: `gerente@parrillada.bo` / `gerente123`
+> **🔑 Credenciales Demo (Beef & Beer):**
+> - **Admin (Dueño)**: `admin@beefandbeer.bo` / `admin123`
+> - **Gerente**: `gerente@beefandbeer.bo` / `gerente123`
+> - **Chef**: `chef@beefandbeer.bo` / `chef123`
+> - **Cajero**: `cajero@beefandbeer.bo` / `cajero123`
 
 #### Opción B: Instalación Limpia (Solo Admin)
 Usa esta opción si quieres empezar tu propio restaurante desde cero.

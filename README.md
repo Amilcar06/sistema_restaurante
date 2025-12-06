@@ -51,8 +51,8 @@ Si ya tienes Python, Node.js y PostgreSQL instalados:
     source venv/bin/activate  # O venv\Scripts\activate en Windows
     pip install -r requirements.txt
     
-    # Crear datos de demo (Parrillada)
-    python scripts/seed_parrillada.py
+    # Crear datos de demo (Beef & Beer)
+    python scripts/seed_beef_and_beer.py
     
     # Correr servidor
     python run.py
@@ -65,9 +65,9 @@ Si ya tienes Python, Node.js y PostgreSQL instalados:
     npm run dev
     ```
 
-3.  **Login**: Ve a `http://localhost:5175` y usa `admin@parrillada.bo` / `admin123`.
+3.  **Login**: Ve a `http://localhost:5173` y usa `admin@beefandbeer.bo` / `admin123`.
 
-Consulta la [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para detalles completos.
+Consulta la [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para detalles completos y [AI_SETUP.md](./AI_SETUP.md) para configurar el Chatbot.
 
 ## 📚 Documentación
 

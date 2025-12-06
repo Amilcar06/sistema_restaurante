@@ -3,7 +3,7 @@ Configuration settings for GastroSmart AI Backend
 """
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
-from typing import List, Union
+from typing import List, Union, Optional
 
 class Settings(BaseSettings):
     # Database
@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # AI Configuration
-    OPENAI_API_KEY: str = ""
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_API_BASE: Optional[str] = None  # Para usar LocalAI, Groq, etc.
     AI_MODEL: str = "gpt-3.5-turbo"
     AI_TEMPERATURE: float = 0.7
 
