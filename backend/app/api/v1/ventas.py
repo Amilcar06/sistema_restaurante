@@ -12,7 +12,9 @@ from app.schemas.venta import VentaCreate, VentaUpdate, VentaResponse
 from app.core.database import get_db
 from app.models.venta import Venta, ItemVenta
 from app.models.sucursal import Sucursal
-from app.models.receta import Receta
+from app.models.sucursal import Sucursal
+from app.models.receta import Receta, IngredienteReceta
+from app.models.item_inventario import ItemInventario
 
 router = APIRouter()
 
@@ -68,6 +70,31 @@ async def crear_venta(venta: VentaCreate, db: Session = Depends(get_db)):
             total=item.total
         )
         db.add(db_item)
+
+        # Descontar de inventario
+        # 1. Obtener receta con sus ingredientes
+        receta = db.query(Receta).filter(Receta.id == item.receta_id).first()
+        
+        if receta and receta.ingredientes:
+            for ingrediente in receta.ingredientes:
+                if ingrediente.item_inventario_id:
+                    # 2. Buscar el item de inventario correspondiente en la sucursal
+                    item_inv = db.query(ItemInventario).filter(
+                        ItemInventario.id == ingrediente.item_inventario_id,
+                        ItemInventario.sucursal_id == venta.sucursal_id
+                    ).first()
+                    
+                    if item_inv:
+                        # 3. Calcular cantidad a descontar
+                        cantidad_total = ingrediente.cantidad * item.cantidad
+                        
+                        # 4. Actualizar stock (permitiendo negativos)
+                        item_inv.cantidad -= cantidad_total
+                        
+                        # Actualizar fecha de actualización
+                        item_inv.ultima_actualizacion = datetime.utcnow()
+                        
+                        db.add(item_inv)
     
     db.commit()
     db.refresh(db_venta)

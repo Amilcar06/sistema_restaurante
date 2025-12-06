@@ -169,6 +169,7 @@ export function Sales() {
         total,
         metodo_pago: formData.metodo_pago,
         items: formData.items.map(item => ({
+          receta_id: item.receta_id,
           nombre_item: item.nombre_item,
           cantidad: item.cantidad,
           precio_unitario: item.precio_unitario,

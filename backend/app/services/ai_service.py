@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from datetime import datetime, timedelta
 
-from app.models.venta import Venta
+from app.models.venta import Venta, ItemVenta
 from app.models.item_inventario import ItemInventario
 from app.models.receta import Receta
 
@@ -101,7 +101,22 @@ class AIService:
             ]
         }
         
-        # 3. Receta más rentable (Top 3)
+        # 3. Platos más Populares (Top 3 Vendidos)
+        top_selling = db.query(
+            ItemVenta.nombre_item,
+            func.sum(ItemVenta.cantidad).label('total_cantidad')
+        ).join(Venta).filter(
+            Venta.estado == "COMPLETADA"
+        ).group_by(
+            ItemVenta.nombre_item
+        ).order_by(desc('total_cantidad')).limit(3).all()
+
+        context["sales"]["top_items"] = [
+            {"name": item.nombre_item, "count": int(item.total_cantidad)}
+            for item in top_selling
+        ]
+
+        # 4. Receta más rentable (Top 3)
         top_recipes = db.query(Receta).order_by(desc(Receta.margen)).limit(3).all()
         
         context["recipes"] = {
@@ -176,6 +191,15 @@ Reglas:
             if "best_day" in s:
                 bd = s["best_day"]
                 lines.append(f"🌟 Día Récord: {bd['date']} con Bs. {bd['total']}")
+        
+            if "best_day" in s:
+                bd = s["best_day"]
+                lines.append(f"🌟 Día Récord: {bd['date']} con Bs. {bd['total']}")
+
+            if "top_items" in s:
+                lines.append("\n--- PLATOS MÁS POPULARES (Más Vendidos) ---")
+                for item in s["top_items"]:
+                    lines.append(f"🔥 {item['name']}: {item['count']} unidades vendidas")
         
         # Inventory
         if "inventory" in context and context["inventory"].get("critical_items"):
