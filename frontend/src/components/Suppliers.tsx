@@ -1,142 +1,77 @@
-import { useState, useEffect } from "react";
-import { Plus, Search, Truck, Edit, Trash2, Loader2, Star } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Search, Truck } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Switch } from "./ui/switch";
-import { proveedoresApi } from "../services/api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "./ui/alert-dialog";
+import { SupplierCard } from "./suppliers/SupplierCard";
+import { SupplierDialog } from "./suppliers/SupplierDialog";
+import { useSuppliers } from "../hooks/useSuppliers";
 import { Proveedor } from "../types";
-import { toast } from "sonner";
+import { Skeleton } from "./ui/skeleton";
 
 export function Suppliers() {
+  const { proveedores, loading, createSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Proveedor | null>(null);
-  const [formData, setFormData] = useState({
-    nombre: "",
-    nombre_contacto: "",
-    telefono: "",
-    email: "",
-    direccion: "",
-    ciudad: "",
-    zona: "",
-    nit: "",
-    terminos_pago: "",
-    calificacion: 0,
-    activo: true,
-    notas: "",
-  });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadProveedores();
-  }, []);
+  const filteredProveedores = useMemo(() => {
+    return proveedores.filter((proveedor) =>
+      proveedor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proveedor.nombre_contacto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proveedor.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [proveedores, searchTerm]);
 
-  const loadProveedores = async () => {
-    try {
-      setLoading(true);
-      const data = await proveedoresApi.obtenerTodos();
-      setProveedores(data);
-    } catch (error) {
-      console.error("Error loading suppliers:", error);
-      toast.error("Error al cargar los proveedores");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenDialog = (proveedor?: Proveedor) => {
-    if (proveedor) {
-      setEditingSupplier(proveedor);
-      setFormData({
-        nombre: proveedor.nombre,
-        nombre_contacto: proveedor.nombre_contacto || "",
-        telefono: proveedor.telefono || "",
-        email: proveedor.email || "",
-        direccion: proveedor.direccion || "",
-        ciudad: proveedor.ciudad || "",
-        zona: proveedor.zona || "",
-        nit: proveedor.nit || "",
-        terminos_pago: proveedor.terminos_pago || "",
-        calificacion: proveedor.calificacion || 0,
-        activo: proveedor.activo,
-        notas: proveedor.notas || "",
-      });
-    } else {
-      setEditingSupplier(null);
-      setFormData({
-        nombre: "",
-        nombre_contacto: "",
-        telefono: "",
-        email: "",
-        direccion: "",
-        ciudad: "",
-        zona: "",
-        nit: "",
-        terminos_pago: "",
-        calificacion: 0,
-        activo: true,
-        notas: "",
-      });
-    }
+  const handleOpenCreate = () => {
+    setEditingSupplier(null);
     setIsDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setEditingSupplier(null);
+  const handleOpenEdit = (proveedor: Proveedor) => {
+    setEditingSupplier(proveedor);
+    setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingSupplier) {
-        await proveedoresApi.actualizar(editingSupplier.id, formData);
-        toast.success("Proveedor actualizado exitosamente");
-      } else {
-        await proveedoresApi.crear(formData);
-        toast.success("Proveedor creado exitosamente");
-      }
-      handleCloseDialog();
-      loadProveedores();
-    } catch (error: any) {
-      console.error("Error saving supplier:", error);
-      toast.error(error.message || "Error al guardar el proveedor");
+  const handleSubmit = async (data: Omit<Proveedor, "id" | "created_at" | "updated_at">) => {
+    if (editingSupplier) {
+      await updateSupplier(editingSupplier.id, data);
+    } else {
+      await createSupplier(data);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar este proveedor?")) return;
-    try {
-      await proveedoresApi.eliminar(id);
-      toast.success("Proveedor eliminado exitosamente");
-      loadProveedores();
-    } catch (error: any) {
-      console.error("Error deleting supplier:", error);
-      toast.error(error.message || "Error al eliminar el proveedor");
-    }
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
   };
 
-  const filteredProveedores = proveedores.filter((proveedor) =>
-    proveedor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proveedor.nombre_contacto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    proveedor.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const confirmDelete = async () => {
+    if (deleteId) {
+      await deleteSupplier(deleteId);
+      setDeleteId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[#1B1B1B] text-3xl font-bold mb-2 uppercase tracking-tight">Proveedores</h1>
           <p className="text-[#1B1B1B]/60 font-medium">Gestiona tus proveedores de insumos</p>
         </div>
         <Button
-          onClick={() => handleOpenDialog()}
+          onClick={handleOpenCreate}
           className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-lg transition-all"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -144,7 +79,6 @@ export function Suppliers() {
         </Button>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1B1B1B]/40 w-5 h-5" />
         <Input
@@ -155,263 +89,71 @@ export function Suppliers() {
         />
       </div>
 
-      {/* Suppliers List */}
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-[#F26522] animate-spin" />
-        </div>
-      ) : filteredProveedores.length === 0 ? (
-        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
-          <Truck className="w-16 h-16 text-[#1B1B1B]/20 mx-auto mb-4" />
-          <p className="text-[#1B1B1B]/60 font-medium">No hay proveedores registrados</p>
-        </Card>
-      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProveedores.map((proveedor) => (
-            <Card
-              key={proveedor.id}
-              className="bg-white border-[#F26522]/20 p-6 hover:shadow-lg transition-all duration-300 group hover:-translate-y-1"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-[#F26522]/10 rounded-lg group-hover:bg-[#F26522] transition-colors duration-300">
-                    <Truck className="w-5 h-5 text-[#F26522] group-hover:text-white transition-colors duration-300" />
-                  </div>
-                  <div>
-                    <h3 className="text-[#1B1B1B] font-bold uppercase tracking-wide">{proveedor.nombre}</h3>
-                    {proveedor.calificacion && (
-                      <div className="flex items-center gap-1 mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${i < Math.round(proveedor.calificacion!)
-                              ? "text-yellow-500 fill-yellow-500"
-                              : "text-[#1B1B1B]/10"
-                              }`}
-                          />
-                        ))}
-                        <span className="text-xs text-[#1B1B1B]/60 ml-1 font-mono">
-                          {proveedor.calificacion.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleOpenDialog(proveedor)}
-                    className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10 h-8 w-8"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(proveedor.id)}
-                    className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10 h-8 w-8"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="p-6 border-[#F26522]/10 bg-white">
+              <div className="flex gap-4">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               </div>
-              <div className="space-y-2 text-sm border-t border-[#F26522]/10 pt-3">
-                {proveedor.nombre_contacto && (
-                  <p className="text-[#1B1B1B]/80">
-                    <span className="text-[#1B1B1B]/50 font-medium">Contacto:</span> {proveedor.nombre_contacto}
-                  </p>
-                )}
-                {proveedor.telefono && (
-                  <p className="text-[#1B1B1B]/80 tabular-nums">
-                    <span className="text-[#1B1B1B]/50 font-medium">Teléfono:</span> {proveedor.telefono}
-                  </p>
-                )}
-                {proveedor.email && (
-                  <p className="text-[#1B1B1B]/80 truncate">
-                    <span className="text-[#1B1B1B]/50 font-medium">Email:</span> {proveedor.email}
-                  </p>
-                )}
-                {proveedor.ciudad && (
-                  <p className="text-[#1B1B1B]/80">
-                    <span className="text-[#1B1B1B]/50 font-medium">Ubicación:</span> {proveedor.ciudad}
-                    {proveedor.zona && `, ${proveedor.zona}`}
-                  </p>
-                )}
-                {proveedor.terminos_pago && (
-                  <p className="text-[#1B1B1B]/80">
-                    <span className="text-[#1B1B1B]/50 font-medium">Términos:</span> {proveedor.terminos_pago}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 pt-2">
-                  <span className={`text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${proveedor.activo
-                    ? "bg-[#28C76F]/10 text-[#28C76F] border border-[#28C76F]/20"
-                    : "bg-[#EA5455]/10 text-[#EA5455] border border-[#EA5455]/20"
-                    }`}>
-                    {proveedor.activo ? "Activo" : "Inactivo"}
-                  </span>
-                </div>
+              <div className="mt-4 space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
               </div>
             </Card>
           ))}
         </div>
+      ) : filteredProveedores.length === 0 ? (
+        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
+          <Truck className="w-16 h-16 text-[#1B1B1B]/20 mx-auto mb-4" />
+          <p className="text-[#1B1B1B]/60 font-medium mb-4">No hay proveedores registrados</p>
+          <Button variant="outline" onClick={handleOpenCreate} className="border-[#F26522]/30 hover:bg-[#F26522]/5 text-[#F26522]">
+            Crear el primero
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProveedores.map((proveedor) => (
+            <SupplierCard
+              key={proveedor.id}
+              proveedor={proveedor}
+              onEdit={handleOpenEdit}
+              onDelete={handleDeleteClick}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-white border-[#F26522]/20 text-[#1B1B1B] max-w-3xl max-h-[90vh] overflow-y-auto p-0">
-          <DialogHeader className="px-6 py-4 border-b border-[#F26522]/10 bg-[#F26522]/5">
-            <DialogTitle className="text-[#1B1B1B] text-xl font-bold uppercase tracking-wide">
-              {editingSupplier ? "Editar Proveedor" : "Nuevo Proveedor"}
-            </DialogTitle>
-            <DialogDescription className="text-[#1B1B1B]/60">
-              {editingSupplier
-                ? "Modifica los datos del proveedor"
-                : "Completa los datos para crear un nuevo proveedor"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Nombre del Proveedor *</Label>
-                <Input
-                  required
-                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                  placeholder="Ej: Distribuidora ABC"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Contacto</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                    placeholder="Nombre del contacto"
-                    value={formData.nombre_contacto}
-                    onChange={(e) => setFormData({ ...formData, nombre_contacto: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Teléfono</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
-                    placeholder="777-XXXXX"
-                    value={formData.telefono}
-                    onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Email</Label>
-                <Input
-                  type="email"
-                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                  placeholder="proveedor@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Dirección</Label>
-                <Input
-                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                  placeholder="Dirección completa"
-                  value={formData.direccion}
-                  onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Ciudad</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                    placeholder="La Paz"
-                    value={formData.ciudad}
-                    onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Zona</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                    placeholder="Ej: Sopocachi"
-                    value={formData.zona}
-                    onChange={(e) => setFormData({ ...formData, zona: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">NIT / RUC</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
-                    placeholder="Número de identificación tributaria"
-                    value={formData.nit}
-                    onChange={(e) => setFormData({ ...formData, nit: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Términos de Pago</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                    placeholder="Ej: 30 días, Contado"
-                    value={formData.terminos_pago}
-                    onChange={(e) => setFormData({ ...formData, terminos_pago: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Calificación (1-5)</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 tabular-nums"
-                  placeholder="0"
-                  value={formData.calificacion || ""}
-                  onChange={(e) => setFormData({ ...formData, calificacion: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Notas</Label>
-                <Textarea
-                  className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                  placeholder="Información adicional sobre el proveedor"
-                  rows={3}
-                  value={formData.notas}
-                  onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-                />
-              </div>
-              <div className="flex items-center gap-2 pt-2">
-                <Switch
-                  checked={formData.activo}
-                  onCheckedChange={(checked: boolean) => setFormData({ ...formData, activo: checked })}
-                  className="data-[state=checked]:bg-[#28C76F]"
-                />
-                <Label className="text-[#1B1B1B] font-medium">Proveedor Activo</Label>
-              </div>
-              <div className="flex justify-end gap-3 pt-4 border-t border-[#F26522]/10 mt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCloseDialog}
-                  className="border-[#1B1B1B]/10 text-[#1B1B1B] hover:bg-[#F26522]/5 hover:text-[#F26522] hover:border-[#F26522]/30"
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-md"
-                >
-                  {editingSupplier ? "Actualizar" : "Crear"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SupplierDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleSubmit}
+        initialData={editingSupplier}
+      />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open: boolean) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-white border-[#F26522]/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#1B1B1B]">¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[#1B1B1B]/60">
+              Esta acción no se puede deshacer. Se eliminará permanentemente al proveedor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1B1B1B]/10 text-[#1B1B1B] hover:bg-gray-100">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-[#EA5455] hover:bg-[#EA5455]/90 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

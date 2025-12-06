@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { Plus, Search, Edit, Trash2, Loader2 } from "lucide-react";
+
+import { useState, useMemo } from "react";
+import { Plus, Search, Edit, Trash2, Tag } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -8,15 +9,17 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { promocionesApi, sucursalesApi } from "../services/api";
-import { Promocion, Sucursal } from "../types";
+import { Promocion } from "../types";
 import { toast } from "sonner";
+import { usePromotions } from "../hooks/usePromotions";
+import { FormInput } from "./ui/FormInput";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Skeleton } from "./ui/skeleton";
 
 export function Promotions() {
+  const { promociones, sucursales, loading, createPromotion, updatePromotion, deletePromotion } = usePromotions();
   const [searchTerm, setSearchTerm] = useState("");
-  const [promociones, setPromociones] = useState<Promocion[]>([]);
-  const [sucursales, setSucursales] = useState<Sucursal[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState<Promocion | null>(null);
 
@@ -34,80 +37,28 @@ export function Promotions() {
     sucursal_id: "none"
   });
 
-  useEffect(() => {
-    loadPromociones();
-    loadSucursales();
-  }, []);
-
-  const loadPromociones = async () => {
-    try {
-      setLoading(true);
-      const data = await promocionesApi.obtenerTodos();
-      setPromociones(data);
-    } catch (error) {
-      console.error("Error loading promotions:", error);
-      toast.error("Error al cargar las promociones");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSucursales = async () => {
-    try {
-      const data = await sucursalesApi.obtenerTodos();
-      setSucursales(data);
-    } catch (error) {
-      console.error("Error loading locations:", error);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const submitData: any = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion || undefined,
-        tipo_descuento: formData.tipo_descuento,
-        valor_descuento: formData.valor_descuento,
-        compra_minima: formData.compra_minima || undefined,
-        descuento_maximo: formData.descuento_maximo || undefined,
-        fecha_inicio: new Date(formData.fecha_inicio).toISOString(),
-        fecha_fin: new Date(formData.fecha_fin).toISOString(),
-        activa: formData.activa,
-        aplicable_a: formData.aplicable_a,
-        sucursal_id: formData.sucursal_id === "none" ? undefined : formData.sucursal_id
-      };
-
-      if (editingPromotion) {
-        await promocionesApi.actualizar(editingPromotion.id, submitData);
-        toast.success("Promoción actualizada correctamente");
-      } else {
-        await promocionesApi.crear(submitData);
-        toast.success("Promoción creada correctamente");
-      }
-      setIsDialogOpen(false);
-      resetForm();
-      loadPromociones();
-    } catch (error: any) {
-      console.error("Error saving promotion:", error);
-      toast.error(error.message || "Error al guardar la promoción");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar esta promoción?")) return;
-    try {
-      await promocionesApi.eliminar(id);
-      toast.success("Promoción eliminada correctamente");
-      loadPromociones();
-    } catch (error) {
-      console.error("Error deleting promotion:", error);
-      toast.error("Error al eliminar la promoción");
-    }
-  };
+  const filteredPromociones = useMemo(() =>
+    promociones.filter(promo =>
+      promo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (promo.descripcion && promo.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
+    ),
+    [promociones, searchTerm]
+  );
 
   const handleEdit = (promocion: Promocion) => {
     setEditingPromotion(promocion);
+
+    // Format dates for input[type="datetime-local"]
+    // Removing the 'T' and seconds if standard or just ensuring it fits
+    // Using date-fns usually ensures safe handling, but for input value we need YYYY-MM-DDTHH:mm
+    const formatDateForInput = (dateString: string) => {
+      try {
+        return new Date(dateString).toISOString().slice(0, 16);
+      } catch (e) {
+        return "";
+      }
+    };
+
     setFormData({
       nombre: promocion.nombre,
       descripcion: promocion.descripcion || "",
@@ -115,8 +66,8 @@ export function Promotions() {
       valor_descuento: promocion.valor_descuento,
       compra_minima: promocion.compra_minima,
       descuento_maximo: promocion.descuento_maximo,
-      fecha_inicio: new Date(promocion.fecha_inicio).toISOString().slice(0, 16),
-      fecha_fin: new Date(promocion.fecha_fin).toISOString().slice(0, 16),
+      fecha_inicio: formatDateForInput(promocion.fecha_inicio),
+      fecha_fin: formatDateForInput(promocion.fecha_fin),
       activa: promocion.activa,
       aplicable_a: promocion.aplicable_a as any || "TODOS",
       sucursal_id: promocion.sucursal_id || "none"
@@ -141,10 +92,54 @@ export function Promotions() {
     setEditingPromotion(null);
   };
 
-  const filteredPromociones = promociones.filter(promo =>
-    promo.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (promo.descripcion && promo.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const validateForm = () => {
+    if (new Date(formData.fecha_fin) <= new Date(formData.fecha_inicio)) {
+      toast.error("La fecha de fin debe ser posterior a la fecha de inicio");
+      return false;
+    }
+    if (formData.tipo_descuento !== '2X1' && formData.valor_descuento <= 0) {
+      toast.error("El valor de descuento debe ser mayor a cero");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      const submitData: any = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion || undefined,
+        tipo_descuento: formData.tipo_descuento,
+        valor_descuento: formData.valor_descuento,
+        compra_minima: formData.compra_minima || undefined,
+        descuento_maximo: formData.descuento_maximo || undefined,
+        // Ensure ISO string for backend
+        fecha_inicio: new Date(formData.fecha_inicio).toISOString(),
+        fecha_fin: new Date(formData.fecha_fin).toISOString(),
+        activa: formData.activa,
+        aplicable_a: formData.aplicable_a,
+        sucursal_id: formData.sucursal_id === "none" ? undefined : formData.sucursal_id
+      };
+
+      if (editingPromotion) {
+        await updatePromotion(editingPromotion.id, submitData);
+      } else {
+        await createPromotion(submitData);
+      }
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      // handled in hook
+    }
+  };
+
+  const handleDeleteClick = async (id: string) => {
+    if (!confirm("¿Estás seguro de eliminar esta promoción?")) return;
+    await deletePromotion(id);
+  };
 
   const getDiscountTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -161,14 +156,6 @@ export function Promotions() {
     const end = new Date(promo.fecha_fin);
     return promo.activa && now >= start && now <= end;
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-[#F26522]" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -192,7 +179,6 @@ export function Promotions() {
       </div>
 
       <Card className="bg-white border-[#F26522]/20 p-6 shadow-sm">
-
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
@@ -208,25 +194,26 @@ export function Promotions() {
             </DialogHeader>
             <div className="p-6">
               <form onSubmit={handleSubmit} className="space-y-4">
+                <FormInput
+                  label="Nombre"
+                  id="nombre"
+                  placeholder="Ej: Descuento de Verano"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  required
+                />
+
                 <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Nombre</Label>
-                  <Input
-                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                    placeholder="Ej: Descuento de Verano"
-                    value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Descripción</Label>
+                  <Label htmlFor="descripcion" className="text-[#1B1B1B] font-medium mb-1.5 block">Descripción</Label>
                   <Textarea
+                    id="descripcion"
                     className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
                     placeholder="Descripción de la promoción"
                     value={formData.descripcion}
                     onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Tipo de Descuento</Label>
@@ -239,76 +226,63 @@ export function Promotions() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
-                        <SelectItem value="PORCENTAJE" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Porcentaje</SelectItem>
-                        <SelectItem value="MONTO_FIJO" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Monto Fijo</SelectItem>
-                        <SelectItem value="2X1" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">2x1</SelectItem>
+                        <SelectItem value="PORCENTAJE">Porcentaje</SelectItem>
+                        <SelectItem value="MONTO_FIJO">Monto Fijo</SelectItem>
+                        <SelectItem value="2X1">2x1</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label className="text-[#1B1B1B] font-medium mb-1.5 block">
-                      Valor {formData.tipo_descuento === 'PORCENTAJE' ? '(%)' : '(Bs.)'}
-                    </Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                      placeholder="0"
-                      value={formData.valor_descuento}
-                      onChange={(e) => setFormData({ ...formData, valor_descuento: parseFloat(e.target.value) || 0 })}
-                      required
-                    />
-                  </div>
+                  <FormInput
+                    label={`Valor ${formData.tipo_descuento === 'PORCENTAJE' ? '(%)' : '(Bs.)'}`}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={formData.valor_descuento}
+                    onChange={(e) => setFormData({ ...formData, valor_descuento: parseFloat(e.target.value) || 0 })}
+                    required
+                    disabled={formData.tipo_descuento === '2X1'}
+                  />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Compra Mínima (Bs.)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                      placeholder="0"
-                      value={formData.compra_minima || ""}
-                      onChange={(e) => setFormData({ ...formData, compra_minima: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Descuento Máximo (Bs.)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                      placeholder="0"
-                      value={formData.descuento_maximo || ""}
-                      onChange={(e) => setFormData({ ...formData, descuento_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    />
-                  </div>
+                  <FormInput
+                    label="Compra Mínima (Bs.)"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={formData.compra_minima || ""}
+                    onChange={(e) => setFormData({ ...formData, compra_minima: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                  <FormInput
+                    label="Descuento Máximo (Bs.)"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0"
+                    value={formData.descuento_maximo || ""}
+                    onChange={(e) => setFormData({ ...formData, descuento_maximo: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Fecha de Inicio</Label>
-                    <Input
-                      type="datetime-local"
-                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                      value={formData.fecha_inicio}
-                      onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Fecha de Fin</Label>
-                    <Input
-                      type="datetime-local"
-                      className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
-                      value={formData.fecha_fin}
-                      onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
-                      required
-                    />
-                  </div>
+                  <FormInput
+                    label="Fecha de Inicio"
+                    type="datetime-local"
+                    value={formData.fecha_inicio}
+                    onChange={(e) => setFormData({ ...formData, fecha_inicio: e.target.value })}
+                    required
+                  />
+                  <FormInput
+                    label="Fecha de Fin"
+                    type="datetime-local"
+                    value={formData.fecha_fin}
+                    onChange={(e) => setFormData({ ...formData, fecha_fin: e.target.value })}
+                    required
+                  />
                 </div>
+
                 <div>
                   <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Aplicable a</Label>
                   <Select
@@ -319,13 +293,14 @@ export function Promotions() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
-                      <SelectItem value="TODOS" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Todos</SelectItem>
-                      <SelectItem value="RECETAS" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Recetas Específicas</SelectItem>
-                      <SelectItem value="CATEGORIAS" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Categorías</SelectItem>
-                      <SelectItem value="ITEMS" className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">Items Específicos</SelectItem>
+                      <SelectItem value="TODOS">Todos</SelectItem>
+                      <SelectItem value="RECETAS">Recetas Específicas</SelectItem>
+                      <SelectItem value="CATEGORIAS">Categorías</SelectItem>
+                      <SelectItem value="ITEMS">Items Específicos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <Label className="text-[#1B1B1B] font-medium mb-1.5 block">Sucursal</Label>
                   <Select
@@ -336,17 +311,16 @@ export function Promotions() {
                       <SelectValue placeholder="Todas las sucursales" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-[#F26522]/20 z-[9999]">
-                      <SelectItem value="none" className="text-[#1B1B1B]/60 focus:bg-[#F26522]/10 focus:text-[#F26522]">
-                        Todas las sucursales
-                      </SelectItem>
+                      <SelectItem value="none" className="text-[#1B1B1B]/60">Todas las sucursales</SelectItem>
                       {sucursales.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id} className="text-[#1B1B1B] focus:bg-[#F26522]/10 focus:text-[#F26522]">
+                        <SelectItem key={loc.id} value={loc.id}>
                           {loc.nombre}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="flex items-center space-x-2 pt-2">
                   <Switch
                     id="activa"
@@ -356,6 +330,7 @@ export function Promotions() {
                   />
                   <Label htmlFor="activa" className="text-[#1B1B1B] font-medium">Activa</Label>
                 </div>
+
                 <div className="flex justify-end gap-3 pt-6 border-t border-[#F26522]/10">
                   <Button
                     type="button"
@@ -400,10 +375,31 @@ export function Promotions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F26522]/10">
-              {filteredPromociones.length === 0 ? (
+              {loading ? (
+                [...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-48" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-8 w-16" /></td>
+                  </tr>
+                ))
+              ) : filteredPromociones.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-[#1B1B1B]/60">
-                    No se encontraron promociones.
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-[#1B1B1B]/60">
+                      <Tag className="w-12 h-12 mb-3 text-[#1B1B1B]/20" />
+                      <p className="font-medium">No se encontraron promociones.</p>
+                      <Button
+                        variant="link"
+                        onClick={() => setIsDialogOpen(true)}
+                        className="text-[#F26522] mt-2"
+                      >
+                        Crear una nueva
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -419,7 +415,7 @@ export function Promotions() {
                           : `Bs. ${promo.valor_descuento.toFixed(2)}`}
                       </td>
                       <td className="px-6 py-4 text-[#1B1B1B]/60 text-sm">
-                        {new Date(promo.fecha_inicio).toLocaleDateString('es-BO')} - {new Date(promo.fecha_fin).toLocaleDateString('es-BO')}
+                        {format(new Date(promo.fecha_inicio), "dd MMM yyyy", { locale: es })} - {format(new Date(promo.fecha_fin), "dd MMM yyyy", { locale: es })}
                       </td>
                       <td className="px-6 py-4">
                         {active ? (
@@ -435,17 +431,19 @@ export function Promotions() {
                       <td className="px-6 py-4 flex gap-1">
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
                           onClick={() => handleEdit(promo)}
-                          className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10"
+                          aria-label={`Editar ${promo.nombre}`}
+                          className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10 h-8 w-8"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(promo.id)}
-                          className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10"
+                          size="icon"
+                          onClick={() => handleDeleteClick(promo.id)}
+                          aria-label={`Eliminar ${promo.nombre}`}
+                          className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10 h-8 w-8"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
