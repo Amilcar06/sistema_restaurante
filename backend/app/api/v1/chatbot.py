@@ -1,38 +1,42 @@
 """
-Chatbot API endpoints
+API de Chatbot en Español
 """
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.chatbot import ChatMessage, ChatResponse
+from app.schemas.chatbot import MensajeChat, RespuestaChat
 from app.services.ai_service import ai_service
+from app.core.database import get_db
+from sqlalchemy.orm import Session
 from datetime import datetime
 import uuid
 
 router = APIRouter()
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat(message: ChatMessage):
+@router.post("/chat", response_model=RespuestaChat)
+async def chat(mensaje: MensajeChat, db: Session = Depends(get_db)):
     """
-    Chat endpoint - receives user message and returns AI response
+    Endpoint de chat - recibe mensaje del usuario y retorna respuesta de IA
+    con contexto del negocio en tiempo real.
     """
     try:
-        # TODO: Get business context from database
-        # For now, using empty context
-        context = {}
+        # 1. Obtener contexto del negocio de la base de datos
+        context = ai_service.get_business_context(db)
         
-        # Get AI response
+        # 2. Obtener respuesta de IA
         response_text = await ai_service.get_chat_response(
-            message.message,
+            mensaje.message,
             context=context
         )
         
-        # Generate or use existing conversation ID
-        conversation_id = message.conversation_id or str(uuid.uuid4())
+        # 3. Generar o usar ID de conversación existente
+        conversation_id = mensaje.conversation_id or str(uuid.uuid4())
         
-        return ChatResponse(
+        # 4. (Opcional) Guardar log de la conversación aquí si se desea
+        
+        return RespuestaChat(
             response=response_text,
             conversation_id=conversation_id,
             timestamp=datetime.utcnow()
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing chat message: {str(e)}")
-
+        print(f"Error en chat: {e}")
+        raise HTTPException(status_code=500, detail=f"Error procesando mensaje de chat: {str(e)}")

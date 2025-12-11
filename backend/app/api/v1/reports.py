@@ -1,85 +1,82 @@
 """
-Reports API endpoints
+API de Reportes en Español
 """
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, extract
 from datetime import datetime, timedelta, date
 from typing import Optional, List
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.core.database import get_db
-from app.models.sale import Sale, SaleItem
-from app.models.recipe import Recipe
-from app.models.inventory import InventoryItem
-from app.schemas.sale import SaleResponse
+from app.models.venta import Venta, ItemVenta
+from app.models.receta import Receta
+from app.models.item_inventario import ItemInventario
+from app.schemas.venta import VentaResponse
 
 router = APIRouter()
 
 @router.get("/monthly")
-async def get_monthly_report(
+async def obtener_reporte_mensual(
     months: int = 6,
     db: Session = Depends(get_db)
 ):
     """
-    Get monthly sales, costs, and profit report
+    Obtener reporte mensual de ventas, costos y ganancias
     """
     end_date = datetime.now()
     start_date = end_date - timedelta(days=months * 30)
     
-    # Get sales grouped by month
-    monthly_sales = db.query(
-        extract('year', Sale.created_at).label('year'),
-        extract('month', Sale.created_at).label('month'),
-        func.sum(Sale.total).label('ventas'),
-        func.count(Sale.id).label('count')
+    # Obtener ventas agrupadas por mes
+    ventas_mensuales = db.query(
+        extract('year', Venta.fecha_creacion).label('year'),
+        extract('month', Venta.fecha_creacion).label('month'),
+        func.sum(Venta.total).label('ventas'),
+        func.count(Venta.id).label('count')
     ).filter(
-        Sale.created_at >= start_date
+        Venta.fecha_creacion >= start_date
     ).group_by(
-        extract('year', Sale.created_at),
-        extract('month', Sale.created_at)
+        extract('year', Venta.fecha_creacion),
+        extract('month', Venta.fecha_creacion)
     ).order_by(
-        extract('year', Sale.created_at),
-        extract('month', Sale.created_at)
+        extract('year', Venta.fecha_creacion),
+        extract('month', Venta.fecha_creacion)
     ).all()
     
-    # Calculate costs and profit for each month
     result = []
-    month_names = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    nombres_meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
     
-    for row in monthly_sales:
-        # Get sales for this month to calculate costs
-        month_start = datetime(int(row.year), int(row.month), 1)
+    for row in ventas_mensuales:
+        # Calcular rango de fechas para el mes
+        inicio_mes = datetime(int(row.year), int(row.month), 1)
         if row.month == 12:
-            month_end = datetime(int(row.year) + 1, 1, 1)
+            fin_mes = datetime(int(row.year) + 1, 1, 1)
         else:
-            month_end = datetime(int(row.year), int(row.month) + 1, 1)
+            fin_mes = datetime(int(row.year), int(row.month) + 1, 1)
         
-        # Get all sales items for this month
-        month_sales = db.query(Sale).filter(
+        # Obtener ventas del mes para calcular costos
+        ventas_mes = db.query(Venta).filter(
             and_(
-                Sale.created_at >= month_start,
-                Sale.created_at < month_end
+                Venta.fecha_creacion >= inicio_mes,
+                Venta.fecha_creacion < fin_mes
             )
         ).all()
         
-        # Calculate total costs from recipes
-        total_cost = 0
-        for sale in month_sales:
-            for item in sale.items:
-                if item.recipe_id:
-                    recipe = db.query(Recipe).filter(Recipe.id == item.recipe_id).first()
-                    if recipe:
-                        # Cost per unit of recipe
-                        cost_per_unit = recipe.cost / recipe.servings if recipe.servings > 0 else recipe.cost
-                        total_cost += cost_per_unit * item.quantity
+        costo_total = 0
+        for venta in ventas_mes:
+            for item in venta.items:
+                if item.receta_id:
+                    receta = db.query(Receta).filter(Receta.id == item.receta_id).first()
+                    if receta:
+                        costo_unitario = receta.costo / receta.porciones if receta.porciones > 0 else receta.costo
+                        costo_total += costo_unitario * item.cantidad
         
         ventas = float(row.ventas) if row.ventas else 0
-        costos = total_cost
+        costos = costo_total
         ganancia = ventas - costos
         
         result.append({
-            "month": month_names[int(row.month) - 1],
+            "mes": nombres_meses[int(row.month) - 1],
             "ventas": round(ventas, 2),
             "costos": round(costos, 2),
             "ganancia": round(ganancia, 2)
@@ -87,171 +84,170 @@ async def get_monthly_report(
     
     return result
 
-@router.get("/category-performance")
-async def get_category_performance(
+@router.get("/categories")
+async def obtener_rendimiento_categorias(
     days: int = 30,
     db: Session = Depends(get_db)
 ):
     """
-    Get performance by category
+    Obtener rendimiento por categoría
     """
     start_date = datetime.now() - timedelta(days=days)
     
-    # Get sales items with recipe categories
     items = db.query(
-        Recipe.category,
-        func.sum(SaleItem.quantity).label('ventas'),
-        func.sum(SaleItem.total).label('ingresos')
+        Receta.categoria,
+        func.sum(ItemVenta.cantidad).label('ventas'),
+        func.sum(ItemVenta.total).label('ingresos')
     ).join(
-        SaleItem, SaleItem.recipe_id == Recipe.id
+        ItemVenta, ItemVenta.receta_id == Receta.id
     ).join(
-        Sale, Sale.id == SaleItem.sale_id
+        Venta, Venta.id == ItemVenta.venta_id
     ).filter(
-        Sale.created_at >= start_date
+        Venta.fecha_creacion >= start_date
     ).group_by(
-        Recipe.category
+        Receta.categoria
     ).all()
     
     result = []
     for row in items:
         result.append({
-            "category": row.category,
-            "ventas": int(row.ventas) if row.ventas else 0,
+            "categoria": row.categoria,
+            "cantidad_vendida": int(row.ventas) if row.ventas else 0,
             "ingresos": float(row.ingresos) if row.ingresos else 0
         })
     
     return result
 
-@router.get("/profit-margins")
-async def get_profit_margins(
+@router.get("/margins")
+async def obtener_margenes_ganancia(
     db: Session = Depends(get_db)
 ):
     """
-    Get profit margins for all recipes
+    Obtener márgenes de ganancia por receta
     """
-    recipes = db.query(Recipe).all()
+    recetas = db.query(Receta).all()
     
     result = []
-    for recipe in recipes:
+    for receta in recetas:
         result.append({
-            "name": recipe.name,
-            "margen": round(recipe.margin, 1)
+            "nombre": receta.nombre,
+            "precio_venta": receta.precio,
+            "costo": receta.costo,
+            "margen": round(receta.margen, 1)
         })
     
-    # Sort by margin descending
+    # Ordenar por margen descendente
     result.sort(key=lambda x: x["margen"], reverse=True)
     
-    return result[:10]  # Top 10
+    return result[:10]
 
 @router.get("/payment-methods")
-async def get_payment_methods(
+async def obtener_metodos_pago(
     days: int = 30,
     db: Session = Depends(get_db)
 ):
     """
-    Get distribution by payment method
+    Obtener distribución por método de pago
     """
     start_date = datetime.now() - timedelta(days=days)
     
-    sales = db.query(
-        Sale.payment_method,
-        func.count(Sale.id).label('count'),
-        func.sum(Sale.total).label('total')
+    ventas = db.query(
+        Venta.metodo_pago,
+        func.count(Venta.id).label('count'),
+        func.sum(Venta.total).label('total')
     ).filter(
         and_(
-            Sale.created_at >= start_date,
-            Sale.payment_method.isnot(None)
+            Venta.fecha_creacion >= start_date,
+            Venta.metodo_pago.isnot(None)
         )
     ).group_by(
-        Sale.payment_method
+        Venta.metodo_pago
     ).all()
     
-    total_count = sum(row.count for row in sales)
-    total_amount = sum(float(row.total) if row.total else 0 for row in sales)
+    total_count = sum(row.count for row in ventas)
     
     result = []
-    for row in sales:
+    for row in ventas:
         count = int(row.count)
         amount = float(row.total) if row.total else 0
         percentage = (count / total_count * 100) if total_count > 0 else 0
         
         result.append({
-            "name": row.payment_method,
-            "value": round(percentage, 1),
-            "count": count,
-            "amount": round(amount, 2)
+            "metodo": row.metodo_pago,
+            "porcentaje": round(percentage, 1),
+            "cantidad": count,
+            "total": round(amount, 2)
         })
     
     return result
 
 @router.get("/summary")
-async def get_report_summary(
+async def obtener_resumen_reporte(
     days: int = 30,
     db: Session = Depends(get_db)
 ):
     """
-    Get summary report with key metrics
+    Obtener resumen con métricas clave
     """
     start_date = datetime.now() - timedelta(days=days)
     
-    # Total sales
-    sales = db.query(Sale).filter(Sale.created_at >= start_date).all()
-    total_sales = sum(sale.total for sale in sales)
+    # Ventas totales
+    ventas = db.query(Venta).filter(Venta.fecha_creacion >= start_date).all()
+    total_sales = sum(venta.total for venta in ventas)
     
-    # Calculate total costs
+    # Costos totales
     total_cost = 0
-    for sale in sales:
-        for item in sale.items:
-            if item.recipe_id:
-                recipe = db.query(Recipe).filter(Recipe.id == item.recipe_id).first()
-                if recipe:
-                    cost_per_unit = recipe.cost / recipe.servings if recipe.servings > 0 else recipe.cost
-                    total_cost += cost_per_unit * item.quantity
+    for venta in ventas:
+        for item in venta.items:
+            if item.receta_id:
+                receta = db.query(Receta).filter(Receta.id == item.receta_id).first()
+                if receta:
+                    costo_unitario = receta.costo / receta.porciones if receta.porciones > 0 else receta.costo
+                    total_cost += costo_unitario * item.cantidad
     
     net_profit = total_sales - total_cost
     
-    # Average margin
-    recipes = db.query(Recipe).all()
-    avg_margin = sum(r.margin for r in recipes) / len(recipes) if recipes else 0
+    # Margen promedio
+    recetas = db.query(Receta).all()
+    avg_margin = sum(r.margen for r in recetas) / len(recetas) if recetas else 0
     
-    # Growth (compare with previous period)
+    # Crecimiento
     prev_start = start_date - timedelta(days=days)
-    prev_sales = db.query(Sale).filter(
+    prev_sales = db.query(Venta).filter(
         and_(
-            Sale.created_at >= prev_start,
-            Sale.created_at < start_date
+            Venta.fecha_creacion >= prev_start,
+            Venta.fecha_creacion < start_date
         )
     ).all()
-    prev_total = sum(sale.total for sale in prev_sales)
+    prev_total = sum(venta.total for venta in prev_sales)
     growth = ((total_sales - prev_total) / prev_total * 100) if prev_total > 0 else 0
     
     return {
-        "total_sales": round(total_sales, 2),
-        "total_cost": round(total_cost, 2),
-        "net_profit": round(net_profit, 2),
-        "average_margin": round(avg_margin, 1),
-        "growth": round(growth, 1),
-        "period_days": days
+        "ventas_totales": round(total_sales, 2),
+        "costo_total": round(total_cost, 2),
+        "ganancia_neta": round(net_profit, 2),
+        "margen_promedio": round(avg_margin, 1),
+        "crecimiento": round(growth, 1),
+        "dias_periodo": days
     }
 
 @router.get("/export")
-async def export_report(
+async def exportar_reporte(
     format: str = "json",
     days: int = 30,
     db: Session = Depends(get_db)
 ):
     """
-    Export comprehensive report
+    Exportar reporte completo
     """
     if format not in ["json", "csv"]:
-        raise HTTPException(status_code=400, detail="Format must be 'json' or 'csv'")
+        raise HTTPException(status_code=400, detail="Formato debe ser 'json' o 'csv'")
     
-    # Get all report data
-    monthly = await get_monthly_report(months=6, db=db)
-    category_perf = await get_category_performance(days=days, db=db)
-    profit_margins = await get_profit_margins(db=db)
-    payment_methods = await get_payment_methods(days=days, db=db)
-    summary = await get_report_summary(days=days, db=db)
+    monthly = await obtener_reporte_mensual(months=6, db=db)
+    category_perf = await obtener_rendimiento_categorias(days=days, db=db)
+    profit_margins = await obtener_margenes_ganancia(db=db)
+    payment_methods = await obtener_metodos_pago(days=days, db=db)
+    summary = await obtener_resumen_reporte(days=days, db=db)
     
     report_data = {
         "summary": summary,
@@ -263,14 +259,12 @@ async def export_report(
     }
     
     if format == "csv":
-        # Convert to CSV format
         import csv
         import io
         
         output = io.StringIO()
         writer = csv.writer(output)
         
-        # Write summary
         writer.writerow(["Reporte GastroSmart AI"])
         writer.writerow(["Generado:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
         writer.writerow([])
@@ -282,28 +276,24 @@ async def export_report(
         writer.writerow(["Crecimiento", f"{summary['growth']}%"])
         writer.writerow([])
         
-        # Write monthly trend
         writer.writerow(["TENDENCIA MENSUAL"])
         writer.writerow(["Mes", "Ventas", "Costos", "Ganancia"])
         for month in monthly:
             writer.writerow([month["month"], month["ventas"], month["costos"], month["ganancia"]])
         writer.writerow([])
         
-        # Write category performance
         writer.writerow(["RENDIMIENTO POR CATEGORÍA"])
         writer.writerow(["Categoría", "Ventas", "Ingresos"])
         for cat in category_perf:
             writer.writerow([cat["category"], cat["ventas"], cat["ingresos"]])
         writer.writerow([])
         
-        # Write profit margins
         writer.writerow(["MÁRGENES DE GANANCIA"])
         writer.writerow(["Plato", "Margen (%)"])
         for margin in profit_margins:
             writer.writerow([margin["name"], margin["margen"]])
         writer.writerow([])
         
-        # Write payment methods
         writer.writerow(["MÉTODOS DE PAGO"])
         writer.writerow(["Método", "Porcentaje", "Cantidad", "Monto"])
         for pm in payment_methods:
@@ -312,7 +302,6 @@ async def export_report(
         csv_content = output.getvalue()
         output.close()
         
-        from fastapi.responses import Response
         return Response(
             content=csv_content,
             media_type="text/csv",
@@ -320,4 +309,3 @@ async def export_report(
         )
     
     return report_data
-

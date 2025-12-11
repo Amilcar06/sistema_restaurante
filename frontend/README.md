@@ -96,10 +96,13 @@ Todos los servicios de API están centralizados en `src/services/api.ts`.
 
 ## Próximos Pasos
 
-- [ ] Agregar autenticación de usuarios
-- [ ] Implementar manejo de errores más robusto
-- [ ] Agregar loading states en todos los componentes
-- [ ] Implementar caché de datos
-- [ ] Agregar tests unitarios
+## Próximos Pasos
+
+- [x] Agregar autenticación de usuarios
+- [x] Implementar manejo de errores más robusto
+- [x] Agregar loading states en todos los componentes
+- [x] Implementar caché de datos (React Query / SWR)
+- [ ] Agregar tests unitarios (Vitest)
 - [ ] Optimizar bundle size
+- [ ] Implementar modo PWA (Progressive Web App)
 

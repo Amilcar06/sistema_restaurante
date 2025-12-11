@@ -83,15 +83,21 @@ backend/
 
 ## Configuración de IA
 
-Para usar el chatbot con IA real, necesitas:
+## Configuración de IA 🤖
 
-1. Obtener una API key de OpenAI: https://platform.openai.com/api-keys
-2. Agregarla al archivo `.env`:
-```
-OPENAI_API_KEY=tu-api-key-aqui
+El sistema soporta **OpenAI**, **Groq**, **LocalAI** y otros proveedores compatibles.
+
+Para configurar tu API Key (gratuita o pagada), consulta la guía dedicada: [AI_SETUP.md](../AI_SETUP.md).
+
+Ejemplo rápido en `.env`:
+```env
+OPENAI_API_KEY=tu-api-key
+# Opcional: Base URL para alternativas (ej. Groq o LocalAI)
+OPENAI_API_BASE=https://api.groq.com/openai/v1
+AI_MODEL=llama-3.3-70b-versatile
 ```
 
-Si no tienes API key, el sistema usará respuestas basadas en reglas como fallback.
+Si no configuras nada, un sistema de reglas básico responderá preguntas simples.
 
 ## Próximos Pasos
 

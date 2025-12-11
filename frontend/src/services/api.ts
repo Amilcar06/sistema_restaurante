@@ -1,7 +1,39 @@
 /**
- * API Service - Centralized API client for backend communication
+ * API Service - Cliente API centralizado para comunicación con el backend
+ * Actualizado para usar endpoints y tipos en español
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+import {
+  Usuario,
+  Sucursal,
+  ItemInventario,
+  Receta,
+  Venta,
+  Promocion,
+  Proveedor,
+  MovimientoInventario,
+  OrdenCompra,
+  ResumenReporte,
+  DashboardResponse,
+  ReporteMensual,
+  RendimientoCategoria,
+  MargenGanancia,
+  MetodoPagoReporte,
+  MensajeChat,
+  RespuestaChat,
+  Rol,
+  Configuracion,
+  RecipeCreate,
+  RecipeUpdate,
+  CajaSesionCreate,
+  CajaSesionCerrar,
+  CajaSesion
+} from '../types';
+
+// Use env var but ensure we fall back to full local URL if needed.
+// Given local config issues, explicit path is safer for dev.
+const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL === 'http://localhost:8000'
+  ? 'http://localhost:8000/api/v1' // Append /api/v1 if env is just root
+  : ((import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1');
 
 class ApiClient {
   private baseURL: string;
@@ -15,20 +47,26 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+
+    const headers: any = {
+      ...options.headers,
+    };
+
+    // Only set Content-Type to json if body is NOT FormData
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'An error occurred' }));
-        // FastAPI returns 'detail' field for errors
         const errorMessage = error.detail || error.message || `HTTP error! status: ${response.status}`;
         const apiError = new Error(errorMessage);
         (apiError as any).response = { data: error, status: response.status };
@@ -42,21 +80,26 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
+    let url = endpoint;
+    if (params) {
+      const query = new URLSearchParams(params).toString();
+      url = `${url}?${query}`;
+    }
+    return this.request<T>(url, { method: 'GET' });
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
@@ -67,431 +110,140 @@ class ApiClient {
 
 export const apiClient = new ApiClient(API_BASE_URL);
 
-// Type definitions
-export interface BusinessLocation {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  zone?: string;
-  phone?: string;
-  email?: string;
-  is_main: boolean;
-  is_active: boolean;
-  open_hours?: Record<string, any>;
-  created_at: string;
-}
+// --- Servicios API ---
 
-export interface Supplier {
-  id: string;
-  name: string;
-  contact_name?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  city?: string;
-  zone?: string;
-  tax_id?: string;
-  payment_terms?: string;
-  rating?: number;
-  is_active: boolean;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  unit_id?: string;
-  min_stock: number;
-  max_stock?: number;
-  cost_per_unit: number;
-  supplier_id?: string;
-  supplier?: string;
-  location_id: string;
-  expiry_date?: string;
-  barcode?: string;
-  popularity_score: number;
-  seasonal_factor?: Record<string, number>;
-  demand_forecast?: number;
-  last_updated: string;
-}
-
-export interface Recipe {
-  id: string;
-  name: string;
-  description?: string;
-  category: string;
-  subcategory?: string;
-  price: number;
-  cost: number;
-  margin: number;
-  preparation_time?: number;
-  servings: number;
-  instructions?: string;
-  location_id?: string;
-  is_available: boolean;
-  popularity_score: number;
-  current_version: number;
-  created_at: string;
-  updated_at: string;
-  ingredients: RecipeIngredient[];
-}
-
-export interface RecipeIngredient {
-  id: string;
-  recipe_id: string;
-  ingredient_name: string;
-  quantity: number;
-  unit: string;
-  cost: number;
-  inventory_item_id?: string;
-}
-
-export interface Sale {
-  id: string;
-  sale_number?: string;
-  location_id: string;
-  table_number?: string;
-  waiter_id?: string;
-  sale_type: string;  // LOCAL, DELIVERY, TAKEAWAY
-  delivery_service?: string;
-  customer_name?: string;
-  customer_phone?: string;
-  total: number;
-  subtotal: number;
-  discount_amount: number;
-  tax: number;
-  payment_method?: string;
-  notes?: string;
-  status: string;  // COMPLETED, CANCELLED, REFUNDED
-  created_at: string;
-  items: SaleItem[];
-}
-
-export interface SaleItem {
-  id: string;
-  sale_id: string;
-  recipe_id?: string;
-  item_name: string;
-  quantity: number;
-  unit_price: number;
-  total: number;
-}
-
-export interface ChatMessage {
-  message: string;
-  conversation_id?: string;
-}
-
-export interface ChatResponse {
-  response: string;
-  conversation_id: string;
-  timestamp: string;
-  sources?: any[];
-}
-
-export interface DashboardStats {
-  total_sales_today: number;
-  critical_inventory_count: number;
-  dishes_sold_today: number;
-  average_margin: number;
-  sales_change_percent: number;
-  dishes_change_percent: number;
-  margin_change_percent: number;
-}
-
-export interface TopDish {
-  name: string;
-  sales_count: number;
-  revenue: number;
-}
-
-export interface Alert {
-  type: string;
-  message: string;
-}
-
-export interface DashboardData {
-  stats: DashboardStats;
-  top_dishes: TopDish[];
-  alerts: Alert[];
-  sales_by_day: Array<{ day: string; ventas: number }>;
-  category_distribution: Array<{ name: string; value: number }>;
-}
-
-// API Service functions
-export const inventoryApi = {
-  getAll: () => apiClient.get<InventoryItem[]>('/inventory/'),
-  getById: (id: string) => apiClient.get<InventoryItem>(`/inventory/${id}`),
-  create: (item: Partial<InventoryItem>) => apiClient.post<InventoryItem>('/inventory/', item),
-  update: (id: string, item: Partial<InventoryItem>) => apiClient.put<InventoryItem>(`/inventory/${id}`, item),
-  delete: (id: string) => apiClient.delete(`/inventory/${id}`),
+export const inventarioApi = {
+  obtenerTodos: () => apiClient.get<ItemInventario[]>('/inventario/'),
+  obtenerPorId: (id: string) => apiClient.get<ItemInventario>(`/inventario/${id}`),
+  crear: (item: Partial<ItemInventario>) => apiClient.post<ItemInventario>('/inventario/', item),
+  actualizar: (id: string, item: Partial<ItemInventario>) => apiClient.put<ItemInventario>(`/inventario/${id}`, item),
+  eliminar: (id: string) => apiClient.delete(`/inventario/${id}`),
 };
 
-export const recipesApi = {
-  getAll: () => apiClient.get<Recipe[]>('/recipes/'),
-  getById: (id: string) => apiClient.get<Recipe>(`/recipes/${id}`),
-  create: (recipe: Partial<Recipe>) => apiClient.post<Recipe>('/recipes/', recipe),
-  update: (id: string, recipe: Partial<Recipe>) => apiClient.put<Recipe>(`/recipes/${id}`, recipe),
-  delete: (id: string) => apiClient.delete(`/recipes/${id}`),
+export const recetasApi = {
+  obtenerTodos: () => apiClient.get<Receta[]>("/recetas/"),
+  obtenerPorId: (id: string) => apiClient.get<Receta>(`/recetas/${id}`),
+  crear: (data: RecipeCreate) => apiClient.post<Receta>("/recetas/", data),
+  actualizar: (id: string, data: RecipeUpdate) => apiClient.put<Receta>(`/recetas/${id}`, data),
+  eliminar: (id: string) => apiClient.delete(`/recetas/${id}`),
 };
 
-export const salesApi = {
-  getAll: () => apiClient.get<Sale[]>('/sales/'),
-  getById: (id: string) => apiClient.get<Sale>(`/sales/${id}`),
-  create: (sale: Partial<Sale>) => apiClient.post<Sale>('/sales/', sale),
-  delete: (id: string) => apiClient.delete(`/sales/${id}`),
+export const cajaApi = {
+  obtenerEstado: (sucursalId: string, usuarioId: string) => {
+    return apiClient.get<CajaSesion | null>("/caja/estado", { sucursal_id: sucursalId, usuario_id: usuarioId });
+  },
+  abrir: (data: CajaSesionCreate) => {
+    return apiClient.post<CajaSesion>("/caja/abrir", data);
+  },
+  cerrar: (id: string, data: CajaSesionCerrar) => {
+    return apiClient.post<CajaSesion>(`/caja/cerrar/${id}`, data);
+  }
+};
+
+export const ventasApi = {
+  obtenerTodos: () => apiClient.get<Venta[]>('/ventas/'),
+  obtenerPorId: (id: string) => apiClient.get<Venta>(`/ventas/${id}`),
+  crear: (venta: Partial<Venta>) => apiClient.post<Venta>('/ventas/', venta),
+  eliminar: (id: string) => apiClient.delete(`/ventas/${id}`), // Nota: Normalmente no se eliminan ventas, se cancelan
+};
+
+export const sucursalesApi = {
+  obtenerTodos: () => apiClient.get<Sucursal[]>('/sucursales/'),
+  obtenerPorId: (id: string) => apiClient.get<Sucursal>(`/sucursales/${id}`),
+  crear: (sucursal: Partial<Sucursal>) => apiClient.post<Sucursal>('/sucursales/', sucursal),
+  actualizar: (id: string, sucursal: Partial<Sucursal>) => apiClient.put<Sucursal>(`/sucursales/${id}`, sucursal),
+  eliminar: (id: string) => apiClient.delete(`/sucursales/${id}`),
+};
+
+export const proveedoresApi = {
+  obtenerTodos: () => apiClient.get<Proveedor[]>('/proveedores/'),
+  obtenerPorId: (id: string) => apiClient.get<Proveedor>(`/proveedores/${id}`),
+  crear: (proveedor: Partial<Proveedor>) => apiClient.post<Proveedor>('/proveedores/', proveedor),
+  actualizar: (id: string, proveedor: Partial<Proveedor>) => apiClient.put<Proveedor>(`/proveedores/${id}`, proveedor),
+  eliminar: (id: string) => apiClient.delete(`/proveedores/${id}`),
+};
+
+export const usuariosApi = {
+  obtenerTodos: () => apiClient.get<Usuario[]>('/usuarios/'),
+  obtenerPorId: (id: string) => apiClient.get<Usuario>(`/usuarios/${id}`),
+  crear: (usuario: Partial<Usuario> & { contrasena: string }) => apiClient.post<Usuario>('/usuarios/', usuario),
+  actualizar: (id: string, usuario: Partial<Usuario> & { contrasena?: string }) => apiClient.put<Usuario>(`/usuarios/${id}`, usuario),
+  eliminar: (id: string) => apiClient.delete(`/usuarios/${id}`),
+};
+
+export const rolesApi = {
+  obtenerTodos: () => apiClient.get<Rol[]>('/roles/'),
+  obtenerPorId: (id: string) => apiClient.get<Rol>(`/roles/${id}`),
+  crear: (rol: Partial<Rol>) => apiClient.post<Rol>('/roles/', rol),
+  actualizar: (id: string, rol: Partial<Rol>) => apiClient.put<Rol>(`/roles/${id}`, rol),
+  eliminar: (id: string) => apiClient.delete(`/roles/${id}`),
+  obtenerPermisos: () => apiClient.get<{ id: string; nombre: string; descripcion: string; recurso: string; accion: string }[]>('/roles/permisos'),
+};
+
+export const configuracionApi = {
+  obtener: () => apiClient.get<Configuracion>('/configuracion/'),
+  actualizar: (config: Partial<Configuracion>) => apiClient.put<Configuracion>('/configuracion/', config),
+};
+
+export const authApi = {
+  login: (username: string, password: string) => {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('password', password);
+    return apiClient.post<{ access_token: string; token_type: string; usuario: any }>('/login/access-token', formData);
+  },
+  recoverPassword: (email: string) => apiClient.post<{ message: string }>('/recover-password', { email }),
+  resetPassword: (token: string, new_password: string) => apiClient.post<{ message: string }>('/reset-password', { token, new_password: new_password }),
+};
+
+export const promocionesApi = {
+  obtenerTodos: () => apiClient.get<Promocion[]>('/promociones/'),
+  obtenerPorId: (id: string) => apiClient.get<Promocion>(`/promociones/${id}`),
+  crear: (promocion: Partial<Promocion>) => apiClient.post<Promocion>('/promociones/', promocion),
+  actualizar: (id: string, promocion: Partial<Promocion>) => apiClient.put<Promocion>(`/promociones/${id}`, promocion),
+  eliminar: (id: string) => apiClient.delete(`/promociones/${id}`),
+};
+
+export const movimientosApi = {
+  obtenerTodos: () => apiClient.get<MovimientoInventario[]>('/movimientos-inventario/'),
+  crear: (movimiento: Partial<MovimientoInventario>) => apiClient.post<MovimientoInventario>('/movimientos-inventario/', movimiento),
+};
+
+export const ordenesCompraApi = {
+  obtenerTodos: () => apiClient.get<OrdenCompra[]>('/ordenes-compra/'),
+  obtenerPorId: (id: string) => apiClient.get<OrdenCompra>(`/ordenes-compra/${id}`),
+  crear: (orden: Partial<OrdenCompra>) => apiClient.post<OrdenCompra>('/ordenes-compra/', orden),
+  actualizar: (id: string, orden: Partial<OrdenCompra>) => apiClient.put<OrdenCompra>(`/ordenes-compra/${id}`, orden),
+};
+
+export const onboardingApi = {
+  crearRestaurante: (data: any) => apiClient.post('/onboarding/restaurante', data),
+  crearSucursal: (data: any) => apiClient.post('/onboarding/sucursal', data),
+};
+
+// Servicios pendientes de refactorizar completamente en backend, pero mapeados aquí
+
+export const dashboardApi = {
+  obtenerEstadisticas: () => apiClient.get<DashboardResponse>('/dashboard/stats'),
+};
+
+export const reportesApi = {
+  obtenerMensual: (meses: number = 6) => apiClient.get<ReporteMensual[]>(`/reports/monthly?months=${meses}`),
+  obtenerRendimientoCategorias: (dias: number = 30) => apiClient.get<RendimientoCategoria[]>(`/reports/categories?days=${dias}`),
+  obtenerMargenesGanancia: () => apiClient.get<MargenGanancia[]>('/reports/margins'),
+  obtenerMetodosPagoReporte: (dias: number = 30) => apiClient.get<MetodoPagoReporte[]>(`/reports/payment-methods?days=${dias}`),
+  obtenerResumen: (dias: number = 30) => apiClient.get<ResumenReporte>(`/reports/summary?days=${dias}`),
+  exportarReporte: (formato: 'json' | 'csv', dias: number = 30) => apiClient.get<any>(`/reports/export?format=${formato}&days=${dias}`),
 };
 
 export const chatbotApi = {
-  chat: (message: ChatMessage) => apiClient.post<ChatResponse>('/chatbot/chat', message),
+  enviarMensaje: (data: MensajeChat) => apiClient.post<RespuestaChat>('/chatbot/chat', data),
 };
-
-export const dashboardApi = {
-  getStats: () => apiClient.get<DashboardData>('/dashboard/stats'),
-};
-
-export interface StockAlert {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  min_stock: number;
-  unit: string;
-  percentage: number;
-  shortage?: number;
-  severity: 'critical' | 'warning';
-}
-
-export interface LowMarginAlert {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  cost: number;
-  margin: number;
-  recommended_price: number;
-  severity: 'critical' | 'warning';
-}
-
-export interface AlertsResponse {
-  critical_stock: {
-    count: number;
-    alerts: StockAlert[];
-  };
-  low_stock: {
-    count: number;
-    alerts: StockAlert[];
-  };
-  low_margin_recipes: {
-    count: number;
-    alerts: LowMarginAlert[];
-  };
-  total_alerts: number;
-}
-
-export const alertsApi = {
-  getCriticalStock: () => apiClient.get<{count: number; alerts: StockAlert[]}>('/alerts/stock-critical'),
-  getLowStock: (threshold?: number) => apiClient.get<{count: number; alerts: StockAlert[]}>(`/alerts/stock-low${threshold ? `?threshold=${threshold}` : ''}`),
-  getLowMarginRecipes: (minMargin?: number) => apiClient.get<{count: number; alerts: LowMarginAlert[]}>(`/alerts/recipes-low-margin${minMargin ? `?min_margin=${minMargin}` : ''}`),
-  getAll: () => apiClient.get<AlertsResponse>('/alerts/all'),
-};
-
-export interface EnumsResponse {
-  inventory_categories: string[];
-  inventory_units: string[];
-  recipe_categories: string[];
-  recipe_ingredient_units: string[];
-  payment_methods: string[];
-}
 
 export const enumsApi = {
-  getAll: () => apiClient.get<EnumsResponse>('/enums/'),
-  getInventoryCategories: () => apiClient.get<{categories: string[]}>('/enums/inventory/categories'),
-  getInventoryUnits: () => apiClient.get<{units: string[]}>('/enums/inventory/units'),
-  getRecipeCategories: () => apiClient.get<{categories: string[]}>('/enums/recipe/categories'),
-  getRecipeIngredientUnits: () => apiClient.get<{units: string[]}>('/enums/recipe/ingredient-units'),
-  getPaymentMethods: () => apiClient.get<{methods: string[]}>('/enums/payment/methods'),
+  getInventoryCategories: () => apiClient.get<{ categories: string[] }>('/enums/inventory/categories'),
+  getInventoryUnits: () => apiClient.get<{ units: string[] }>('/enums/inventory/units'),
+  getRecipeCategories: () => apiClient.get<{ categories: string[] }>('/enums/recipe/categories'),
+  getRecipeIngredientUnits: () => apiClient.get<{ units: string[] }>('/enums/recipe/ingredient-units'),
+  getPaymentMethods: () => apiClient.get<{ methods: string[] }>('/enums/payment/methods'),
 };
-
-export const businessLocationsApi = {
-  getAll: () => apiClient.get<BusinessLocation[]>('/business-locations/'),
-  getById: (id: string) => apiClient.get<BusinessLocation>(`/business-locations/${id}`),
-  create: (location: Partial<BusinessLocation>) => apiClient.post<BusinessLocation>('/business-locations/', location),
-  update: (id: string, location: Partial<BusinessLocation>) => apiClient.put<BusinessLocation>(`/business-locations/${id}`, location),
-  delete: (id: string) => apiClient.delete(`/business-locations/${id}`),
-};
-
-export const suppliersApi = {
-  getAll: () => apiClient.get<Supplier[]>('/suppliers/'),
-  getById: (id: string) => apiClient.get<Supplier>(`/suppliers/${id}`),
-  create: (supplier: Partial<Supplier>) => apiClient.post<Supplier>('/suppliers/', supplier),
-  update: (id: string, supplier: Partial<Supplier>) => apiClient.put<Supplier>(`/suppliers/${id}`, supplier),
-  delete: (id: string) => apiClient.delete(`/suppliers/${id}`),
-};
-
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  full_name?: string;
-  phone?: string;
-  is_active: boolean;
-  is_superuser: boolean;
-  default_location_id?: string;
-  created_at: string;
-  updated_at: string;
-  last_login?: string;
-}
-
-export const usersApi = {
-  getAll: () => apiClient.get<User[]>('/users/'),
-  getById: (id: string) => apiClient.get<User>(`/users/${id}`),
-  create: (user: Partial<User & { password: string }>) => apiClient.post<User>('/users/', user),
-  update: (id: string, user: Partial<User & { password?: string }>) => apiClient.put<User>(`/users/${id}`, user),
-  delete: (id: string) => apiClient.delete(`/users/${id}`),
-};
-
-export interface Promotion {
-  id: string;
-  name: string;
-  description?: string;
-  discount_type: 'percentage' | 'fixed_amount' | 'buy_x_get_y';
-  discount_value: number;
-  min_purchase?: number;
-  max_discount?: number;
-  start_date: string;
-  end_date: string;
-  is_active: boolean;
-  applicable_to?: 'all' | 'recipes' | 'categories' | 'specific_items';
-  applicable_ids?: string[];
-  location_id?: string;
-  created_at: string;
-  user_id?: string;
-}
-
-export const promotionsApi = {
-  getAll: (location_id?: string, is_active?: boolean) => {
-    const params = new URLSearchParams();
-    if (location_id) params.append('location_id', location_id);
-    if (is_active !== undefined) params.append('is_active', String(is_active));
-    return apiClient.get<Promotion[]>(`/promotions/?${params.toString()}`);
-  },
-  getById: (id: string) => apiClient.get<Promotion>(`/promotions/${id}`),
-  getActive: (location_id?: string) => {
-    const params = location_id ? `?location_id=${location_id}` : '';
-    return apiClient.get<Promotion[]>(`/promotions/active/current${params}`);
-  },
-  create: (promotion: Partial<Promotion>) => apiClient.post<Promotion>('/promotions/', promotion),
-  update: (id: string, promotion: Partial<Promotion>) => apiClient.put<Promotion>(`/promotions/${id}`, promotion),
-  delete: (id: string) => apiClient.delete(`/promotions/${id}`),
-};
-
-export interface InventoryMovement {
-  id: string;
-  inventory_item_id: string;
-  location_id: string;
-  movement_type: 'ENTRADA' | 'SALIDA' | 'AJUSTE' | 'MERMA' | 'CADUCIDAD' | 'ROBO' | 'TRANSFERENCIA';
-  quantity: number;
-  unit: string;
-  cost_per_unit?: number;
-  reference_id?: string;
-  reference_type?: string;
-  notes?: string;
-  created_at: string;
-  user_id?: string;
-}
-
-export const inventoryMovementsApi = {
-  getAll: (params?: {
-    inventory_item_id?: string;
-    location_id?: string;
-    movement_type?: string;
-    start_date?: string;
-    end_date?: string;
-  }) => {
-    const queryParams = new URLSearchParams();
-    if (params?.inventory_item_id) queryParams.append('inventory_item_id', params.inventory_item_id);
-    if (params?.location_id) queryParams.append('location_id', params.location_id);
-    if (params?.movement_type) queryParams.append('movement_type', params.movement_type);
-    if (params?.start_date) queryParams.append('start_date', params.start_date);
-    if (params?.end_date) queryParams.append('end_date', params.end_date);
-    const query = queryParams.toString();
-    return apiClient.get<InventoryMovement[]>(`/inventory-movements/${query ? `?${query}` : ''}`);
-  },
-  getById: (id: string) => apiClient.get<InventoryMovement>(`/inventory-movements/${id}`),
-  getItemHistory: (inventory_item_id: string, limit?: number) => {
-    const params = limit ? `?limit=${limit}` : '';
-    return apiClient.get<InventoryMovement[]>(`/inventory-movements/item/${inventory_item_id}/history${params}`);
-  },
-  create: (movement: Partial<InventoryMovement>) => apiClient.post<InventoryMovement>('/inventory-movements/', movement),
-};
-
-export interface MonthlyReport {
-  month: string;
-  ventas: number;
-  costos: number;
-  ganancia: number;
-}
-
-export interface CategoryPerformance {
-  category: string;
-  ventas: number;
-  ingresos: number;
-}
-
-export interface ProfitMargin {
-  name: string;
-  margen: number;
-}
-
-export interface PaymentMethod {
-  name: string;
-  value: number;
-  count: number;
-  amount: number;
-}
-
-export interface ReportSummary {
-  total_sales: number;
-  total_cost: number;
-  net_profit: number;
-  average_margin: number;
-  growth: number;
-  period_days: number;
-}
-
-export const reportsApi = {
-  getMonthly: (months: number = 6) => apiClient.get<MonthlyReport[]>(`/reports/monthly?months=${months}`),
-  getCategoryPerformance: (days: number = 30) => apiClient.get<CategoryPerformance[]>(`/reports/category-performance?days=${days}`),
-  getProfitMargins: () => apiClient.get<ProfitMargin[]>('/reports/profit-margins'),
-  getPaymentMethods: (days: number = 30) => apiClient.get<PaymentMethod[]>(`/reports/payment-methods?days=${days}`),
-  getSummary: (days: number = 30) => apiClient.get<ReportSummary>(`/reports/summary?days=${days}`),
-  exportReport: (format: 'json' | 'csv' = 'json', days: number = 30) => {
-    if (format === 'csv') {
-      return fetch(`${API_BASE_URL}/reports/export?format=csv&days=${days}`)
-        .then(response => {
-          if (!response.ok) throw new Error('Error exporting report');
-          return response.blob();
-        })
-        .then(blob => {
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `reporte_gastrosmart_${new Date().toISOString().split('T')[0]}.csv`;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        });
-    } else {
-      return apiClient.get(`/reports/export?format=json&days=${days}`);
-    }
-  },
-};
-

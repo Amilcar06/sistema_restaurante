@@ -1,414 +1,159 @@
-import { useState, useEffect } from "react";
-import { Plus, Search, Truck, Edit, Trash2, Loader2, Star } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Search, Truck } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Switch } from "./ui/switch";
-import { suppliersApi, type Supplier } from "../services/api";
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "./ui/alert-dialog";
+import { SupplierCard } from "./suppliers/SupplierCard";
+import { SupplierDialog } from "./suppliers/SupplierDialog";
+import { useSuppliers } from "../hooks/useSuppliers";
+import { Proveedor } from "../types";
+import { Skeleton } from "./ui/skeleton";
 
 export function Suppliers() {
+  const { proveedores, loading, createSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    contact_name: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "",
-    zone: "",
-    tax_id: "",
-    payment_terms: "",
-    rating: 0,
-    is_active: true,
-    notes: "",
-  });
+  const [editingSupplier, setEditingSupplier] = useState<Proveedor | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSuppliers();
-  }, []);
+  const filteredProveedores = useMemo(() => {
+    return proveedores.filter((proveedor) =>
+      proveedor.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proveedor.nombre_contacto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      proveedor.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [proveedores, searchTerm]);
 
-  const loadSuppliers = async () => {
-    try {
-      setLoading(true);
-      const data = await suppliersApi.getAll();
-      setSuppliers(data);
-    } catch (error) {
-      console.error("Error loading suppliers:", error);
-      toast.error("Error al cargar los proveedores");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenDialog = (supplier?: Supplier) => {
-    if (supplier) {
-      setEditingSupplier(supplier);
-      setFormData({
-        name: supplier.name,
-        contact_name: supplier.contact_name || "",
-        phone: supplier.phone || "",
-        email: supplier.email || "",
-        address: supplier.address || "",
-        city: supplier.city || "",
-        zone: supplier.zone || "",
-        tax_id: supplier.tax_id || "",
-        payment_terms: supplier.payment_terms || "",
-        rating: supplier.rating || 0,
-        is_active: supplier.is_active,
-        notes: supplier.notes || "",
-      });
-    } else {
-      setEditingSupplier(null);
-      setFormData({
-        name: "",
-        contact_name: "",
-        phone: "",
-        email: "",
-        address: "",
-        city: "",
-        zone: "",
-        tax_id: "",
-        payment_terms: "",
-        rating: 0,
-        is_active: true,
-        notes: "",
-      });
-    }
+  const handleOpenCreate = () => {
+    setEditingSupplier(null);
     setIsDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setEditingSupplier(null);
+  const handleOpenEdit = (proveedor: Proveedor) => {
+    setEditingSupplier(proveedor);
+    setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      if (editingSupplier) {
-        await suppliersApi.update(editingSupplier.id, formData);
-        toast.success("Proveedor actualizado exitosamente");
-      } else {
-        await suppliersApi.create(formData);
-        toast.success("Proveedor creado exitosamente");
-      }
-      handleCloseDialog();
-      loadSuppliers();
-    } catch (error: any) {
-      console.error("Error saving supplier:", error);
-      toast.error(error.message || "Error al guardar el proveedor");
+  const handleSubmit = async (data: Omit<Proveedor, "id" | "created_at" | "updated_at">) => {
+    if (editingSupplier) {
+      await updateSupplier(editingSupplier.id, data);
+    } else {
+      await createSupplier(data);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de eliminar este proveedor?")) return;
-    try {
-      await suppliersApi.delete(id);
-      toast.success("Proveedor eliminado exitosamente");
-      loadSuppliers();
-    } catch (error: any) {
-      console.error("Error deleting supplier:", error);
-      toast.error(error.message || "Error al eliminar el proveedor");
-    }
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
   };
 
-  const filteredSuppliers = suppliers.filter((supplier) =>
-    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const confirmDelete = async () => {
+    if (deleteId) {
+      await deleteSupplier(deleteId);
+      setDeleteId(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-white text-3xl font-bold mb-2">Proveedores</h1>
-          <p className="text-white/60">Gestiona tus proveedores de insumos</p>
+          <h1 className="text-[#1B1B1B] text-3xl font-bold mb-2 uppercase tracking-tight">Proveedores</h1>
+          <p className="text-[#1B1B1B]/60 font-medium">Gestiona tus proveedores de insumos</p>
         </div>
         <Button
-          onClick={() => handleOpenDialog()}
-          className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
+          onClick={handleOpenCreate}
+          className="bg-[#F26522] hover:bg-[#F26522]/90 text-white font-bold shadow-lg transition-all"
         >
           <Plus className="w-4 h-4 mr-2" />
           Nuevo Proveedor
         </Button>
       </div>
 
-      {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1B1B1B]/40 w-5 h-5" />
         <Input
           placeholder="Buscar proveedores..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white/5 border-[#FF6B35]/20 text-white"
+          className="pl-10 bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20"
         />
       </div>
 
-      {/* Suppliers List */}
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="w-8 h-8 text-[#FF6B35] animate-spin" />
-        </div>
-      ) : filteredSuppliers.length === 0 ? (
-        <Card className="bg-white/5 border-[#FF6B35]/20 p-12 text-center">
-          <Truck className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <p className="text-white/60">No hay proveedores registrados</p>
-        </Card>
-      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSuppliers.map((supplier) => (
-            <Card
-              key={supplier.id}
-              className="bg-white/5 border-[#FF6B35]/20 p-6 hover:border-[#FF6B35]/40 transition-all"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Truck className="w-5 h-5 text-[#FF6B35]" />
-                  <div>
-                    <h3 className="text-white font-semibold">{supplier.name}</h3>
-                    {supplier.rating && (
-                      <div className="flex items-center gap-1 mt-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < Math.round(supplier.rating!)
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-white/20"
-                            }`}
-                          />
-                        ))}
-                        <span className="text-xs text-white/60 ml-1">
-                          {supplier.rating.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleOpenDialog(supplier)}
-                    className="text-[#FF6B35] hover:bg-[#FF6B35]/20"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(supplier.id)}
-                    className="text-red-400 hover:bg-red-500/20"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="p-6 border-[#F26522]/10 bg-white">
+              <div className="flex gap-4">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               </div>
-              <div className="space-y-2 text-sm">
-                {supplier.contact_name && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Contacto:</span> {supplier.contact_name}
-                  </p>
-                )}
-                {supplier.phone && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Teléfono:</span> {supplier.phone}
-                  </p>
-                )}
-                {supplier.email && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Email:</span> {supplier.email}
-                  </p>
-                )}
-                {supplier.city && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Ubicación:</span> {supplier.city}
-                    {supplier.zone && `, ${supplier.zone}`}
-                  </p>
-                )}
-                {supplier.payment_terms && (
-                  <p className="text-white/80">
-                    <span className="text-white/60">Términos:</span> {supplier.payment_terms}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 pt-2">
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    supplier.is_active
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
-                  }`}>
-                    {supplier.is_active ? "Activo" : "Inactivo"}
-                  </span>
-                </div>
+              <div className="mt-4 space-y-2">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
               </div>
             </Card>
           ))}
         </div>
+      ) : filteredProveedores.length === 0 ? (
+        <Card className="bg-white border-[#F26522]/20 p-12 text-center shadow-sm">
+          <Truck className="w-16 h-16 text-[#1B1B1B]/20 mx-auto mb-4" />
+          <p className="text-[#1B1B1B]/60 font-medium mb-4">No hay proveedores registrados</p>
+          <Button variant="outline" onClick={handleOpenCreate} className="border-[#F26522]/30 hover:bg-[#F26522]/5 text-[#F26522]">
+            Crear el primero
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProveedores.map((proveedor) => (
+            <SupplierCard
+              key={proveedor.id}
+              proveedor={proveedor}
+              onEdit={handleOpenEdit}
+              onDelete={handleDeleteClick}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#020617] border-[#FF6B35]/20 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              {editingSupplier ? "Editar Proveedor" : "Nuevo Proveedor"}
-            </DialogTitle>
-            <DialogDescription className="text-white/60">
-              {editingSupplier
-                ? "Modifica los datos del proveedor"
-                : "Completa los datos para crear un nuevo proveedor"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label className="text-white/80">Nombre del Proveedor *</Label>
-              <Input
-                required
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Ej: Distribuidora ABC"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-white/80">Contacto</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="Nombre del contacto"
-                  value={formData.contact_name}
-                  onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label className="text-white/80">Teléfono</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="777-XXXXX"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-white/80">Email</Label>
-              <Input
-                type="email"
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="proveedor@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label className="text-white/80">Dirección</Label>
-              <Input
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Dirección completa"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-white/80">Ciudad</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="La Paz"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label className="text-white/80">Zona</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="Ej: Sopocachi"
-                  value={formData.zone}
-                  onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-white/80">NIT / RUC</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="Número de identificación tributaria"
-                  value={formData.tax_id}
-                  onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label className="text-white/80">Términos de Pago</Label>
-                <Input
-                  className="bg-white/5 border-[#FF6B35]/20 text-white"
-                  placeholder="Ej: 30 días, Contado"
-                  value={formData.payment_terms}
-                  onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-white/80">Calificación (1-5)</Label>
-              <Input
-                type="number"
-                min="1"
-                max="5"
-                step="0.1"
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="0"
-                value={formData.rating || ""}
-                onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-            <div>
-              <Label className="text-white/80">Notas</Label>
-              <Textarea
-                className="bg-white/5 border-[#FF6B35]/20 text-white"
-                placeholder="Información adicional sobre el proveedor"
-                rows={3}
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              />
-            </div>
-            <div className="flex items-center gap-2 pt-2">
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-              <Label className="text-white/80">Proveedor Activo</Label>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseDialog}
-                className="border-[#FF6B35]/20 text-white hover:bg-white/5"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white"
-              >
-                {editingSupplier ? "Actualizar" : "Crear"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <SupplierDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleSubmit}
+        initialData={editingSupplier}
+      />
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open: boolean) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-white border-[#F26522]/20">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#1B1B1B]">¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription className="text-[#1B1B1B]/60">
+              Esta acción no se puede deshacer. Se eliminará permanentemente al proveedor.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1B1B1B]/10 text-[#1B1B1B] hover:bg-gray-100">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-[#EA5455] hover:bg-[#EA5455]/90 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-

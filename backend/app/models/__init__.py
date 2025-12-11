@@ -5,44 +5,46 @@ from app.core.database import Base
 
 # Import all models here
 if Base:
-    from app.models.user import User
-    from app.models.inventory import InventoryItem
-    from app.models.recipe import Recipe, RecipeIngredient
-    from app.models.sale import Sale, SaleItem
-    from app.models.unit import Unit
-    from app.models.supplier import Supplier
-    from app.models.business_location import BusinessLocation
-    from app.models.inventory_cost_history import InventoryCostHistory
-    from app.models.inventory_movement import InventoryMovement
-    from app.models.recipe_version import RecipeVersion
-    from app.models.recipe_component import RecipeComponent
-    from app.models.chatbot_log import ChatbotLog
-    from app.models.role import Role, Permission, RolePermission, UserRole
-    from app.models.promotion import Promotion, SaleDiscount
-    from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem
+    from app.models.usuario import Usuario
+    from app.models.sucursal import Sucursal
+    from app.models.restaurante import Restaurante
+    from app.models.unidad import Unidad
+    from app.models.proveedor import Proveedor
+    from app.models.item_inventario import ItemInventario
+    from app.models.movimiento_inventario import MovimientoInventario
+    from app.models.historial_costo_inventario import HistorialCostoInventario
+    from app.models.receta import Receta, IngredienteReceta
+    from app.models.version_receta import VersionReceta
+    from app.models.venta import Venta, ItemVenta
+    from app.models.promocion import Promocion, DescuentoVenta
+    from app.models.orden_compra import OrdenCompra, ItemOrdenCompra
+    from app.models.rol import Rol, Permiso, PermisoRol, UsuarioRol
+    from app.models.caja import CajaSesion
+    from app.models.configuracion import Configuracion
+    # from app.models.chatbot_log import ChatbotLog # Pendiente
 
 __all__ = [
-    "User",
-    "InventoryItem",
-    "Recipe",
-    "RecipeIngredient",
-    "Sale",
-    "SaleItem",
-    "Unit",
-    "Supplier",
-    "BusinessLocation",
-    "InventoryCostHistory",
-    "InventoryMovement",
-    "RecipeVersion",
-    "RecipeComponent",
-    "ChatbotLog",
-    "Role",
-    "Permission",
-    "RolePermission",
-    "UserRole",
-    "Promotion",
-    "SaleDiscount",
-    "PurchaseOrder",
-    "PurchaseOrderItem"
+    "Usuario",
+    "Sucursal",
+    "Restaurante",
+    "Unidad",
+    "Proveedor",
+    "ItemInventario",
+    "MovimientoInventario",
+    "HistorialCostoInventario",
+    "Receta",
+    "IngredienteReceta",
+    "VersionReceta",
+    "Venta",
+    "ItemVenta",
+    "Promocion",
+    "DescuentoVenta",
+    "OrdenCompra",
+    "ItemOrdenCompra",
+    "Rol",
+    "Permiso",
+    "PermisoRol",
+    "UsuarioRol",
+    "CajaSesion",
+    "Configuracion"
 ]
-

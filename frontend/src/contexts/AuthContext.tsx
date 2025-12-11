@@ -1,29 +1,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  full_name?: string;
-  role?: string;
-}
+import { Usuario } from '../types';
+import { authApi } from '../services/api';
 
 interface AuthContextType {
-  user: User | null;
+  usuario: Usuario | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (nombreUsuario: string, contrasena: string) => Promise<void>;
   logout: () => void;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'gastrosmart_auth';
+const AUTH_STORAGE_KEY = 'gastrosmart_auth_es';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar sesión guardada al iniciar
@@ -32,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedAuth) {
       try {
         const authData = JSON.parse(savedAuth);
-        setUser(authData.user);
+        setUsuario(authData.usuario);
       } catch (error) {
         console.error('Error loading saved auth:', error);
         localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -41,33 +35,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (nombreUsuario: string, contrasena: string) => {
     try {
       setIsLoading(true);
-      
-      // Simulación de login - En producción esto debería llamar a tu API
-      // Por ahora, aceptamos cualquier credencial para desarrollo
-      // TODO: Reemplazar con llamada real a la API de autenticación
-      
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Crear usuario simulado
-      const mockUser: User = {
-        id: '1',
-        username: username,
-        email: `${username}@gastrosmart.com`,
-        full_name: username,
-        role: 'admin'
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: mockUser }));
-      
+
+      // Llamada real a la API
+      const response = await authApi.login(nombreUsuario, contrasena);
+      const { usuario: usuarioData, access_token } = response;
+
+      // Guardar token y usuario
+      localStorage.setItem('token', access_token);
+      setUsuario(usuarioData);
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ usuario: usuarioData }));
+
       toast.success('Sesión iniciada correctamente');
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error?.message || 'Error al iniciar sesión');
+      console.error("Login error:", error.response?.data?.detail || error.message || error);
+      toast.error(error?.response?.data?.detail || 'Error al iniciar sesión');
       throw error;
     } finally {
       setIsLoading(false);
@@ -75,19 +59,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    setUser(null);
+    setUsuario(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem('token');
     toast.success('Sesión cerrada');
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (!usuario) return false;
+    if (usuario.es_superusuario) return true;
+    if (usuario.permisos?.includes('all') || usuario.permisos?.includes('admin')) return true;
+    return usuario.permisos?.includes(permission) || false;
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isAuthenticated: !!user,
+        usuario,
+        isAuthenticated: !!usuario,
         isLoading,
         login,
         logout,
+        hasPermission,
       }}
     >
       {children}
@@ -102,4 +95,3 @@ export function useAuth() {
   }
   return context;
 }
-
