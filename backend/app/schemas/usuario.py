@@ -9,6 +9,7 @@ class UsuarioBase(BaseModel):
     telefono: Optional[str] = None
     activo: bool = True
     es_superusuario: bool = False
+    sucursal_default_id: Optional[str] = None
 
 class UsuarioCreate(UsuarioBase):
     contrasena: str

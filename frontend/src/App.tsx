@@ -20,6 +20,7 @@ import { Users } from "./components/Users";
 import { Roles } from "./components/Roles";
 import { Promotions } from "./components/Promotions";
 import { PurchaseOrders } from "./components/PurchaseOrders";
+import POS from "./pages/POS";
 import { Toaster } from "sonner";
 
 function AppContent() {
@@ -68,6 +69,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/pos" element={<ProtectedRoute permission="gestionar_ventas"><POS /></ProtectedRoute>} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </AuthProvider>

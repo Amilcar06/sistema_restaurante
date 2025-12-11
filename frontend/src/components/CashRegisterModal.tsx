@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, DollarSign, Lock, Unlock, AlertTriangle, CheckCircle, Store } from 'lucide-react';
+import { X, Lock, Unlock, AlertTriangle, CheckCircle, Store } from 'lucide-react';
 import { cajaApi } from '../services/api';
 import { CajaSesion } from '../types';
 

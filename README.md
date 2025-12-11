@@ -1,10 +1,10 @@
-# GastroSmart AI - Sistema Integral de Control Gastronómico con IA
+# GastroSmart - Sistema Integral de Control Gastronómico con IA
 
 Sistema completo para la gestión de negocios gastronómicos con integración de Inteligencia Artificial, diseñado para optimizar la gestión operativa y financiera.
 
 ## 📋 Descripción
 
-GastroSmart AI es una plataforma tecnológica que combina Inteligencia Artificial, análisis de datos y automatización inteligente para transformar la gestión de restaurantes. Permite el control de inventarios, recetas, ventas, personal y reportes financieros, todo potenciado por un asistente virtual inteligente.
+GastroSmart es una plataforma tecnológica que combina Inteligencia Artificial, análisis de datos y automatización inteligente para transformar la gestión de restaurantes. Permite el control de inventarios, recetas, ventas, personal y reportes financieros, todo potenciado por un asistente virtual inteligente.
 
 ## 🚀 Características Principales
 
@@ -77,16 +77,15 @@ Consulta la [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para detalles completos
 
 ## 👥 Equipo de Desarrollo
 
-- Quispe Ortiz Luis Alfredo
-- Yujra Chipana Amilcar Josias
-- Quispe Mamani Juan Gabriel
-- Leon Guzman Mabel
-- Gomez Ramos Jose Guadalupe
-- Macias Quispe Alejandro Sergio
+Univ. Espinoza Ticona Yherco Yhafar
+Univ. Macias Quispe Sergio Alejandro
+Univ. Quispe Mamani Juan Gabriel
+Univ. Quispe Ortiz Luis Alfredo
+Univ. Yujra Chipana Amilcar Josias
 
 ---
 
-**Materia**: Emprendimiento e Innovación Tecnológica  
-**Docente**: Lic. Juan Cayoja Cortez  
+**Materia**: Análisis y Diseño de Sistemas II
+**Docente**: M.Sc. Manuel Ramiro Flores Rojas
 **Universidad Mayor de San Andrés**  
 **La Paz - Bolivia**

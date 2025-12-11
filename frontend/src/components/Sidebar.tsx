@@ -265,6 +265,17 @@ export function Sidebar() {
           </TooltipProvider>
 
           <Button
+            onClick={() => navigate('/pos')}
+            variant="ghost"
+            className="w-full justify-start text-[#F26522] hover:text-white hover:bg-[#F26522] transition-all group mb-2 font-bold uppercase tracking-wide"
+          >
+            <div className="w-5 h-5 mr-2 flex items-center justify-center border-2 border-current rounded-md group-hover:border-white transition-colors">
+              <div className="w-2.5 h-0.5 bg-current group-hover:bg-white"></div>
+            </div>
+            Ir a POS
+          </Button>
+
+          <Button
             onClick={() => setIsCashModalOpen(true)}
             variant="ghost"
             className="w-full justify-start text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors group mb-2"
