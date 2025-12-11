@@ -77,11 +77,11 @@ Consulta la [GUIA_INSTALACION.md](./GUIA_INSTALACION.md) para detalles completos
 
 ## 👥 Equipo de Desarrollo
 
-Univ. Espinoza Ticona Yherco Yhafar
-Univ. Macias Quispe Sergio Alejandro
-Univ. Quispe Mamani Juan Gabriel
-Univ. Quispe Ortiz Luis Alfredo
-Univ. Yujra Chipana Amilcar Josias
+- Univ. Espinoza Ticona Yherco Yhafar
+- Univ. Macias Quispe Sergio Alejandro
+- Univ. Quispe Mamani Juan Gabriel
+- Univ. Quispe Ortiz Luis Alfredo
+- Univ. Yujra Chipana Amilcar Josias
 
 ---
 
