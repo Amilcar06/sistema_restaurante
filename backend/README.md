@@ -32,19 +32,19 @@ cp .env.example .env
 
 4. Configurar base de datos:
 
-**Para PostgreSQL:**
+**Opción Recomendada (Datos Demo):**
+Este script recrea la base de datos y carga datos de prueba para "Parrillada El Buen Gusto" (Usuarios, Recetas, Inventario, Ventas).
+```bash
+python scripts/seed_beef_and_beer.py
+```
+
+**Opción Manual (Solo Esquema):**
 ```bash
 # Crear base de datos
 createdb gastrosmart
 
-# Ejecutar migraciones (cuando estén listas)
+# Ejecutar migraciones
 alembic upgrade head
-```
-
-**Para MongoDB:**
-```bash
-# Asegúrate de tener MongoDB corriendo
-mongod
 ```
 
 ## Ejecutar el servidor
@@ -59,6 +59,15 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 El servidor estará disponible en `http://localhost:8000`
+
+## Credenciales de Acceso (Demo)
+
+Si ejecutaste el script de seed, puedes usar:
+- **Admin**: `admin@beefandbeer.bo` / `admin123`
+- **Gerente**: `gerente@beefandbeer.bo` / `gerente123`
+- **Cajero**: `cajero@beefandbeer.bo` / `cajero123`
+- **Mesero**: `mesero1@beefandbeer.bo` / `mesero123`
+- **Cocina**: `chef@beefandbeer.bo` / `chef123`
 
 ## Documentación API
 

@@ -143,7 +143,7 @@ El frontend estará disponible en `http://localhost:5173`.
 ## ✅ Verificación
 
 1.  Abre tu navegador en `http://localhost:5173`.
-2.  Inicia sesión con las credenciales de la demo (`admin@parrillada.bo` / `admin123`).
+2.  Inicia sesión con las credenciales de la demo (`admin@beefandbeer.bo` / `admin123`).
 3.  **Dashboard**: Deberías ver gráficos de ventas y alertas de stock (no vacío).
 4.  **Chatbot**: Abre el chat (esquina inferior derecha) y pregunta "¿Cuánto vendí hoy?".
 5.  **Recetas/Inventario**: Navega para ver los datos precargados de carnes y bebidas.
