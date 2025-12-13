@@ -31,6 +31,7 @@ class RecetaBase(BaseModel):
     tiempo_preparacion: Optional[int] = None
     porciones: int = 1
     instrucciones: Optional[str] = None
+    imagen_url: Optional[str] = None
     disponible: bool = True
     puntaje_popularidad: float = 0.0
 
@@ -42,6 +43,7 @@ class RecetaUpdate(RecetaBase):
     nombre: Optional[str] = None
     categoria: Optional[str] = None
     precio: Optional[float] = None
+    imagen_url: Optional[str] = None
     ingredientes: Optional[List[IngredienteRecetaCreate]] = None
 
 class RecetaResponse(RecetaBase):

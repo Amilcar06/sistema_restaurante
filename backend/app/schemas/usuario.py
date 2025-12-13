@@ -25,6 +25,7 @@ class UsuarioResponse(UsuarioBase):
     id: str
     created_at: datetime
     updated_at: datetime
+    rol_id: Optional[str] = None
     permisos: List[str] = []
 
     class Config:

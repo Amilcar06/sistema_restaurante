@@ -53,3 +53,12 @@ class Usuario(Base):
                     if permiso_rol.permiso:
                         perms.add(permiso_rol.permiso.nombre)
         return list(perms)
+
+    @property
+    def rol_id(self):
+        """
+        Retorna el ID del primer rol asignado (para compatibilidad con frontend simple).
+        """
+        if self.roles and len(self.roles) > 0:
+            return self.roles[0].rol_id
+        return None

@@ -44,6 +44,7 @@ export function Recipes() {
 
   const [formData, setFormData] = useState({
     nombre: "",
+    imagen_url: "",
     categoria: "",
     subcategoria: "",
     precio: 0,
@@ -213,6 +214,7 @@ export function Recipes() {
       const fullRecipe = await recetasApi.obtenerPorId(recipe.id);
       setFormData({
         nombre: fullRecipe.nombre,
+        imagen_url: fullRecipe.imagen_url || "",
         categoria: fullRecipe.categoria,
         subcategoria: fullRecipe.subcategoria || "",
         precio: fullRecipe.precio,
@@ -238,6 +240,7 @@ export function Recipes() {
       // Fallback
       setFormData({
         nombre: recipe.nombre,
+        imagen_url: recipe.imagen_url || "",
         categoria: recipe.categoria,
         subcategoria: recipe.subcategoria || "",
         precio: recipe.precio,
@@ -265,6 +268,7 @@ export function Recipes() {
   const resetForm = () => {
     setFormData({
       nombre: "",
+      imagen_url: "",
       categoria: "",
       subcategoria: "",
       precio: 0,
@@ -445,6 +449,16 @@ export function Recipes() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="mb-6">
+                  <Label className="text-[#1B1B1B] font-medium mb-2 block">URL de Imagen</Label>
+                  <Input
+                    className="bg-white border-[#F26522]/20 text-[#1B1B1B] focus:border-[#F26522] focus:ring-[#F26522]/20 transition-all font-medium"
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    value={formData.imagen_url}
+                    onChange={(e) => setFormData({ ...formData, imagen_url: e.target.value })}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">

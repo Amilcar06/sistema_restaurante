@@ -12,6 +12,7 @@ class Receta(Base):
     id = Column(String, primary_key=True, index=True)
     nombre = Column(String, nullable=False, index=True)
     descripcion = Column(Text)
+    imagen_url = Column(String, nullable=True)
     categoria = Column(String, nullable=False, index=True)
     subcategoria = Column(String)
     precio = Column(Float, nullable=False)

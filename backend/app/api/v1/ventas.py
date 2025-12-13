@@ -15,25 +15,54 @@ from app.models.sucursal import Sucursal
 from app.models.sucursal import Sucursal
 from app.models.receta import Receta, IngredienteReceta
 from app.models.item_inventario import ItemInventario
+from app.models.caja import CajaSesion
+from app.models.configuracion import Configuracion
+from app.api.deps import get_current_active_user
 
 router = APIRouter()
 
 @router.get("/", response_model=List[VentaResponse])
-async def obtener_ventas(db: Session = Depends(get_db)):
+def obtener_ventas(db: Session = Depends(get_db)):
     """Obtener todas las ventas"""
     ventas = db.query(Venta).order_by(desc(Venta.fecha_creacion)).all()
     return ventas
 
 @router.post("/", response_model=VentaResponse)
-async def crear_venta(venta: VentaCreate, db: Session = Depends(get_db)):
-    """Crear una nueva venta"""
+def crear_venta(
+    venta: VentaCreate, 
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user)
+):
+    """Crear una nueva venta con validaciones estrictas"""
     
-    # Validar sucursal
+    # 0. Validar Caja Abierta
+    # Buscar sesión de caja abierta para el usuario en esta sucursal
+    caja_sesion = db.query(CajaSesion).filter(
+        CajaSesion.usuario_id == current_user.id,
+        CajaSesion.sucursal_id == venta.sucursal_id,
+        CajaSesion.estado == "ABIERTA"
+    ).first()
+    
+    if not caja_sesion:
+        raise HTTPException(
+            status_code=400, 
+            detail="No tienes una caja abierta en esta sucursal. Por favor abre caja antes de vender."
+        )
+
+    # 1. Validar sucursal
     sucursal = db.query(Sucursal).filter(Sucursal.id == venta.sucursal_id).first()
     if not sucursal:
         raise HTTPException(status_code=404, detail="Sucursal no encontrada")
     
-    # Generar número de venta (simple por ahora)
+    # 2. Seguridad: Forzar mesero_id al usuario actual (o validar permisos si se quiere permitir vender por otros)
+    # Por ahora, estricto: la venta la hace quien está logueado
+    venta.mesero_id = current_user.id
+    
+    # 3. Validar Configuración de Stock
+    config = db.query(Configuracion).first()
+    permitir_stock_negativo = config.permitir_stock_negativo if config else True
+    
+    # Generar número de venta
     numero_venta = f"V-{int(datetime.utcnow().timestamp())}"
     
     db_venta = Venta(
@@ -58,7 +87,7 @@ async def crear_venta(venta: VentaCreate, db: Session = Depends(get_db)):
     db.add(db_venta)
     db.flush()
     
-    # Agregar items
+    # Agregar items y validar stock
     for item in venta.items:
         db_item = ItemVenta(
             id=str(uuid.uuid4()),
@@ -72,28 +101,28 @@ async def crear_venta(venta: VentaCreate, db: Session = Depends(get_db)):
         db.add(db_item)
 
         # Descontar de inventario
-        # 1. Obtener receta con sus ingredientes
         receta = db.query(Receta).filter(Receta.id == item.receta_id).first()
         
         if receta and receta.ingredientes:
             for ingrediente in receta.ingredientes:
                 if ingrediente.item_inventario_id:
-                    # 2. Buscar el item de inventario correspondiente en la sucursal
                     item_inv = db.query(ItemInventario).filter(
                         ItemInventario.id == ingrediente.item_inventario_id,
                         ItemInventario.sucursal_id == venta.sucursal_id
                     ).first()
                     
                     if item_inv:
-                        # 3. Calcular cantidad a descontar
-                        cantidad_total = ingrediente.cantidad * item.cantidad
+                        cantidad_necesaria = ingrediente.cantidad * item.cantidad
                         
-                        # 4. Actualizar stock (permitiendo negativos)
-                        item_inv.cantidad -= cantidad_total
+                        # Validar stock si no se permite negativo
+                        if not permitir_stock_negativo and (item_inv.cantidad - cantidad_necesaria) < 0:
+                            raise HTTPException(
+                                status_code=400,
+                                detail=f"Stock insuficiente para '{item_inv.nombre}'. Disponible: {item_inv.cantidad}, Necesario: {cantidad_necesaria}"
+                            )
                         
-                        # Actualizar fecha de actualización
+                        item_inv.cantidad -= cantidad_necesaria
                         item_inv.ultima_actualizacion = datetime.utcnow()
-                        
                         db.add(item_inv)
     
     db.commit()
@@ -101,7 +130,7 @@ async def crear_venta(venta: VentaCreate, db: Session = Depends(get_db)):
     return db_venta
 
 @router.get("/{venta_id}", response_model=VentaResponse)
-async def obtener_venta(venta_id: str, db: Session = Depends(get_db)):
+def obtener_venta(venta_id: str, db: Session = Depends(get_db)):
     """Obtener una venta específica"""
     venta = db.query(Venta).filter(Venta.id == venta_id).first()
     if not venta:
@@ -109,7 +138,7 @@ async def obtener_venta(venta_id: str, db: Session = Depends(get_db)):
     return venta
 
 @router.put("/{venta_id}", response_model=VentaResponse)
-async def actualizar_venta(
+def actualizar_venta(
     venta_id: str,
     venta_update: VentaUpdate,
     db: Session = Depends(get_db)

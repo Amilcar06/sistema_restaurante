@@ -32,10 +32,17 @@ const ProductCard = ({ product, onAdd }: { product: Receta; onAdd: (p: Receta) =
             className="bg-white rounded-xl shadow-sm border border-[#1B1B1B]/5 overflow-hidden cursor-pointer hover:shadow-md hover:border-[#F26522]/30 transition-all group h-[180px] flex flex-col"
         >
             <div className="h-28 bg-[#1B1B1B]/5 relative overflow-hidden">
-                {/* Placeholder for image - in real app would match product.image */}
-                <div className="absolute inset-0 flex items-center justify-center text-[#1B1B1B]/10 group-hover:text-[#F26522]/20 transition-colors">
-                    <UtensilsCrossed className="w-12 h-12" />
-                </div>
+                {product.imagen_url ? (
+                    <img
+                        src={product.imagen_url}
+                        alt={product.nombre}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-[#1B1B1B]/10 group-hover:text-[#F26522]/20 transition-colors">
+                        <UtensilsCrossed className="w-12 h-12" />
+                    </div>
+                )}
                 <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-[#1B1B1B] shadow-sm">
                     Bs. {product.precio.toFixed(2)}
                 </div>

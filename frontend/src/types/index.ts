@@ -131,6 +131,7 @@ export interface Receta {
     id: string;
     nombre: string;
     descripcion?: string;
+    imagen_url?: string;
     categoria: string;
     subcategoria?: string;
     precio: number;
@@ -152,6 +153,7 @@ export interface Receta {
 export interface RecipeCreate {
     nombre: string;
     descripcion?: string;
+    imagen_url?: string;
     categoria: string;
     subcategoria?: string;
     precio: number;

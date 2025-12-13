@@ -16,13 +16,13 @@ from app.models.sucursal import Sucursal
 router = APIRouter()
 
 @router.get("/", response_model=List[RecetaResponse])
-async def obtener_recetas(db: Session = Depends(get_db)):
+def obtener_recetas(db: Session = Depends(get_db)):
     """Obtener todas las recetas"""
     recetas = db.query(Receta).order_by(desc(Receta.created_at)).all()
     return recetas
 
 @router.post("/", response_model=RecetaResponse)
-async def crear_receta(receta: RecetaCreate, db: Session = Depends(get_db)):
+def crear_receta(receta: RecetaCreate, db: Session = Depends(get_db)):
     """Crear una nueva receta"""
     
     # Validar sucursal
@@ -34,6 +34,7 @@ async def crear_receta(receta: RecetaCreate, db: Session = Depends(get_db)):
         id=str(uuid.uuid4()),
         nombre=receta.nombre,
         descripcion=receta.descripcion,
+        imagen_url=receta.imagen_url,
         categoria=receta.categoria,
         subcategoria=receta.subcategoria,
         precio=receta.precio,
@@ -70,7 +71,7 @@ async def crear_receta(receta: RecetaCreate, db: Session = Depends(get_db)):
     return db_receta
 
 @router.get("/{receta_id}", response_model=RecetaResponse)
-async def obtener_receta(receta_id: str, db: Session = Depends(get_db)):
+def obtener_receta(receta_id: str, db: Session = Depends(get_db)):
     """Obtener una receta específica"""
     receta = db.query(Receta).filter(Receta.id == receta_id).first()
     if not receta:
@@ -78,7 +79,7 @@ async def obtener_receta(receta_id: str, db: Session = Depends(get_db)):
     return receta
 
 @router.put("/{receta_id}", response_model=RecetaResponse)
-async def actualizar_receta(
+def actualizar_receta(
     receta_id: str,
     receta_update: RecetaUpdate,
     db: Session = Depends(get_db)
@@ -117,7 +118,7 @@ async def actualizar_receta(
     return db_receta
 
 @router.delete("/{receta_id}")
-async def eliminar_receta(receta_id: str, db: Session = Depends(get_db)):
+def eliminar_receta(receta_id: str, db: Session = Depends(get_db)):
     """Eliminar una receta"""
     db_receta = db.query(Receta).filter(Receta.id == receta_id).first()
     if not db_receta:

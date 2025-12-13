@@ -23,5 +23,6 @@ class Configuracion(Base):
     notif_reporte_diario = Column(Boolean, default=True)
     notif_sugerencias_ia = Column(Boolean, default=True)
     notif_margen_bajo = Column(Boolean, default=False)
+    permitir_stock_negativo = Column(Boolean, default=True)
     
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
