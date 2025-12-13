@@ -31,23 +31,23 @@ import {
 
 // Helper to determine the API URL
 const getApiUrl = () => {
-    // 1. Try VITE_API_URL (standard for many setups)
-    const envUrl = (import.meta as any).env.VITE_API_URL || (import.meta as any).env.VITE_API_BASE_URL;
-    
-    // 2. Default to localhost if no env var is set
-    let url = envUrl || 'http://localhost:8000';
+  // 1. Try VITE_API_URL (standard for many setups)
+  const envUrl = (import.meta as any).env.VITE_API_URL || (import.meta as any).env.VITE_API_BASE_URL;
 
-    // 3. Ensure it doesn't end with a slash to avoid double slashes when appending endpoints
-    if (url.endsWith('/')) {
-        url = url.slice(0, -1);
-    }
+  // 2. Default to localhost if no env var is set
+  let url = envUrl || 'http://localhost:8000';
 
-    // 4. Ensure it ends with /api/v1 if not already present
-    if (!url.includes('/api/v1')) {
-        url = `${url}/api/v1`;
-    }
+  // 3. Ensure it doesn't end with a slash to avoid double slashes when appending endpoints
+  if (url.endsWith('/')) {
+    url = url.slice(0, -1);
+  }
 
-    return url;
+  // 4. Ensure it ends with /api/v1 if not already present
+  if (!url.includes('/api/v1')) {
+    url = `${url}/api/v1`;
+  }
+
+  return url;
 };
 
 const API_BASE_URL = getApiUrl();
@@ -72,6 +72,12 @@ class ApiClient {
     // Only set Content-Type to json if body is NOT FormData
     if (!(options.body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
+    }
+
+    // Inject Auth Token
+    const token = localStorage.getItem('token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     const config: RequestInit = {

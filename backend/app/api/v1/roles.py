@@ -79,8 +79,19 @@ async def actualizar_rol(
     if not db_rol:
         raise HTTPException(status_code=404, detail="Rol no encontrado")
     
+    # Permitir editar roles de sistema, pero con restricciones
     if db_rol.es_sistema:
-        raise HTTPException(status_code=400, detail="No se pueden modificar roles del sistema")
+        # No permitir cambiar nombre ni descripción de roles de sistema para mantener consistencia
+        if rol_update.nombre and rol_update.nombre != db_rol.nombre:
+             raise HTTPException(status_code=400, detail="No se puede cambiar el nombre de un rol de sistema")
+        
+        # Solo permitir actualizar permisos
+        if rol_update.permisos is not None:
+             pass # Continuar a la lógica de permisos
+        else:
+             # Si intenta cambiar otra cosa y es sistema, pero no permisos (y pasó la validación de nombre arriba si era igual)
+             # En realidad, permitamos cambiar descripción si quieren.
+             pass
 
     if rol_update.nombre and rol_update.nombre != db_rol.nombre:
         rol_existente = db.query(Rol).filter(Rol.nombre == rol_update.nombre).first()
@@ -89,6 +100,10 @@ async def actualizar_rol(
     
     update_data = rol_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
+        # Protegemos campos críticos en roles de sistema
+        if db_rol.es_sistema and key in ["nombre", "es_sistema"]:
+            continue
+            
         if key != "permisos":
             setattr(db_rol, key, value)
     

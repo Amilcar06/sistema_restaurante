@@ -59,38 +59,36 @@ const RolCard = React.memo(({ rol, onEdit, onDelete }: RolCardProps) => (
                         </div>
                     </div>
                     <div className="flex gap-1">
-                        {!rol.es_sistema && (
-                            <>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10 h-8 w-8"
-                                            onClick={() => onEdit(rol)}
-                                            aria-label={`Editar rol ${rol.nombre}`}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>Editar Rol</p></TooltipContent>
-                                </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-[#1B1B1B]/40 hover:text-[#F26522] hover:bg-[#F26522]/10 h-8 w-8"
+                                    onClick={() => onEdit(rol)}
+                                    aria-label={`Editar rol ${rol.nombre}`}
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Editar Rol {rol.es_sistema && "(Sistema)"}</p></TooltipContent>
+                        </Tooltip>
 
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10 h-8 w-8"
-                                            onClick={() => onDelete(rol.id)}
-                                            aria-label={`Eliminar rol ${rol.nombre}`}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>Eliminar Rol</p></TooltipContent>
-                                </Tooltip>
-                            </>
+                        {!rol.es_sistema && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-[#1B1B1B]/40 hover:text-[#EA5455] hover:bg-[#EA5455]/10 h-8 w-8"
+                                        onClick={() => onDelete(rol.id)}
+                                        aria-label={`Eliminar rol ${rol.nombre}`}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Eliminar Rol</p></TooltipContent>
+                            </Tooltip>
                         )}
                         {rol.es_sistema && (
                             <Tooltip>
@@ -100,7 +98,7 @@ const RolCard = React.memo(({ rol, onEdit, onDelete }: RolCardProps) => (
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Los roles de sistema no pueden modificarse</p>
+                                    <p>Rol de sistema (Solo permisos editables)</p>
                                 </TooltipContent>
                             </Tooltip>
                         )}
@@ -322,11 +320,8 @@ export function Roles() {
 
         try {
             if (editingRole) {
-                // Check if system role
-                if (editingRole.es_sistema) {
-                    toast.error("No puedes editar un rol de sistema");
-                    return;
-                }
+                // Remove system role block
+
 
                 await rolesApi.actualizar(editingRole.id, formData as any);
                 toast.success(`Rol "${formData.nombre}" actualizado`);
@@ -483,6 +478,8 @@ export function Roles() {
                                             placeholder="Ej: Gerente de Ventas"
                                             required
                                             minLength={3}
+                                            disabled={editingRole?.es_sistema}
+                                            title={editingRole?.es_sistema ? "El nombre de roles de sistema no se puede cambiar" : ""}
                                         />
                                     </div>
                                     <div>

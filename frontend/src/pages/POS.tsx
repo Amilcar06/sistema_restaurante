@@ -231,9 +231,10 @@ export default function POS() {
             // Reset and Feedback
             setCart([]);
             alert("¡Venta Registrada Correctamente!"); // Replace with proper Toast later
-        } catch (error) {
+        } catch (error: any) {
             console.error("Checkout error:", error);
-            alert("Error al procesar la venta.");
+            const errorMessage = error.response?.data?.detail || "Error al procesar la venta.";
+            alert(`Error: ${errorMessage}`);
         } finally {
             setProcessing(false);
         }
