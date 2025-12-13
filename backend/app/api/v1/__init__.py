@@ -22,7 +22,8 @@ from app.api.v1 import (
     configuracion,
     auth,
     password_recovery,
-    caja
+    caja,
+    admin_db
     # alerts 
 )
 
@@ -30,6 +31,7 @@ api_router = APIRouter()
 
 api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(enums.router, prefix="/enums", tags=["enums"])
+api_router.include_router(admin_db.router, prefix="/admin", tags=["admin"])
 
 # Nuevos routers en español
 api_router.include_router(caja.router, prefix="/caja", tags=["caja"])
